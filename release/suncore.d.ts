@@ -211,13 +211,6 @@ declare module suncore {
     }
 
     /**
-     * 系统时间戳接口
-     */
-    export interface ITimeStamp extends ITimeline {
-        
-    }
-
-    /**
      * 定时器管理器接口
      */
     export interface ITimerManager {
@@ -255,6 +248,13 @@ declare module suncore {
     }
 
     /**
+     * 系统时间戳接口
+     */
+    export interface ITimeStamp extends ITimeline {
+        
+    }
+
+    /**
      * 任务抽象类
      */
     export abstract class AbstractTask extends puremvc.Notifier implements ITask {
@@ -274,23 +274,6 @@ declare module suncore {
          * 任务是否己经完成
          */
         done: boolean;
-    }
-
-    /**
-     * 简单任务对象
-     */
-    export class SimpleTask extends AbstractTask {
-        /**
-         * 任务逻辑Handler
-         */
-        private $handler: suncom.IHandler;
-
-        constructor(handler: suncom.IHandler);
-
-        /**
-         * 执行函数
-         */
-        run(): boolean;
     }
 
     /**
@@ -478,6 +461,23 @@ declare module suncore {
          * 帧同步是否己开启
          */
         readonly lockStep: boolean;
+    }
+
+    /**
+     * 简单任务对象
+     */
+    export class SimpleTask extends AbstractTask {
+        /**
+         * 任务逻辑Handler
+         */
+        private $handler: suncom.IHandler;
+
+        constructor(handler: suncom.IHandler);
+
+        /**
+         * 执行函数
+         */
+        run(): boolean;
     }
 
     /**

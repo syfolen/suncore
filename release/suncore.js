@@ -137,27 +137,6 @@ var suncore;
     }(puremvc.Notifier));
     suncore.AbstractTask = AbstractTask;
     /**
-     * 简单任务对象
-     */
-    var SimpleTask = /** @class */ (function (_super) {
-        __extends(SimpleTask, _super);
-        function SimpleTask(handler) {
-            var _this = _super.call(this) || this;
-            _this.$handler = handler;
-            return _this;
-        }
-        /**
-         * 执行函数
-         */
-        SimpleTask.prototype.run = function () {
-            // 执行任务
-            this.$handler.run();
-            return true;
-        };
-        return SimpleTask;
-    }(AbstractTask));
-    suncore.SimpleTask = SimpleTask;
-    /**
      * 创建游戏时间轴
      */
     var CreateTimelineCommand = /** @class */ (function (_super) {
@@ -737,6 +716,7 @@ var suncore;
          * @delta: 每帧的时间流逝值，单位为毫秒
          */
         Timeline.prototype.lapse = function (delta) {
+            this.$delta = delta;
             // 运行时间累加
             this.$runTime += delta;
         };
@@ -815,90 +795,6 @@ var suncore;
         return Timeline;
     }());
     suncore.Timeline = Timeline;
-    /**
-     * 系统时间戳
-     *
-     * 此类实现了整个客户端的核心机制，包括：
-     * 1. 系统时间戳实现
-     * 2. 游戏时间轴调度
-     * 3. 自定义定时器调度
-     * 4. 不同类型游戏消息的派发
-     */
-    var TimeStamp = /** @class */ (function (_super) {
-        __extends(TimeStamp, _super);
-        function TimeStamp() {
-            var _this = _super.call(this, false) || this;
-            /**
-             * 定时器管理器
-             */
-            _this.$timerManager = new TimerManager();
-            /**
-             * 消息管理器
-             */
-            _this.$messageManager = new MessageManager();
-            return _this;
-        }
-        /**
-         * 帧事件
-         */
-        TimeStamp.prototype.lapse = function (delta) {
-            // 游戏未暂停
-            if (this.paused == false) {
-                _super.prototype.lapse.call(this, delta);
-                // 时间轴未暂停
-                if (System.timeline.paused == false) {
-                    // 若游戏时间轴未开启帧同步，则直接对游戏时间进行同步
-                    if (System.timeline.lockStep == false) {
-                        System.timeline.lapse(delta);
-                    }
-                }
-            }
-            // 响应定时器
-            this.$timerManager.executeTimer();
-            // 处理消息
-            this.$messageManager.dealMessage();
-            // 处理临时消息
-            this.$messageManager.classifyMessages0();
-            // 始终派发帧事件
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.ENTER_FRAME);
-        };
-        /**
-         * 停止时间轴
-         * 1. 时间轴停止时，对应的模块无法被添加任务
-         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
-         */
-        TimeStamp.prototype.stop = function () {
-            this.$stopped = true;
-            // 清除定时器
-            System.timeStamp.timerManager.clearTimer(ModuleEnum.CUSTOM);
-            // 清除任务消息
-            System.timeStamp.messageManager.clearMessages(ModuleEnum.CUSTOM);
-            // 派发时间轴停止通知
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.TIMESTAMP_STOPPED);
-        };
-        Object.defineProperty(TimeStamp.prototype, "timerManager", {
-            /**
-             * 获取自定义定时器管理器
-             */
-            get: function () {
-                return this.$timerManager;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(TimeStamp.prototype, "messageManager", {
-            /**
-             * 获取消息管理器
-             */
-            get: function () {
-                return this.$messageManager;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return TimeStamp;
-    }(Timeline));
-    suncore.TimeStamp = TimeStamp;
     /**
      * 自定义定时器
      */
@@ -1109,4 +1005,109 @@ var suncore;
         return TimerManager;
     }());
     suncore.TimerManager = TimerManager;
+    /**
+     * 简单任务对象
+     */
+    var SimpleTask = /** @class */ (function (_super) {
+        __extends(SimpleTask, _super);
+        function SimpleTask(handler) {
+            var _this = _super.call(this) || this;
+            _this.$handler = handler;
+            return _this;
+        }
+        /**
+         * 执行函数
+         */
+        SimpleTask.prototype.run = function () {
+            // 执行任务
+            this.$handler.run();
+            return true;
+        };
+        return SimpleTask;
+    }(AbstractTask));
+    suncore.SimpleTask = SimpleTask;
+    /**
+     * 系统时间戳
+     *
+     * 此类实现了整个客户端的核心机制，包括：
+     * 1. 系统时间戳实现
+     * 2. 游戏时间轴调度
+     * 3. 自定义定时器调度
+     * 4. 不同类型游戏消息的派发
+     */
+    var TimeStamp = /** @class */ (function (_super) {
+        __extends(TimeStamp, _super);
+        function TimeStamp() {
+            var _this = _super.call(this, false) || this;
+            /**
+             * 定时器管理器
+             */
+            _this.$timerManager = new TimerManager();
+            /**
+             * 消息管理器
+             */
+            _this.$messageManager = new MessageManager();
+            return _this;
+        }
+        /**
+         * 帧事件
+         */
+        TimeStamp.prototype.lapse = function (delta) {
+            // 游戏未暂停
+            if (this.paused == false) {
+                _super.prototype.lapse.call(this, delta);
+                // 时间轴未暂停
+                if (System.timeline.paused == false) {
+                    // 若游戏时间轴未开启帧同步，则直接对游戏时间进行同步
+                    if (System.timeline.lockStep == false) {
+                        System.timeline.lapse(delta);
+                    }
+                }
+            }
+            // 响应定时器
+            this.$timerManager.executeTimer();
+            // 处理消息
+            this.$messageManager.dealMessage();
+            // 处理临时消息
+            this.$messageManager.classifyMessages0();
+            // 始终派发帧事件
+            puremvc.Facade.getInstance().sendNotification(NotifyKey.ENTER_FRAME);
+        };
+        /**
+         * 停止时间轴
+         * 1. 时间轴停止时，对应的模块无法被添加任务
+         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
+         */
+        TimeStamp.prototype.stop = function () {
+            this.$stopped = true;
+            // 清除定时器
+            System.timeStamp.timerManager.clearTimer(ModuleEnum.CUSTOM);
+            // 清除任务消息
+            System.timeStamp.messageManager.clearMessages(ModuleEnum.CUSTOM);
+            // 派发时间轴停止通知
+            puremvc.Facade.getInstance().sendNotification(NotifyKey.TIMESTAMP_STOPPED);
+        };
+        Object.defineProperty(TimeStamp.prototype, "timerManager", {
+            /**
+             * 获取自定义定时器管理器
+             */
+            get: function () {
+                return this.$timerManager;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(TimeStamp.prototype, "messageManager", {
+            /**
+             * 获取消息管理器
+             */
+            get: function () {
+                return this.$messageManager;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return TimeStamp;
+    }(Timeline));
+    suncore.TimeStamp = TimeStamp;
 })(suncore || (suncore = {}));
