@@ -151,7 +151,7 @@ module suncore {
          * 网络消息处理逻辑
          */
         private $dealSocketMessage(message: Message): void {
-            const data: SocketData = message.data;
+            const data: ISocketData = message.data;
             // NetConnectionNotifier.notify(data.cmd, data.socData);
         }
 

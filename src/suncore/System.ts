@@ -91,7 +91,7 @@ module suncore {
          * @TODO: 不确定网络消息在切换场景的时候是否会被清理掉
          */
         static addSocketMessage(cmd: number, socData: any): void {
-            const data: SocketData = new SocketData();
+            const data: ISocketData = new SocketData();
             data.cmd = cmd;
             data.socData = socData;
             const message: Message = new Message();

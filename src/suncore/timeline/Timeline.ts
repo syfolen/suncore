@@ -55,6 +55,7 @@ module suncore {
          * @delta: 每帧的时间流逝值，单位为毫秒
          */
         lapse(delta: number): void {
+            this.$delta = delta;
             // 运行时间累加
             this.$runTime += delta;
         }

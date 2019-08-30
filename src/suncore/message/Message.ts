@@ -24,7 +24,7 @@ module suncore {
         /**
          * 挂载的数据对象
          */
-        data: SocketData;
+        data: ISocketData;
 
         /**
          * 挂载的任务
