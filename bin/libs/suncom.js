@@ -39,215 +39,6 @@ var suncom;
         DebugMode[DebugMode["NORMAL"] = 128] = "NORMAL";
     })(DebugMode = suncom.DebugMode || (suncom.DebugMode = {}));
     /**
-     * 线性同余发生器
-     */
-    var Random = /** @class */ (function () {
-        function Random() {
-        }
-        /**
-         * 指定随机种子
-         */
-        Random.seed = function (value) {
-            Random.$r = value;
-        };
-        /**
-         * 返回一个随机数
-         */
-        Random.random = function () {
-            var r = dcodeIO.Long.fromNumber(Random.$r);
-            var A = dcodeIO.Long.fromNumber(Random.$A);
-            var C = dcodeIO.Long.fromNumber(Random.$C);
-            Random.$r = Math.floor(r.mul(A).add(C).low / Random.$M);
-            return (Random.$r % Random.$M + Random.$M) / (Random.$M * 2);
-        };
-        /**
-         * 随机种子
-         */
-        Random.$r = 1;
-        /**
-         * 随机数参数
-         */
-        Random.$A = 1103515245;
-        Random.$C = 12345;
-        Random.$M = 32767;
-        return Random;
-    }());
-    suncom.Random = Random;
-    /**
-     * 字典
-     */
-    var Dictionary = /** @class */ (function () {
-        function Dictionary() {
-            /**
-             * 数据源
-             */
-            this.$map = {};
-        }
-        /**
-         * 返回字典中指定key所映射的值
-         * @defaultValue: 默认值
-         */
-        Dictionary.prototype.get = function (key, defaultValue) {
-            if (typeof key == "string" && key.length > 0) {
-                if (this.$map[key] === void 0) {
-                    return defaultValue;
-                }
-                return this.$map[key];
-            }
-            else {
-                throw Error("Invalid Key:" + key);
-            }
-        };
-        /**
-         * 将指定值映射到字典中的指定key
-         */
-        Dictionary.prototype.put = function (key, value) {
-            if (typeof key == "string" && key.length > 0) {
-                this.$map[key] = value;
-            }
-            else {
-                throw Error("Invalid Key:" + key);
-            }
-        };
-        /**
-         * 将指定key从字典中移除
-         */
-        Dictionary.prototype.remove = function (key) {
-            if (typeof key == "string" && key.length > 0) {
-                delete this.$map[key];
-            }
-            else {
-                throw Error("Invalid Key:" + key);
-            }
-        };
-        return Dictionary;
-    }());
-    suncom.Dictionary = Dictionary;
-    /**
-      * 事件处理器
-      */
-    var Handler = /** @class */ (function () {
-        function Handler(caller, method, args, once) {
-            this.$args = args;
-            this.$caller = caller;
-            this.$method = method;
-        }
-        /**
-         * 执行处理器
-         */
-        Handler.prototype.run = function () {
-            if (this.$args === void 0) {
-                return this.$method.call(this.$caller);
-            }
-            else if (this.$args instanceof Array) {
-                return this.$method.apply(this.$caller, this.$args);
-            }
-            else {
-                return this.$method.call(this.$caller, this.$args);
-            }
-        };
-        /**
-         * 执行处理器，携带额外的参数
-         * @param args 参数列表，允许为任意类型的数据
-         */
-        Handler.prototype.runWith = function (args) {
-            if (this.$args === void 0) {
-                if (args instanceof Array) {
-                    return this.$method.apply(this.$caller, args);
-                }
-                else {
-                    return this.$method.call(this.$caller, args);
-                }
-            }
-            else {
-                return this.$method.apply(this.$caller, this.$args.concat(args));
-            }
-        };
-        /**
-         * 创建Handler的简单工厂方法
-         * @once: 己弃用
-         */
-        Handler.create = function (caller, method, args, once) {
-            return new Handler(caller, method, args, once);
-        };
-        return Handler;
-    }());
-    suncom.Handler = Handler;
-    /**
-      * 对象池
-      */
-    var Pool = /** @class */ (function () {
-        function Pool() {
-        }
-        /**
-         * 根据标识从池中获取对象，获取失败时返回null
-         */
-        Pool.getItem = function (sign) {
-            var array = Pool.$pool[sign] || null;
-            if (array != null && array.length > 0) {
-                var item = array.pop();
-                item["suncore$__inPool__"] = false;
-                return item;
-            }
-            return null;
-        };
-        /**
-         * 根据标识从池中获取对象，获取失败时将创建新的对象
-         */
-        Pool.getItemByClass = function (sign, cls, args) {
-            var item = Pool.getItem(sign);
-            if (item == null) {
-                if (Laya["Prefab"] && args === Laya["Prefab"]) {
-                    item = cls.create();
-                }
-                else {
-                    item = {};
-                    item.__proto__ = cls.prototype;
-                    if (args === void 0) {
-                        cls.call(item);
-                    }
-                    else if (args instanceof Array) {
-                        cls.apply(item, args);
-                    }
-                    else {
-                        cls.call(item, args);
-                    }
-                }
-            }
-            return item;
-        };
-        /**
-         * 根据标识回收对象
-         */
-        Pool.recover = function (sign, item) {
-            if (item["suncore$__inPool__"]) {
-                return;
-            }
-            item["suncore$__inPool__"] = true;
-            var array = Pool.$pool[sign] || null;
-            if (array == null) {
-                Pool.$pool[sign] = [item];
-            }
-            else {
-                array.push(item);
-            }
-        };
-        /**
-         * 清缓指定标识下的所有己缓存对象
-         */
-        Pool.clear = function (sign) {
-            if (Pool.$pool[sign]) {
-                delete Pool.$pool[sign];
-            }
-        };
-        /**
-         * 对象集合
-         */
-        Pool.$pool = {};
-        return Pool;
-    }());
-    suncom.Pool = Pool;
-    /**
       * 纯 js 公共方法类
       */
     var Common = /** @class */ (function () {
@@ -601,4 +392,213 @@ var suncom;
         return Common;
     }());
     suncom.Common = Common;
+    /**
+     * 字典
+     */
+    var Dictionary = /** @class */ (function () {
+        function Dictionary() {
+            /**
+             * 数据源
+             */
+            this.$map = {};
+        }
+        /**
+         * 返回字典中指定key所映射的值
+         * @defaultValue: 默认值
+         */
+        Dictionary.prototype.get = function (key, defaultValue) {
+            if (typeof key == "string" && key.length > 0) {
+                if (this.$map[key] === void 0) {
+                    return defaultValue;
+                }
+                return this.$map[key];
+            }
+            else {
+                throw Error("Invalid Key:" + key);
+            }
+        };
+        /**
+         * 将指定值映射到字典中的指定key
+         */
+        Dictionary.prototype.put = function (key, value) {
+            if (typeof key == "string" && key.length > 0) {
+                this.$map[key] = value;
+            }
+            else {
+                throw Error("Invalid Key:" + key);
+            }
+        };
+        /**
+         * 将指定key从字典中移除
+         */
+        Dictionary.prototype.remove = function (key) {
+            if (typeof key == "string" && key.length > 0) {
+                delete this.$map[key];
+            }
+            else {
+                throw Error("Invalid Key:" + key);
+            }
+        };
+        return Dictionary;
+    }());
+    suncom.Dictionary = Dictionary;
+    /**
+      * 事件处理器
+      */
+    var Handler = /** @class */ (function () {
+        function Handler(caller, method, args, once) {
+            this.$args = args;
+            this.$caller = caller;
+            this.$method = method;
+        }
+        /**
+         * 执行处理器
+         */
+        Handler.prototype.run = function () {
+            if (this.$args === void 0) {
+                return this.$method.call(this.$caller);
+            }
+            else if (this.$args instanceof Array) {
+                return this.$method.apply(this.$caller, this.$args);
+            }
+            else {
+                return this.$method.call(this.$caller, this.$args);
+            }
+        };
+        /**
+         * 执行处理器，携带额外的参数
+         * @param args 参数列表，允许为任意类型的数据
+         */
+        Handler.prototype.runWith = function (args) {
+            if (this.$args === void 0) {
+                if (args instanceof Array) {
+                    return this.$method.apply(this.$caller, args);
+                }
+                else {
+                    return this.$method.call(this.$caller, args);
+                }
+            }
+            else {
+                return this.$method.apply(this.$caller, this.$args.concat(args));
+            }
+        };
+        /**
+         * 创建Handler的简单工厂方法
+         * @once: 己弃用
+         */
+        Handler.create = function (caller, method, args, once) {
+            return new Handler(caller, method, args, once);
+        };
+        return Handler;
+    }());
+    suncom.Handler = Handler;
+    /**
+      * 对象池
+      */
+    var Pool = /** @class */ (function () {
+        function Pool() {
+        }
+        /**
+         * 根据标识从池中获取对象，获取失败时返回null
+         */
+        Pool.getItem = function (sign) {
+            var array = Pool.$pool[sign] || null;
+            if (array != null && array.length > 0) {
+                var item = array.pop();
+                item["suncore$__inPool__"] = false;
+                return item;
+            }
+            return null;
+        };
+        /**
+         * 根据标识从池中获取对象，获取失败时将创建新的对象
+         */
+        Pool.getItemByClass = function (sign, cls, args) {
+            var item = Pool.getItem(sign);
+            if (item == null) {
+                if (Laya["Prefab"] && args === Laya["Prefab"]) {
+                    item = cls.create();
+                }
+                else {
+                    item = {};
+                    item.__proto__ = cls.prototype;
+                    if (args === void 0) {
+                        cls.call(item);
+                    }
+                    else if (args instanceof Array) {
+                        cls.apply(item, args);
+                    }
+                    else {
+                        cls.call(item, args);
+                    }
+                }
+            }
+            return item;
+        };
+        /**
+         * 根据标识回收对象
+         */
+        Pool.recover = function (sign, item) {
+            if (item["suncore$__inPool__"]) {
+                return;
+            }
+            item["suncore$__inPool__"] = true;
+            var array = Pool.$pool[sign] || null;
+            if (array == null) {
+                Pool.$pool[sign] = [item];
+            }
+            else {
+                array.push(item);
+            }
+        };
+        /**
+         * 清缓指定标识下的所有己缓存对象
+         */
+        Pool.clear = function (sign) {
+            if (Pool.$pool[sign]) {
+                delete Pool.$pool[sign];
+            }
+        };
+        /**
+         * 对象集合
+         */
+        Pool.$pool = {};
+        return Pool;
+    }());
+    suncom.Pool = Pool;
+    /**
+     * 线性同余发生器
+     */
+    var Random = /** @class */ (function () {
+        function Random() {
+        }
+        /**
+         * 指定随机种子
+         */
+        Random.seed = function (value) {
+            Random.$r = value;
+        };
+        /**
+         * 返回一个随机数
+         */
+        Random.random = function () {
+            var r = dcodeIO.Long.fromNumber(Random.$r);
+            var A = dcodeIO.Long.fromNumber(Random.$A);
+            var C = dcodeIO.Long.fromNumber(Random.$C);
+            Random.$r = Math.floor(r.mul(A).add(C).low / Random.$M);
+            return (Random.$r % Random.$M + Random.$M) / (Random.$M * 2);
+        };
+        /**
+         * 随机种子
+         */
+        Random.$r = 1;
+        /**
+         * 随机数参数
+         */
+        Random.$A = 1103515245;
+        Random.$C = 12345;
+        Random.$M = 32767;
+        return Random;
+    }());
+    suncom.Random = Random;
 })(suncom || (suncom = {}));
