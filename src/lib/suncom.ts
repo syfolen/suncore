@@ -1,111 +1,158 @@
-var suncom;
-(function (suncom) {
+module suncom {
     /**
      * 调试模式
      */
-    var DebugMode;
-    (function (DebugMode) {
+    export enum DebugMode {
         /**
          * 调试信息
          */
-        DebugMode[DebugMode["DEBUG"] = 1] = "DEBUG";
+        DEBUG = 0x1,
+
         /**
          * 工程模式
          */
-        DebugMode[DebugMode["ENGINEER"] = 2] = "ENGINEER";
+        ENGINEER = 0x02,
+
         /**
          * 框架
          */
-        DebugMode[DebugMode["ENGINE"] = 4] = "ENGINE";
+        ENGINE = 0x4,
+
         /**
          * 原生
          */
-        DebugMode[DebugMode["NATIVE"] = 8] = "NATIVE";
+        NATIVE = 0x8,
+
         /**
          * 网络
          */
-        DebugMode[DebugMode["NETWORK"] = 16] = "NETWORK";
+        NETWORK = 0x10,
+
         /**
          * 网络心跳
          */
-        DebugMode[DebugMode["NETWORK_HEATBEAT"] = 32] = "NETWORK_HEATBEAT";
+        NETWORK_HEATBEAT = 0x20,
+
         /**
          * H5游戏盒子
          */
-        DebugMode[DebugMode["H5BOX"] = 64] = "H5BOX";
+        H5BOX = 0x40,
+
         /**
          * 普通
          */
-        DebugMode[DebugMode["NORMAL"] = 128] = "NORMAL";
-    })(DebugMode = suncom.DebugMode || (suncom.DebugMode = {}));
+        NORMAL = 0x80
+    }
+
+    /**
+     * 字典接口
+     */
+    export interface IDictionary {
+        /**
+         * 返回字典中指定key所映射的值
+         * @defaultValue: 默认值
+         */
+        get(key: string, defaultValue?: any): any;
+
+        /**
+         * 将指定值映射到字典中的指定key
+         */
+        put(key: string, value: any): void;
+
+        /**
+         * 将指定key从字典中移除
+         */
+        remove(key: string): void;
+    }
+
+    /**
+     * 事件处理器接口
+     */
+    export interface IHandler {
+        /**
+         * 执行处理器
+         */
+        run(): any;
+
+        /**
+         * 执行处理器，携带额外的参数
+         * @param args 参数列表，允许为任意类型的数据
+         */
+        runWith(args: any): any;
+    }
+
     /**
       * 纯 js 公共方法类
       */
-    var Common = /** @class */ (function () {
-        function Common() {
+    export abstract class Common {
+        /**
+         * Hash Id
+         */
+        private static $hashId: number = 0;
+
+        /**
+          * 获取 Hash ID
+          */
+        static get hashId(): number {
+            Common.$hashId++;
+            return Common.$hashId;
         }
-        Object.defineProperty(Common, "hashId", {
-            /**
-              * 获取 Hash ID
-              */
-            get: function () {
-                Common.$hashId++;
-                return Common.$hashId;
-            },
-            enumerable: true,
-            configurable: true
-        });
+
         /**
           * 获取类名
           * @cls: 指定类型
           */
-        Common.getClassName = function (cls) {
-            var classString = cls.toString().trim();
-            var index = classString.indexOf("(");
+        static getClassName(cls: new () => any): string {
+            const classString: string = cls.toString().trim();
+            const index: number = classString.indexOf("(");
             return classString.substring(9, index);
-        };
+        }
+
         /**
-          * 将枚举转化成字符串
+          * 将枚举转化成字符串 
           */
-        Common.convertEnumToString = function (value, oEnum) {
+        static convertEnumToString(value: number, oEnum: any): string {
             if (value === void 0) {
                 return null;
             }
-            var keys = Object.keys(oEnum);
-            for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
+            const keys: Array<string> = Object.keys(oEnum);
+            for (let i: number = 0; i < keys.length; i++) {
+                const key: string = keys[i];
                 if (oEnum[key] === value) {
                     return key;
                 }
             }
             return null;
-        };
+        }
+
         /**
           * 添加枚举值
+          * @concat: 是否用key和NAME和MODULE拼接作为key的值，默认true
           */
-        Common.addEnumString = function (key, oEnum, concat) {
-            if (concat === void 0) { concat = true; }
+        static addEnumString(key: string, oEnum: { NAME, MODULE }, concat: boolean = true): void {
             if (oEnum.NAME) {
                 if (oEnum[key]) {
-                    throw Error("Common=> Duplicate Enum String " + oEnum.NAME + "[" + key + "]");
+                    throw Error(`Common=> Duplicate Enum String ${oEnum.NAME}[${key}]`);
                 }
                 else if (concat == false) {
                     oEnum[key] = key;
                 }
                 else {
-                    oEnum[key] = oEnum.NAME + "." + oEnum.MODULE + "." + key;
+                    oEnum[key] = `${oEnum.NAME}.${oEnum.MODULE}.${key}`;
                 }
             }
             else {
-                throw Error("Common=> Invalid Enum Object");
+                throw Error(`Common=> Invalid Enum Object`);
             }
-        };
+        }
+
         //=================================================
         // 字符串相关
+
         /**
           * 判断是否为数字
           */
-        Common.isNumber = function (str) {
+        static isNumber(str: string | number): boolean {
             if (typeof str == "number") {
                 return true;
             }
@@ -113,11 +160,12 @@ var suncom;
                 return true;
             }
             return false;
-        };
+        }
+
         /**
           * 判断这符串是否为空
           */
-        Common.isStringInvalidOrEmpty = function (str) {
+        static isStringInvalidOrEmpty(str: string | number): boolean {
             if (typeof str == "number") {
                 return false;
             }
@@ -125,49 +173,55 @@ var suncom;
                 return false;
             }
             return true;
-        };
+        }
+
         /**
           * 格式化字符串
           */
-        Common.formatString = function (str, args) {
-            for (var i = 0; i < args.length; i++) {
+        static formatString(str: string, args: Array<string>): string {
+            for (let i: number = 0; i < args.length; i++) {
                 str = str.replace("{$}", args[i]);
             }
             return str;
-        };
+        }
+
         //=================================================
         // 数学相关
+
         /**
          * 返回绝对值
          */
-        Common.abs = function (a) {
+        static abs(a: number): number {
             if (a < 0) {
                 return -a;
             }
             return a;
-        };
+        }
+
         /**
          * 返回a与b中的较小值
          */
-        Common.min = function (a, b) {
+        static min(a: number, b: number): number {
             if (b < a) {
                 return b;
             }
             return a;
-        };
+        }
+
         /**
          * 返回a与b中的较大值
          */
-        Common.max = function (a, b) {
+        static max(a: number, b: number): number {
             if (a < b) {
                 return b;
             }
             return a;
-        };
+        }
+
         /**
           * 将 value 限制制于 min 和 max 之间
           */
-        Common.clamp = function (value, min, max) {
+        static clamp(value: number, min: number, max: number): number {
             if (value < min) {
                 return min;
             }
@@ -175,57 +229,66 @@ var suncom;
                 return max;
             }
             return value;
-        };
+        }
+
         /**
           * 返回四舍五入后的结果
           * 因各个平台实现的版本可能不一致，故自定义了此方法
+          * @n: 保留小数位数，默认为0
           */
-        Common.round = function (value, n) {
-            if (n === void 0) { n = 0; }
+        static round(value: number, n: number = 0): number {
             // 多保留一位小数点
-            var multiples = Math.pow(10, n + 1);
+            let multiples: number = Math.pow(10, n + 1);
             // 临时值（去小数点）
-            var tmpValue = Math.floor(value * multiples);
+            let tmpValue: number = Math.floor(value * multiples);
+
             // 浮点值
-            var floatValue = tmpValue % 10;
+            let floatValue: number = tmpValue % 10;
             // 整数值
-            var intValue = (tmpValue - floatValue) / 10;
+            let intValue: number = (tmpValue - floatValue) / 10;
+
             // 若浮点值小于 0 ，则进行修正
             if (floatValue < 0) {
                 intValue -= 1;
                 floatValue += 10;
             }
+
             // 四舍六入五成双
+
             if (floatValue > 5) {
                 intValue += 1;
             }
             else if (floatValue == 5) {
-                var modValue = intValue % 2;
+                const modValue: number = intValue % 2;
                 if (modValue == 1 || modValue == -1) {
                     intValue += 1;
                 }
             }
+
             // 还原小数点，并返回
             return intValue / Math.pow(10, n);
-        };
+        }
+
         /**
           * 返回 >= min 且 < max 的随机整数
           */
-        Common.random = function (min, max) {
-            var value = Random.random() * (max - min);
+        static random(min: number, max: number): number {
+            const value: number = Random.random() * (max - min);
             return Math.floor(value) + min;
-        };
+        }
+
         //=================================================
         // 时间相关
+
         /**
-          * 将参数转化为 Date
+          * 将参数转化为 Date 
           * @date: 任何格式的时间参数，可以为字符串或时间戳
           * 支持的格式说明：
           * 1. 时间戳
           * 2. hh:mm:ss
           * 3. yyyy-MM-dd hh:mm:ss
           */
-        Common.convertToDate = function (date) {
+        static convertToDate(date: string | number | Date): Date {
             if (date instanceof Date) {
                 return date;
             }
@@ -236,35 +299,37 @@ var suncom;
             // 自定义格式
             if (typeof date == "string") {
                 // 自定义时间格式 yyyy-MM-dd hh:mm:ss 或 hh:mm:ss
-                var array = date.split(" ");
-                var dates = array[0].split("-");
-                var times = array[1].split(":");
+                const array: Array<string> = date.split(" ");
+                const dates: Array<string> = array[0].split("-");
+                const times: Array<string> = array[1].split(":");
                 if (dates.length == 3 && times.length == 3) {
                     return new Date(Number(dates[0]), Number(dates[1]) - 1, Number(dates[2]), Number(times[0]), Number(times[1]), Number(times[2]));
                 }
                 return new Date(date);
             }
-            throw Error("Convert Date Error:" + date);
-        };
+            throw Error(`Convert Date Error:${date}`);
+        }
+
         /**
           * 时间累加
           * @datepart: yy, MM, ww, dd, hh, mm, ss, ms
           * @increment： 增量，可为负
           * @arg2: 时间参数
           */
-        Common.dateAdd = function (datepart, increment, time) {
-            var date = Common.convertToDate(time);
+        static dateAdd(datepart: string, increment: number, time: string | number | Date): number {
+            const date: Date = Common.convertToDate(time);
+
             //计算增量毫秒数
             if (datepart == "yy") {
                 date.setFullYear(date.getFullYear() + increment);
             }
             else if (datepart == "MM") {
-                var rem = increment % 12;
-                var mul = (increment - rem) / 12;
+                const rem: number = increment % 12;
+                const mul: number = (increment - rem) / 12;
                 // 增加倍数的年份
                 date.setFullYear(date.getFullYear() + mul);
                 // 增加余数的年份
-                var month = date.getMonth() + rem;
+                const month: number = date.getMonth() + rem;
                 if (month > 11) {
                     date.setMonth(month - 11);
                     date.setFullYear(date.getFullYear() + 1);
@@ -277,7 +342,9 @@ var suncom;
                     date.setMonth(month);
                 }
             }
-            var timestamp = date.valueOf();
+
+            let timestamp: number = date.valueOf();
+
             if (datepart == "ww") {
                 timestamp += increment * 7 * 24 * 3600 * 1000;
             }
@@ -296,57 +363,74 @@ var suncom;
             else if (datepart == "ms") {
                 timestamp += increment;
             }
+
             return timestamp;
-        };
+        }
+
         /**
           * 计算时间差
           * @datepart: yy, MM, ww, dd, hh, mm, ss, ms
           */
-        Common.dateDiff = function (datepart, date, date2) {
-            var d1 = Common.convertToDate(date);
-            var d2 = Common.convertToDate(date2);
-            var time = d1.valueOf();
-            var time2 = d2.valueOf();
+        static dateDiff(datepart: string, date: string | number | Date, date2: string | number | Date): number {
+            const d1: Date = Common.convertToDate(date);
+            const d2: Date = Common.convertToDate(date2);
+
+            let time: number = d1.valueOf();
+            let time2: number = d2.valueOf();
+
             if (datepart == "ms") {
                 return time2 - time;
             }
+
             time = Math.floor(time / 1000);
             time2 = Math.floor(time2 / 1000);
+
             if (datepart == "ss") {
                 return time2 - time;
             }
+
             time = Math.floor(time / 60);
             time2 = Math.floor(time2 / 60);
+
             if (datepart == "mm") {
                 return time2 - time;
             }
+
             time = Math.floor(time / 60);
             time2 = Math.floor(time2 / 60);
+
             if (datepart == "hh") {
                 return time2 - time;
             }
+
             time = Math.floor(time / 24);
             time2 = Math.floor(time2 / 24);
+
             if (datepart == "dd") {
                 return time2 - time;
             }
+
             if (datepart == "ww") {
                 //1970/1/1是星期四，故应当减去4天
                 return Math.floor(((time2 - 4) - (time - 4)) / 7);
             }
+
             if (datepart == "MM") {
                 return d2.getMonth() - d1.getMonth() + (d2.getFullYear() - d1.getFullYear()) * 12;
             }
+
             if (datepart == "yy") {
                 return d2.getFullYear() - d1.getFullYear();
             }
+
             return 0;
-        };
+        }
+
         /**
           * 格式化时间，支持：yy-MM-dd hh:mm:ss
           */
-        Common.formatDate = function (str, time) {
-            var date = Common.convertToDate(time);
+        static formatDate(str: string, time: string | number | Date): string {
+            const date: Date = Common.convertToDate(time);
             str = str.replace("yyyy", date.getFullYear().toString());
             str = str.replace("yy", date.getFullYear().toString().substr(2, 2));
             str = str.replace("MM", ("0" + (date.getMonth() + 1).toString()).substr(-2));
@@ -360,53 +444,52 @@ var suncom;
             str = str.replace("m", (date.getMinutes()).toString());
             str = str.replace("s", (date.getSeconds()).toString());
             return str;
-        };
+        }
+
         //=================================================
         // 其它
+
         /**
           * 返回 MD5 加密后的串
           */
-        Common.md5 = function (str) {
+        static md5(str: string): string {
             // return new md5().hex_md5(str);
             throw Error("暂未实现");
-        };
+        }
+
         /**
           * 生成 HTTP 签名
           */
-        Common.createSign = function (params) {
-            var keys = Object.keys(params).sort();
-            var array = [];
-            for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
+        static createSign(params: Object): string {
+            const keys: Array<string> = Object.keys(params).sort();
+            const array: Array<string> = [];
+
+            for (let i: number = 0; i < keys.length; i++) {
+                const key: string = keys[i];
                 if (key != "sign") {
-                    array.push(key + "=" + params[key]);
+                    array.push(`${key}=${params[key]}`);
                 }
             }
             array.push("key=123456789012345678");
+
             return Common.md5(array.join("&"));
-        };
-        /**
-         * Hash Id
-         */
-        Common.$hashId = 0;
-        return Common;
-    }());
-    suncom.Common = Common;
+        }
+    }
+
     /**
      * 字典
      */
-    var Dictionary = /** @class */ (function () {
-        function Dictionary() {
-            /**
-             * 数据源
-             */
-            this.$map = {};
-        }
+    export class Dictionary implements IDictionary {
+        /**
+         * 数据源
+         */
+        private $map: { [key: string]: any } = {};
+
         /**
          * 返回字典中指定key所映射的值
          * @defaultValue: 默认值
          */
-        Dictionary.prototype.get = function (key, defaultValue) {
+        get(key: string, defaultValue?: any): any {
             if (typeof key == "string" && key.length > 0) {
                 if (this.$map[key] === void 0) {
                     return defaultValue;
@@ -416,45 +499,62 @@ var suncom;
             else {
                 throw Error("Invalid Key:" + key);
             }
-        };
+        }
+
         /**
          * 将指定值映射到字典中的指定key
          */
-        Dictionary.prototype.put = function (key, value) {
+        put(key: string, value: any): void {
             if (typeof key == "string" && key.length > 0) {
                 this.$map[key] = value;
             }
             else {
                 throw Error("Invalid Key:" + key);
             }
-        };
+        }
+
         /**
          * 将指定key从字典中移除
          */
-        Dictionary.prototype.remove = function (key) {
+        remove(key: string): void {
             if (typeof key == "string" && key.length > 0) {
                 delete this.$map[key];
             }
             else {
                 throw Error("Invalid Key:" + key);
             }
-        };
-        return Dictionary;
-    }());
-    suncom.Dictionary = Dictionary;
+        }
+    }
+
     /**
       * 事件处理器
       */
-    var Handler = /** @class */ (function () {
-        function Handler(caller, method, args, once) {
+    export class Handler implements IHandler {
+        /**
+         * 参数列表
+         */
+        private $args: any;
+
+        /**
+         * 回调对象
+         */
+        private $caller: Object;
+
+        /**
+         * 回调方法
+         */
+        private $method: Function;
+
+        constructor(caller: Object, method: Function, args?: any, once?: boolean) {
             this.$args = args;
             this.$caller = caller;
             this.$method = method;
         }
+
         /**
          * 执行处理器
          */
-        Handler.prototype.run = function () {
+        run(): any {
             if (this.$args === void 0) {
                 return this.$method.call(this.$caller);
             }
@@ -464,12 +564,13 @@ var suncom;
             else {
                 return this.$method.call(this.$caller, this.$args);
             }
-        };
+        }
+
         /**
          * 执行处理器，携带额外的参数
          * @param args 参数列表，允许为任意类型的数据
          */
-        Handler.prototype.runWith = function (args) {
+        runWith(args: any): any {
             if (this.$args === void 0) {
                 if (args instanceof Array) {
                     return this.$method.apply(this.$caller, args);
@@ -481,40 +582,45 @@ var suncom;
             else {
                 return this.$method.apply(this.$caller, this.$args.concat(args));
             }
-        };
+        }
+
         /**
          * 创建Handler的简单工厂方法
          * @once: 己弃用
          */
-        Handler.create = function (caller, method, args, once) {
+        static create(caller: Object, method: Function, args?: Array<any>, once?: boolean): IHandler {
             return new Handler(caller, method, args, once);
-        };
-        return Handler;
-    }());
-    suncom.Handler = Handler;
+        }
+    }
+
     /**
       * 对象池
       */
-    var Pool = /** @class */ (function () {
-        function Pool() {
-        }
+    export abstract class Pool {
+        /**
+         * 对象集合
+         */
+        private static $pool: { [sign: string]: Array<any> } = {};
+
         /**
          * 根据标识从池中获取对象，获取失败时返回null
          */
-        Pool.getItem = function (sign) {
-            var array = Pool.$pool[sign] || null;
+        static getItem(sign: string): any {
+            const array: Array<any> = Pool.$pool[sign] || null;
             if (array != null && array.length > 0) {
-                var item = array.pop();
+                const item: any = array.pop();
                 item["suncore$__inPool__"] = false;
                 return item;
             }
             return null;
-        };
+        }
+
         /**
          * 根据标识从池中获取对象，获取失败时将创建新的对象
          */
-        Pool.getItemByClass = function (sign, cls, args) {
-            var item = Pool.getItem(sign);
+        static getItemByClass(sign: string, cls: any, args?: any): any {
+            let item: any = Pool.getItem(sign);
+
             if (item == null) {
                 if (Laya["Prefab"] && args === Laya["Prefab"]) {
                     item = cls.create();
@@ -533,72 +639,70 @@ var suncom;
                     }
                 }
             }
+
             return item;
-        };
+        }
+
         /**
          * 根据标识回收对象
          */
-        Pool.recover = function (sign, item) {
+        static recover(sign: string, item: any): void {
             if (item["suncore$__inPool__"]) {
                 return;
             }
             item["suncore$__inPool__"] = true;
-            var array = Pool.$pool[sign] || null;
+            const array: Array<any> = Pool.$pool[sign] || null;
             if (array == null) {
                 Pool.$pool[sign] = [item];
             }
             else {
                 array.push(item);
             }
-        };
+        }
+
         /**
          * 清缓指定标识下的所有己缓存对象
          */
-        Pool.clear = function (sign) {
+        static clear(sign: string): void {
             if (Pool.$pool[sign]) {
                 delete Pool.$pool[sign];
             }
-        };
-        /**
-         * 对象集合
-         */
-        Pool.$pool = {};
-        return Pool;
-    }());
-    suncom.Pool = Pool;
+        }
+    }
+
     /**
      * 线性同余发生器
      */
-    var Random = /** @class */ (function () {
-        function Random() {
-        }
-        /**
-         * 指定随机种子
-         */
-        Random.seed = function (value) {
-            Random.$r = value;
-        };
-        /**
-         * 返回一个随机数
-         */
-        Random.random = function () {
-            var r = dcodeIO.Long.fromNumber(Random.$r);
-            var A = dcodeIO.Long.fromNumber(Random.$A);
-            var C = dcodeIO.Long.fromNumber(Random.$C);
-            Random.$r = Math.floor(r.mul(A).add(C).low / Random.$M);
-            return (Random.$r % Random.$M + Random.$M) / (Random.$M * 2);
-        };
+    export class Random {
         /**
          * 随机种子
          */
-        Random.$r = 1;
+        private static $r: number = 1;
+
         /**
          * 随机数参数
          */
-        Random.$A = 1103515245;
-        Random.$C = 12345;
-        Random.$M = 32767;
-        return Random;
-    }());
-    suncom.Random = Random;
-})(suncom || (suncom = {}));
+        private static $A: number = 1103515245;
+        private static $C: number = 12345;
+        private static $M: number = 32767;
+
+        /**
+         * 指定随机种子
+         */
+        static seed(value: number): void {
+            Random.$r = value;
+        }
+
+        /**
+         * 返回一个随机数
+         */
+        static random(): number {
+            const r: dcodeIO.Long = dcodeIO.Long.fromNumber(Random.$r);
+            const A: dcodeIO.Long = dcodeIO.Long.fromNumber(Random.$A);
+            const C: dcodeIO.Long = dcodeIO.Long.fromNumber(Random.$C);
+            Random.$r = Math.floor(r.mul(A).add(C).low / Random.$M);
+            return (Random.$r % Random.$M + Random.$M) / (Random.$M * 2);
+        }
+    }
+
+}

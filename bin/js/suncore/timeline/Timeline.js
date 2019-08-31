@@ -31,6 +31,10 @@ var suncore;
              * 运行时间
              */
             this.$runTime = 0;
+            /**
+             * 帧时间间隔（毫秒）
+             */
+            this.$delta = 0;
             // 是否开启帧同步
             this.$lockStep = lockStep;
         }
@@ -39,6 +43,7 @@ var suncore;
          * @delta: 每帧的时间流逝值，单位为毫秒
          */
         Timeline.prototype.lapse = function (delta) {
+            this.$delta = delta;
             // 运行时间累加
             this.$runTime += delta;
         };
@@ -51,7 +56,7 @@ var suncore;
         };
         /**
          * 继续时间轴
-         * @paused: 是否暂停时间轴
+         * @paused: 是否暂停时间轴，默认false
          */
         Timeline.prototype.resume = function (paused) {
             if (paused === void 0) { paused = false; }
@@ -77,6 +82,12 @@ var suncore;
          */
         Timeline.prototype.getTime = function () {
             return this.$runTime;
+        };
+        /**
+         * 获取帧时间间隔（毫秒）
+         */
+        Timeline.prototype.getDelta = function () {
+            return this.$delta;
         };
         Object.defineProperty(Timeline.prototype, "paused", {
             /**

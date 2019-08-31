@@ -203,6 +203,10 @@ var puremvc;
             }
             View.inst = this;
         }
+        /**
+         * @receiveOnce: 是否只响应一次，默认为false
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为1
+         */
         View.prototype.registerObserver = function (name, method, caller, receiveOnce, priority) {
             if (receiveOnce === void 0) { receiveOnce = false; }
             if (priority === void 0) { priority = 1; }
@@ -281,6 +285,9 @@ var puremvc;
         View.prototype.notifyCancel = function () {
             this.$isCanceled = true;
         };
+        /**
+         * @cancelable: 事件是否允许取消，默认为false
+         */
         View.prototype.notifyObservers = function (name, args, cancelable) {
             if (cancelable === void 0) { cancelable = false; }
             if (name === void 0) {
@@ -465,3 +472,4 @@ var puremvc;
     }(Notifier));
     puremvc.SimpleCommand = SimpleCommand;
 })(puremvc || (puremvc = {}));
+//# sourceMappingURL=puremvc-typescript-standard-2.0.js.map

@@ -10,6 +10,10 @@ var suncore;
              */
             this.$runTime = 0;
             /**
+             * 帧时间间隔（毫秒）
+             */
+            this.$delta = 0;
+            /**
              * 本地时间
              */
             this.$localTime = new Date().valueOf();
@@ -31,13 +35,13 @@ var suncore;
             // 本地当前时间
             this.$localTime = new Date().valueOf();
             // 帧间隔时间
-            var delta = this.$localTime - oldTime;
+            this.$delta = this.$localTime - oldTime;
             // 若帧间隔时间大于 0 ，则驱动系统运行
-            if (delta > 0) {
+            if (this.$delta > 0) {
                 // 运行时间累加
-                this.$runTime += delta;
+                this.$runTime += this.$delta;
                 // 时间流逝逻辑
-                suncore.System.timeStamp.lapse(delta);
+                suncore.System.timeStamp.lapse(this.$delta);
             }
         };
         /**
@@ -45,6 +49,12 @@ var suncore;
          */
         Engine.prototype.getTime = function () {
             return this.$runTime;
+        };
+        /**
+         * 获取帧时间间隔（毫秒）
+         */
+        Engine.prototype.getDelta = function () {
+            return this.$delta;
         };
         return Engine;
     }());
