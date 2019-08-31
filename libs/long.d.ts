@@ -14,23 +14,24 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
+
+/**
+ * @license long.js (c) 2013 Daniel Wirtz <dcode@dcode.io>
+ * Released under the Apache License, Version 2.0
+ * see: https://github.com/dcodeIO/long.js for details
+ */
 declare module dcodeIO {
-    /**
-     * @license long.js (c) 2013 Daniel Wirtz <dcode@dcode.io>
-     * Released under the Apache License, Version 2.0
-     * see: https://github.com/dcodeIO/long.js for details
-     */
     export class Long {
-
         static fromNumber(num: number): Long;
-
         static fromString(str: string): Long;
 
         low: number;
         high: number;
 
         add(value: Long): Long;
-
         mul(value: Long): Long;
+
+        toNumber():number;
+        toString():string;
     }
 }
