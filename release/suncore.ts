@@ -17,8 +17,8 @@
 /**
  * @license suncore.ts (c) 2013 Binfeng Sun <christon.sun@qq.com>
  * Released under the Apache License, Version 2.0
- * https://github.com/syfolen/suncore
  * https://blog.csdn.net/syfolen
+ * https://github.com/syfolen/suncore
  */
 module suncore {
 
