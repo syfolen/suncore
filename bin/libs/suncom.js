@@ -519,7 +519,7 @@ var suncom;
                 if (args === void 0) {
                     event_1.method.call(event_1.caller);
                 }
-                else if (args instanceof Array === true) {
+                else if (args instanceof Array) {
                     event_1.method.apply(event_1.caller, args);
                 }
                 else {
@@ -549,7 +549,7 @@ var suncom;
             if (receiveOnce === void 0) { receiveOnce = false; }
             if (priority === void 0) { priority = 1; }
             if (type === void 0 || type === null) {
-                throw Error("Add Invalid Event Type!!!");
+                throw Error("Register Invalid Event Type!!!");
             }
             var list = this.$events[type] || null;
             // 若事件列表不存在，则新建
@@ -681,7 +681,7 @@ var suncom;
             if (this.$args === void 0) {
                 return this.$method.call(this.$caller);
             }
-            else if (this.$args instanceof Array === true) {
+            else if (this.$args instanceof Array) {
                 return this.$method.apply(this.$caller, this.$args);
             }
             else {
@@ -694,7 +694,7 @@ var suncom;
          */
         Handler.prototype.runWith = function (args) {
             if (this.$args === void 0) {
-                if (args instanceof Array === true) {
+                if (args instanceof Array) {
                     return this.$method.apply(this.$caller, args);
                 }
                 else {
@@ -787,7 +787,7 @@ var suncom;
                     if (args === void 0) {
                         cls.call(item);
                     }
-                    else if (args instanceof Array === true) {
+                    else if (args instanceof Array) {
                         cls.apply(item, args);
                     }
                     else {

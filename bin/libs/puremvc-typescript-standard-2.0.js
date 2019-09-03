@@ -29,7 +29,7 @@ var puremvc;
     var Controller = /** @class */ (function () {
         function Controller() {
             this.$commands = {};
-            if (Controller.inst) {
+            if (Controller.inst !== null) {
                 throw Error(Controller.SINGLETON_MSG);
             }
             Controller.inst = this;
@@ -48,14 +48,14 @@ var puremvc;
             }
         };
         Controller.prototype.registerCommand = function (name, cls) {
-            if (this.hasCommand(name)) {
+            if (this.hasCommand(name) === true) {
                 throw Error("Register Duplicate Command " + name);
             }
             this.$commands[name] = cls;
             View.inst.registerObserver(name, this.executeCommand, this);
         };
         Controller.prototype.removeCommand = function (name) {
-            if (this.hasCommand(name) == false) {
+            if (this.hasCommand(name) === false) {
                 throw Error("Remove Non-Existent Command " + name);
             }
             delete this.$commands[name];
@@ -68,6 +68,7 @@ var puremvc;
             return this.retrieveCommand(name) != null;
         };
         Controller.SINGLETON_MSG = "Controller singleton already constructed!";
+        Controller.inst = null;
         return Controller;
     }());
     puremvc.Controller = Controller;
@@ -76,14 +77,14 @@ var puremvc;
             this.$view = new View();
             this.$model = new Model();
             this.$controller = new Controller();
-            if (Facade.inst) {
+            if (Facade.inst !== null) {
                 throw Error(Facade.SINGLETON_MSG);
             }
             Facade.inst = this;
             this.$initializeFacade();
         }
         Facade.getInstance = function () {
-            if (Facade.inst == null) {
+            if (Facade.inst === null) {
                 Facade.inst = new Facade();
             }
             return Facade.inst;
@@ -152,17 +153,17 @@ var puremvc;
     var Model = /** @class */ (function () {
         function Model() {
             this.$proxies = {};
-            if (Model.inst) {
+            if (Model.inst !== null) {
                 throw Error(Model.SINGLETON_MSG);
             }
             Model.inst = this;
         }
         Model.prototype.registerProxy = function (proxy) {
             var name = proxy.getProxyName();
-            if (name == null) {
+            if (name === null) {
                 throw Error("Register Invalid Proxy");
             }
-            if (this.hasProxy(name)) {
+            if (this.hasProxy(name) === false) {
                 throw Error("Register Duplicate Proxy " + name);
             }
             this.$proxies[name] = proxy;
@@ -173,7 +174,7 @@ var puremvc;
                 throw Error("Remove Invalid Proxy");
             }
             var proxy = this.retrieveProxy(name);
-            if (proxy == null) {
+            if (proxy === null) {
                 throw Error("Remove Non-Existent Proxy " + name);
             }
             delete this.$proxies[name];
@@ -186,6 +187,7 @@ var puremvc;
             return this.retrieveProxy(name) != null;
         };
         Model.SINGLETON_MSG = "Model singleton already constructed!";
+        Model.inst = null;
         return Model;
     }());
     puremvc.Model = Model;
@@ -205,13 +207,50 @@ var puremvc;
         return Observer;
     }());
     puremvc.Observer = Observer;
+    var Proxy = /** @class */ (function (_super) {
+        __extends(Proxy, _super);
+        function Proxy(name, data) {
+            var _this = _super.call(this) || this;
+            if (name === void 0) {
+                throw Error("Invalid Proxy Name");
+            }
+            _this.$proxyName = name;
+            if (data !== void 0) {
+                _this.data = data;
+            }
+            return _this;
+        }
+        Proxy.prototype.getProxyName = function () {
+            return this.$proxyName || null;
+        };
+        Proxy.prototype.onRegister = function () {
+        };
+        Proxy.prototype.onRemove = function () {
+        };
+        Proxy.prototype.setData = function (data) {
+            this.data = data;
+        };
+        Proxy.prototype.getData = function () {
+            return this.data;
+        };
+        return Proxy;
+    }(Notifier));
+    puremvc.Proxy = Proxy;
+    var SimpleCommand = /** @class */ (function (_super) {
+        __extends(SimpleCommand, _super);
+        function SimpleCommand() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return SimpleCommand;
+    }(Notifier));
+    puremvc.SimpleCommand = SimpleCommand;
     var View = /** @class */ (function () {
         function View() {
             this.$mediators = {};
             this.$observers = {};
             this.$isCanceled = false;
             this.$onceObservers = [];
-            if (View.inst) {
+            if (View.inst !== null) {
                 throw Error(View.SINGLETON_MSG);
             }
             View.inst = this;
@@ -235,7 +274,7 @@ var puremvc;
                 observers = this.$observers[name] = [false];
             }
             // 若当前禁止直接更新，则复制列表
-            else if (observers[0] == true) {
+            else if (observers[0] === true) {
                 observers = this.$observers[name] = observers.concat();
                 // 新生成的列表允许被更新
                 observers[0] = false;
@@ -243,11 +282,11 @@ var puremvc;
             var index = -1;
             for (var i = 1; i < observers.length; i++) {
                 var observer_1 = observers[i];
-                if (observer_1.method == method && observer_1.caller == caller) {
+                if (observer_1.method === method && observer_1.caller === caller) {
                     return null;
                 }
                 // 优先级高的命令先执行
-                if (index == -1 && observer_1.priority < priority) {
+                if (index === -1 && observer_1.priority < priority) {
                     index = i;
                 }
             }
@@ -278,20 +317,20 @@ var puremvc;
                 return;
             }
             // 若当前禁止直接更新，则复制列表
-            if (observers[0] == true) {
+            if (observers[0] === true) {
                 observers = this.$observers[name] = observers.concat();
                 // 新生成的列表允许被更新
                 observers[0] = false;
             }
             for (var i = 1; i < observers.length; i++) {
                 var observer = observers[i];
-                if (observer.method == method && observer.caller == caller) {
+                if (observer.method === method && observer.caller === caller) {
                     observers.splice(i, 1);
                     break;
                 }
             }
             // 移除空列表
-            if (observers.length == 1) {
+            if (observers.length === 1) {
                 delete this.$observers[name];
             }
         };
@@ -320,10 +359,10 @@ var puremvc;
             for (var i = 1; i < observers.length; i++) {
                 var observer = observers[i];
                 // 一次性命令入栈
-                if (observer.receiveOnce) {
+                if (observer.receiveOnce === true) {
                     this.$onceObservers.push(observer);
                 }
-                if (observer.caller == Controller.inst) {
+                if (observer.caller === Controller.inst) {
                     observer.method.call(observer.caller, name, args);
                 }
                 else if (args === void 0) {
@@ -336,7 +375,7 @@ var puremvc;
                     observer.method.call(observer.caller, args);
                 }
                 // 命令允许被取消，且命令被取消
-                if (cancelable && this.$isCanceled) {
+                if (cancelable === true && this.$isCanceled) {
                     break;
                 }
             }
@@ -352,10 +391,10 @@ var puremvc;
         };
         View.prototype.registerMediator = function (mediator) {
             var name = mediator.getMediatorName();
-            if (name == null) {
+            if (name === null) {
                 throw Error("Register Invalid Mediator");
             }
-            if (this.hasMediator(name)) {
+            if (this.hasMediator(name) === true) {
                 throw Error("Register Duplicate Mediator " + name);
             }
             this.$mediators[name] = mediator;
@@ -367,7 +406,7 @@ var puremvc;
                 throw Error("Remove Invalid Mediator");
             }
             var mediator = this.retrieveMediator(name);
-            if (mediator == null) {
+            if (mediator === null) {
                 throw Error("Remove Non-Existent Mediator " + name);
             }
             delete this.$mediators[name];
@@ -381,6 +420,7 @@ var puremvc;
             return this.retrieveMediator(name) != null;
         };
         View.SINGLETON_MSG = "View singleton already constructed!";
+        View.inst = null;
         return View;
     }());
     puremvc.View = View;
@@ -447,41 +487,4 @@ var puremvc;
         return Mediator;
     }(Notifier));
     puremvc.Mediator = Mediator;
-    var Proxy = /** @class */ (function (_super) {
-        __extends(Proxy, _super);
-        function Proxy(name, data) {
-            var _this = _super.call(this) || this;
-            if (name === void 0) {
-                throw Error("Invalid Proxy Name");
-            }
-            _this.$proxyName = name;
-            if (data !== void 0) {
-                _this.data = data;
-            }
-            return _this;
-        }
-        Proxy.prototype.getProxyName = function () {
-            return this.$proxyName || null;
-        };
-        Proxy.prototype.onRegister = function () {
-        };
-        Proxy.prototype.onRemove = function () {
-        };
-        Proxy.prototype.setData = function (data) {
-            this.data = data;
-        };
-        Proxy.prototype.getData = function () {
-            return this.data;
-        };
-        return Proxy;
-    }(Notifier));
-    puremvc.Proxy = Proxy;
-    var SimpleCommand = /** @class */ (function (_super) {
-        __extends(SimpleCommand, _super);
-        function SimpleCommand() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return SimpleCommand;
-    }(Notifier));
-    puremvc.SimpleCommand = SimpleCommand;
 })(puremvc || (puremvc = {}));

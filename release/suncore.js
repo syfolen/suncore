@@ -271,7 +271,7 @@ var suncore;
          */
         MessageManager.prototype.dealMessage = function () {
             for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
-                if (System.isModulePaused(mod) == false) {
+                if (System.isModulePaused(mod) === false) {
                     this.$queues[mod].dealMessage();
                 }
             }
@@ -281,7 +281,7 @@ var suncore;
          */
         MessageManager.prototype.classifyMessages0 = function () {
             for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
-                if (System.isModulePaused(mod) == false) {
+                if (System.isModulePaused(mod) === false) {
                     this.$queues[mod].classifyMessages0();
                 }
             }
@@ -334,20 +334,20 @@ var suncore;
             for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
                 var queue = this.$queues[priority];
                 // 跳过惰性消息
-                if (priority == MessagePriorityEnum.PRIORITY_LAZY) {
+                if (priority === MessagePriorityEnum.PRIORITY_LAZY) {
                     continue;
                 }
                 // 若系统被暂停，则忽略网络消息
-                if (priority == MessagePriorityEnum.PRIORITY_SOCKET && System.timeStamp.paused) {
+                if (priority === MessagePriorityEnum.PRIORITY_SOCKET && System.timeStamp.paused === true) {
                     continue;
                 }
                 // 剩余消息条数累计
                 remainCount += queue.length;
                 // 任务消息
-                if (priority == MessagePriorityEnum.PRIORITY_TASK) {
+                if (priority === MessagePriorityEnum.PRIORITY_TASK) {
                     // 任务消息在返回 true 表示任务己完成
                     if (queue.length > 0) {
-                        if (this.$dealTaskMessage(queue[0]) == true) {
+                        if (this.$dealTaskMessage(queue[0]) === true) {
                             // 此时应当移除任务
                             queue.shift();
                         }
@@ -356,7 +356,7 @@ var suncore;
                     }
                 }
                 // 网络消息
-                else if (priority == MessagePriorityEnum.PRIORITY_SOCKET) {
+                else if (priority === MessagePriorityEnum.PRIORITY_SOCKET) {
                     // 消息队列不为空
                     if (queue.length > 0) {
                         // 处理消息
@@ -366,7 +366,7 @@ var suncore;
                     }
                 }
                 // 触发器消息
-                else if (priority == MessagePriorityEnum.PRIORITY_TRIGGER) {
+                else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     // 任务消息在返回 true 表示任务己完成
                     while (queue.length && this.$dealTriggerMessage(queue[0]) == true) {
                         // 此时应当移除任务
@@ -376,7 +376,7 @@ var suncore;
                     }
                 }
                 // 其它类型消息
-                else if (queue.length) {
+                else if (queue.length > 0) {
                     // 处理统计
                     var count = 0;
                     // 忽略统计
@@ -385,20 +385,20 @@ var suncore;
                     var totalCount = this.$getDealCountByPriority(priority);
                     // 若 totalCount 为 0 ，则表示处理所有消息
                     for (; queue.length && (totalCount == 0 || count < totalCount); count++) {
-                        if (this.$dealCustomMessage(queue.shift()) == false) {
+                        if (this.$dealCustomMessage(queue.shift()) === false) {
                             count--;
                             ignoreCount++;
                         }
                     }
                     // 总处理条数累加
                     dealCount += count;
-                    if (System.DEBUG == true) {
-                        ignoreCount && console.log("MessageQueue=> mod:" + this.$mod + ", priority:" + priority + ", count:" + count + ", ignoreCount:" + ignoreCount);
+                    if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                        ignoreCount && suncom.Logger.log("MessageQueue=> mod:" + this.$mod + ", priority:" + priority + ", count:" + count + ", ignoreCount:" + ignoreCount);
                     }
                 }
             }
             // 若只剩下惰性消息，则处理惰性消息
-            if (remainCount == 0 && this.$messages0.length == 0) {
+            if (remainCount === 0 && this.$messages0.length === 0) {
                 var queue = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
                 if (queue.length > 0) {
                     this.$dealCustomMessage(queue.shift());
@@ -413,9 +413,9 @@ var suncore;
         MessageQueue.prototype.$dealTaskMessage = function (message) {
             var task = message.task;
             // 若任务没有被开启，则开启任务
-            if (message.active == false) {
+            if (message.active === false) {
                 message.active = true;
-                if (task.run() == true) {
+                if (task.run() === true) {
                     task.done = true;
                 }
             }
@@ -453,16 +453,16 @@ var suncore;
          * 根据优先级返回每帧允许处理的消息条数
          */
         MessageQueue.prototype.$getDealCountByPriority = function (priority) {
-            if (priority == MessagePriorityEnum.PRIORITY_0) {
+            if (priority === MessagePriorityEnum.PRIORITY_0) {
                 return 0;
             }
-            if (priority == MessagePriorityEnum.PRIORITY_HIGH) {
+            if (priority === MessagePriorityEnum.PRIORITY_HIGH) {
                 return 7;
             }
-            if (priority == MessagePriorityEnum.PRIORITY_NOR) {
+            if (priority === MessagePriorityEnum.PRIORITY_NOR) {
                 return 2;
             }
-            if (priority == MessagePriorityEnum.PRIORITY_LOW) {
+            if (priority === MessagePriorityEnum.PRIORITY_LOW) {
                 return 1;
             }
             throw Error("错误的消息优先级");
@@ -473,7 +473,7 @@ var suncore;
         MessageQueue.prototype.classifyMessages0 = function () {
             while (this.$messages0.length) {
                 var message = this.$messages0.shift();
-                if (message.priority == MessagePriorityEnum.PRIORITY_TRIGGER) {
+                if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
                 else {
@@ -567,6 +567,27 @@ var suncore;
     }(puremvc.SimpleCommand));
     suncore.RemoveTimelineCommand = RemoveTimelineCommand;
     /**
+     * 简单任务对象
+     */
+    var SimpleTask = /** @class */ (function (_super) {
+        __extends(SimpleTask, _super);
+        function SimpleTask(handler) {
+            var _this = _super.call(this) || this;
+            _this.$handler = handler;
+            return _this;
+        }
+        /**
+         * 执行函数
+         */
+        SimpleTask.prototype.run = function () {
+            // 执行任务
+            this.$handler.run();
+            return true;
+        };
+        return SimpleTask;
+    }(AbstractTask));
+    suncore.SimpleTask = SimpleTask;
+    /**
      * Socket数据对象
      */
     var SocketData = /** @class */ (function () {
@@ -582,10 +603,10 @@ var suncore;
          * 判断指定模块是否己暂停
          */
         System.isModulePaused = function (mod) {
-            if (mod == ModuleEnum.CUSTOM) {
+            if (mod === ModuleEnum.CUSTOM) {
                 return System.timeStamp.paused;
             }
-            else if (mod == ModuleEnum.TIMELINE) {
+            else if (mod === ModuleEnum.TIMELINE) {
                 return System.timeline.paused;
             }
             return false;
@@ -594,10 +615,10 @@ var suncore;
          * 获取指定模块的时间戳
          */
         System.getModuleTimestamp = function (mod) {
-            if (mod == ModuleEnum.CUSTOM) {
+            if (mod === ModuleEnum.CUSTOM) {
                 return System.timeStamp.getTime();
             }
-            else if (mod == ModuleEnum.TIMELINE) {
+            else if (mod === ModuleEnum.TIMELINE) {
                 return System.timeline.getTime();
             }
             return System.engine.getTime();
@@ -606,9 +627,9 @@ var suncore;
          * 添加任务
          */
         System.addTask = function (mod, task) {
-            if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn("System=> add task failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
+            if (System.isModulePaused(mod) === true) {
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn("System=> add task failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
                 }
                 return;
             }
@@ -623,9 +644,9 @@ var suncore;
          * 添加触发器
          */
         System.addTrigger = function (mod, delay, handler) {
-            if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn("System=> add trigger failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
+            if (System.isModulePaused(mod) === true) {
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn("System=> add trigger failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
                 }
                 return;
             }
@@ -656,9 +677,9 @@ var suncore;
          * 添加消息
          */
         System.addMessage = function (mod, priority, handler) {
-            if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn("System=> add message failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
+            if (System.isModulePaused(mod) === true) {
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn("System=> add message failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
                 }
                 return;
             }
@@ -680,8 +701,8 @@ var suncore;
             if (loops === void 0) { loops = 1; }
             if (real === void 0) { real = false; }
             if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn("System=> add timer failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn("System=> add timer failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
                 }
                 return 0;
             }
@@ -693,10 +714,6 @@ var suncore;
         System.removeTimer = function (timerId) {
             return System.timeStamp.timerManager.removeTimer(timerId);
         };
-        /**
-         * 是否开启打印
-         */
-        System.DEBUG = false;
         return System;
     }());
     suncore.System = System;
@@ -870,18 +887,18 @@ var suncore;
                 // 获取当前时间戳
                 var timestamp = System.getModuleTimestamp(mod);
                 // 当前模块未暂停
-                if (System.isModulePaused(mod) == false) {
+                if (System.isModulePaused(mod) === false) {
                     // 对模块中的所有定时器进行遍历
                     while (timers.length) {
                         var timer = timers[0];
                         // 若定时器有效
-                        if (timer.active) {
+                        if (timer.active === true) {
                             // 若定时器未到响应时间，则跳出
                             if (timer.timeout > timestamp) {
                                 break;
                             }
                             // 若 real 为 true ，则对执行次数进行真实递增
-                            if (timer.real == true) {
+                            if (timer.real === true) {
                                 timer.repeat++;
                             }
                             // 否则计算当前理论上的响应次数
@@ -890,14 +907,14 @@ var suncore;
                             }
                         }
                         // 移除无效定时器
-                        if (timer.active == false || (timer.loops > 0 && timer.repeat >= timer.loops)) {
+                        if (timer.active === false || (timer.loops > 0 && timer.repeat >= timer.loops)) {
                             delete this.$timerMap[timer.timerId];
                         }
                         else {
                             this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.repeat);
                         }
                         timers.shift();
-                        if (timer.active) {
+                        if (timer.active === true) {
                             timer.method.call(timer.caller, timer.repeat, timer.loops);
                         }
                     }
@@ -927,15 +944,15 @@ var suncore;
             var timer = new Timer();
             var currentTimestamp = System.getModuleTimestamp(mod);
             // 若编号未指定，则生成新的定时器
-            if (timerId == 0) {
+            if (timerId === 0) {
                 timerId = this.$createNewTimerId();
             }
             // 若创建时间未指定，则默认为系统时间
-            if (timestamp == -1) {
+            if (timestamp === -1) {
                 timestamp = currentTimestamp;
             }
             // 若上次响应时间未指定，则默认为系统时间
-            if (timeout == -1) {
+            if (timeout === -1) {
                 timeout = currentTimestamp;
             }
             // 定时器执行间隔不得小于 1 毫秒
@@ -945,7 +962,7 @@ var suncore;
             // 响应时间偏差值
             var dev = 0;
             // 根据定时器的特性来修正下次响应时间
-            if (real == true) {
+            if (real === true) {
                 /**
                  * 若定时器侧重于真实响应次数统计
                  * 为了确保定时器的两次响应之间的时间间隔完全一致
@@ -1014,7 +1031,7 @@ var suncore;
          * NOTE: 固定返回 0 ，方便外部用返回值清空 timerId
          */
         TimerManager.prototype.removeTimer = function (timerId) {
-            if (timerId && this.$timerMap[timerId]) {
+            if (timerId > 0 && this.$timerMap[timerId] !== void 0) {
                 this.$timerMap[timerId].active = false;
             }
             return 0;
@@ -1024,7 +1041,7 @@ var suncore;
          */
         TimerManager.prototype.clearTimer = function (mod) {
             var timers = this.$timers[mod];
-            while (timers.length) {
+            while (timers.length > 0) {
                 var timer = timers.pop();
                 delete this.$timerMap[timer.timerId];
             }
@@ -1032,27 +1049,6 @@ var suncore;
         return TimerManager;
     }());
     suncore.TimerManager = TimerManager;
-    /**
-     * 简单任务对象
-     */
-    var SimpleTask = /** @class */ (function (_super) {
-        __extends(SimpleTask, _super);
-        function SimpleTask(handler) {
-            var _this = _super.call(this) || this;
-            _this.$handler = handler;
-            return _this;
-        }
-        /**
-         * 执行函数
-         */
-        SimpleTask.prototype.run = function () {
-            // 执行任务
-            this.$handler.run();
-            return true;
-        };
-        return SimpleTask;
-    }(AbstractTask));
-    suncore.SimpleTask = SimpleTask;
     /**
      * 系统时间戳
      *
@@ -1081,12 +1077,12 @@ var suncore;
          */
         TimeStamp.prototype.lapse = function (delta) {
             // 游戏未暂停
-            if (this.paused == false) {
+            if (this.paused === false) {
                 _super.prototype.lapse.call(this, delta);
                 // 时间轴未暂停
-                if (System.timeline.paused == false) {
+                if (System.timeline.paused === false) {
                     // 若游戏时间轴未开启帧同步，则直接对游戏时间进行同步
-                    if (System.timeline.lockStep == false) {
+                    if (System.timeline.lockStep === false) {
                         System.timeline.lapse(delta);
                     }
                 }
