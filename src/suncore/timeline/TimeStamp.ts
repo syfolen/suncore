@@ -31,13 +31,13 @@ module suncore {
          */
         lapse(delta: number): void {
             // 游戏未暂停
-            if (this.paused == false) {
+            if (this.paused === false) {
                 super.lapse(delta);
 
                 // 时间轴未暂停
-                if (System.timeline.paused == false) {
+                if (System.timeline.paused === false) {
                     // 若游戏时间轴未开启帧同步，则直接对游戏时间进行同步
-                    if (System.timeline.lockStep == false) {
+                    if (System.timeline.lockStep === false) {
                         System.timeline.lapse(delta);
                     }
                 }

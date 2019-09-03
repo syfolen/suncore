@@ -11,7 +11,6 @@ module test {
         }
 
         run(): boolean {
-
             if (this.$index < 0) {
                 console.log("在场景创建之前的Task...");
                 // 2 秒后会继续

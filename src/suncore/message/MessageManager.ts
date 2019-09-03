@@ -29,7 +29,7 @@ module suncore {
          */
         dealMessage(): void {
             for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
-                if (System.isModulePaused(mod) == false) {
+                if (System.isModulePaused(mod) === false) {
                     this.$queues[mod].dealMessage();
                 }
             }
@@ -40,7 +40,7 @@ module suncore {
          */
         classifyMessages0(): void {
             for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
-                if (System.isModulePaused(mod) == false) {
+                if (System.isModulePaused(mod) === false) {
                     this.$queues[mod].classifyMessages0();
                 }
             }

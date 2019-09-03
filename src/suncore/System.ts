@@ -3,11 +3,6 @@ module suncore {
 
     export abstract class System {
         /**
-         * 是否开启打印
-         */
-        static DEBUG: boolean = false;
-
-        /**
          * 核心类
          */
         static engine: IEngine;
@@ -26,10 +21,10 @@ module suncore {
          * 判断指定模块是否己暂停
          */
         static isModulePaused(mod: ModuleEnum): boolean {
-            if (mod == ModuleEnum.CUSTOM) {
+            if (mod === ModuleEnum.CUSTOM) {
                 return System.timeStamp.paused;
             }
-            else if (mod == ModuleEnum.TIMELINE) {
+            else if (mod === ModuleEnum.TIMELINE) {
                 return System.timeline.paused;
             }
             return false;
@@ -39,10 +34,10 @@ module suncore {
          * 获取指定模块的时间戳
          */
         static getModuleTimestamp(mod: ModuleEnum): number {
-            if (mod == ModuleEnum.CUSTOM) {
+            if (mod === ModuleEnum.CUSTOM) {
                 return System.timeStamp.getTime();
             }
-            else if (mod == ModuleEnum.TIMELINE) {
+            else if (mod === ModuleEnum.TIMELINE) {
                 return System.timeline.getTime();
             }
             return System.engine.getTime();
@@ -52,9 +47,9 @@ module suncore {
          * 添加任务
          */
         static addTask(mod: ModuleEnum, task: ITask): void {
-            if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn(`System=> add task failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
+            if (System.isModulePaused(mod) === true) {
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn(`System=> add task failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
                 }
                 return;
             }
@@ -70,9 +65,9 @@ module suncore {
          * 添加触发器
          */
         static addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void {
-            if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn(`System=> add trigger failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
+            if (System.isModulePaused(mod) === true) {
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn(`System=> add trigger failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
                 }
                 return;
             }
@@ -105,9 +100,9 @@ module suncore {
          * 添加消息
          */
         static addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler): void {
-            if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn(`System=> add message failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
+            if (System.isModulePaused(mod) === true) {
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn(`System=> add message failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
                 }
                 return;
             }
@@ -128,8 +123,8 @@ module suncore {
          */
         static addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops: number = 1, real: boolean = false): number {
             if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn(`System=> add timer failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn(`System=> add timer failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
                 }
                 return 0;
             }

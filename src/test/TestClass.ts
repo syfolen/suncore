@@ -56,7 +56,7 @@ module test {
         }
 
         private $gotoQuadtreeScene(repeat: number, loops: number): void {
-            if (repeat == loops) {
+            if (repeat === loops) {
                 console.log("测试完毕");
                 suncore.System.timeline.stop();
                 suncore.System.timeStamp.stop();
