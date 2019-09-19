@@ -464,12 +464,12 @@ declare module suncom {
         /**
          * 根据标识从池中获取对象，获取失败时返回null
          */
-        static getItem(sign: string): any;
+        static getItem<T>(sign: string): T;
 
         /**
          * 根据标识从池中获取对象，获取失败时将创建新的对象
          */
-        static getItemByClass(sign: string, cls: any, args?: any): any;
+        static getItemByClass<T>(sign: string, cls: any, args?: any): T;
 
         /**
          * 根据标识回收对象

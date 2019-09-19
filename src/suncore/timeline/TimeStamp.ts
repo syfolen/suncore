@@ -43,6 +43,9 @@ module suncore {
                 }
             }
 
+            // 始终派发帧相关事件
+            puremvc.Facade.getInstance().sendNotification(NotifyKey.FRAME_ENTER);
+
             // 响应定时器
             this.$timerManager.executeTimer();
 
@@ -51,8 +54,8 @@ module suncore {
             // 处理临时消息
             this.$messageManager.classifyMessages0();
 
-            // 始终派发帧事件
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.ENTER_FRAME);
+            // 始终派发帧相关事件
+            puremvc.Facade.getInstance().sendNotification(NotifyKey.FRAME_LATER);
         }
 
         /**

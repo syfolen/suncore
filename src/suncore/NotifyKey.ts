@@ -8,7 +8,9 @@ module suncore {
         // 系统命令
         static readonly STARTUP: string = "suncore.NotifyKey.STARTUP";
         static readonly SHUTDOWN: string = "suncore.NotifyKey.SHUTDOWN";
-        static readonly ENTER_FRAME: string = "suncore.NotifyKey.ENTER_FRAME";
+
+        static readonly FRAME_ENTER: string = "suncore.NotifyKey.FRAME_ENTER";
+        static readonly FRAME_LATER: string = "suncore.NotifyKey.FRAME_LATER";
 
         // 时间轴命令
         static readonly CREATE_TIMELINE: string = "suncore.NotifyKey.CREATE_TIMELINE";
