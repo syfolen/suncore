@@ -151,21 +151,6 @@ declare module suncore {
     }
 
     /**
-     * Socket数据对象接口
-     */
-    export interface ISocketData {
-        /**
-         * 协议
-         */
-        cmd: number;
-
-        /**
-         * 挂载数据
-         */
-        socData: any;
-    }
-
-    /**
      * 任务接口
      */
     export interface ITask {
@@ -187,7 +172,16 @@ declare module suncore {
     }
 
     /**
-     * 游戏时间轴接口
+     * 时间轴类
+     * 
+     * 说明：
+     * 1. 游戏时间轴实现
+     * 1. 游戏时间轴中并没有关于计算游戏时间的真正的实现
+     * 2. 若游戏是基于帧同步的，则游戏时间以服务端时间为准
+     * 3. 若游戏是基于状态同步的，则游戏时间以框架时间为准
+     * 
+     * 注意：
+     * 1. 由于此类为系统类，故请勿擅自对此类进行实例化
      */
     export interface ITimeline {
 
@@ -237,44 +231,13 @@ declare module suncore {
     }
 
     /**
-     * 定时器管理器接口
-     */
-    export interface ITimerManager {
-
-        /**
-         * 响应定时器
-         */
-        executeTimer(): void;
-
-        /**
-         * 添加游戏定时器
-         * @mod: 所属模块
-         * @delay: 响应延时
-         * @method: 回调函数
-         * @caller: 回调对象
-         * @loops: 循环设定次数
-         * @real: 是否计算真实次数
-         * @timerId: 定时器编号，请勿擅自传入此参数，防止定时器工作出错
-         * @timestamp: 定时器的创建时间，请勿擅自传入此参数，防止定时器工作出错
-         * @timeout: 定时器上次响应时间，请勿擅自传入此参数，防止定时器工作出错
-         * @repeat: 当前重复次数
-         */
-        addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops?: number, real?: boolean, timerId?: number, timestamp?: number, timeout?: number, repeat?: number): number;
-
-        /**
-         * 移除定时器
-         * NOTE: 固定返回 0 ，方便外部用返回值清空 timerId
-         */
-        removeTimer(timerId: number): number;
-
-        /**
-         * 清除指定模块下的所有定时器
-         */
-        clearTimer(mod: ModuleEnum): void;
-    }
-
-    /**
-     * 系统时间戳接口
+     * 系统时间戳
+     * 
+     * 此类实现了整个客户端的核心机制，包括：
+     * 1. 系统时间戳实现
+     * 2. 游戏时间轴调度
+     * 3. 自定义定时器调度
+     * 4. 不同类型游戏消息的派发
      */
     export interface ITimeStamp extends ITimeline {
         
@@ -308,29 +271,6 @@ declare module suncore {
     export class CreateTimelineCommand extends puremvc.SimpleCommand {
 
         execute(): void;
-    }
-
-    /**
-     * 核心类
-     */
-    export class Engine implements IEngine {
-
-        constructor();
-
-        /**
-         * 销毁对象
-         */
-        destroy(): void;
-
-        /**
-         * 获取系统运行时间（毫秒）
-         */
-        getTime(): number;
-
-        /**
-         * 获取帧时间间隔（毫秒）
-         */
-        getDelta(): number;
     }
 
     /**
@@ -425,72 +365,6 @@ declare module suncore {
     }
 
     /**
-     * 时间轴类
-     * 
-     * 说明：
-     * 1. 游戏时间轴实现
-     * 1. 游戏时间轴中并没有关于计算游戏时间的真正的实现
-     * 2. 若游戏是基于帧同步的，则游戏时间以服务端时间为准
-     * 3. 若游戏是基于状态同步的，则游戏时间以框架时间为准
-     * 
-     * 注意：
-     * 1. 由于此类为系统类，故请勿擅自对此类进行实例化
-     */
-    export class Timeline implements ITimeline {
-
-        /**
-         * @lockStep: 是否开启帧同步
-         * 说明：
-         * 1. 时间轴模块下的消息和定时器只有在时间轴被激活的情况下才会被处理。
-         */
-        constructor(lockStep: boolean);
-
-        /**
-         * 暂停时间轴
-         * 1. 时间轴暂停时，对应的模块允许被添加任务
-         */
-        pause(): void;
-
-        /**
-         * 继续时间轴
-         * @paused: 是否暂停时间轴，默认false
-         */
-        resume(paused?: boolean): void;
-
-        /**
-         * 停止时间轴
-         * 1. 时间轴停止时，对应的模块无法被添加任务
-         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
-         */
-        stop(): void;
-
-        /**
-         * 获取系统时间戳（毫秒）
-         */
-        getTime(): number;
-
-        /**
-         * 获取帧时间间隔（毫秒）
-         */
-        getDelta(): number;
-
-        /**
-         * 时间轴是否己暂停
-         */
-        readonly paused: boolean;
-
-        /**
-         * 时间轴是否己停止
-         */
-        readonly stopped: boolean;
-
-        /**
-         * 帧同步是否己开启
-         */
-        readonly lockStep: boolean;
-    }
-
-    /**
      * 网络消息派发器
      */
     export abstract class MessageNotifier {
@@ -526,26 +400,5 @@ declare module suncore {
          * 执行函数
          */
         run(): boolean;
-    }
-
-    /**
-     * 系统时间戳
-     * 
-     * 此类实现了整个客户端的核心机制，包括：
-     * 1. 系统时间戳实现
-     * 2. 游戏时间轴调度
-     * 3. 自定义定时器调度
-     * 4. 不同类型游戏消息的派发
-     */
-    export class TimeStamp extends Timeline implements ITimeStamp {
-
-        constructor();
-
-        /**
-         * 停止时间轴
-         * 1. 时间轴停止时，对应的模块无法被添加任务
-         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
-         */
-        stop(): void;
     }
 }

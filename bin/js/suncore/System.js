@@ -7,10 +7,10 @@ var suncore;
          * 判断指定模块是否己暂停
          */
         System.isModulePaused = function (mod) {
-            if (mod == suncore.ModuleEnum.CUSTOM) {
+            if (mod === suncore.ModuleEnum.CUSTOM) {
                 return System.timeStamp.paused;
             }
-            else if (mod == suncore.ModuleEnum.TIMELINE) {
+            else if (mod === suncore.ModuleEnum.TIMELINE) {
                 return System.timeline.paused;
             }
             return false;
@@ -19,10 +19,10 @@ var suncore;
          * 获取指定模块的时间戳
          */
         System.getModuleTimestamp = function (mod) {
-            if (mod == suncore.ModuleEnum.CUSTOM) {
+            if (mod === suncore.ModuleEnum.CUSTOM) {
                 return System.timeStamp.getTime();
             }
-            else if (mod == suncore.ModuleEnum.TIMELINE) {
+            else if (mod === suncore.ModuleEnum.TIMELINE) {
                 return System.timeline.getTime();
             }
             return System.engine.getTime();
@@ -31,9 +31,9 @@ var suncore;
          * 添加任务
          */
         System.addTask = function (mod, task) {
-            if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn("System=> add task failed, cos module " + suncom.Common.convertEnumToString(mod, suncore.ModuleEnum) + " is paused.");
+            if (System.isModulePaused(mod) === true) {
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn("System=> add task failed, cos module " + suncom.Common.convertEnumToString(mod, suncore.ModuleEnum) + " is paused.");
                 }
                 return;
             }
@@ -48,9 +48,9 @@ var suncore;
          * 添加触发器
          */
         System.addTrigger = function (mod, delay, handler) {
-            if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn("System=> add trigger failed, cos module " + suncom.Common.convertEnumToString(mod, suncore.ModuleEnum) + " is paused.");
+            if (System.isModulePaused(mod) === true) {
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn("System=> add trigger failed, cos module " + suncom.Common.convertEnumToString(mod, suncore.ModuleEnum) + " is paused.");
                 }
                 return;
             }
@@ -81,9 +81,9 @@ var suncore;
          * 添加消息
          */
         System.addMessage = function (mod, priority, handler) {
-            if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn("System=> add message failed, cos module " + suncom.Common.convertEnumToString(mod, suncore.ModuleEnum) + " is paused.");
+            if (System.isModulePaused(mod) === true) {
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn("System=> add message failed, cos module " + suncom.Common.convertEnumToString(mod, suncore.ModuleEnum) + " is paused.");
                 }
                 return;
             }
@@ -105,8 +105,8 @@ var suncore;
             if (loops === void 0) { loops = 1; }
             if (real === void 0) { real = false; }
             if (System.isModulePaused(mod) == true) {
-                if (System.DEBUG == true) {
-                    console.warn("System=> add timer failed, cos module " + suncom.Common.convertEnumToString(mod, suncore.ModuleEnum) + " is paused.");
+                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                    suncom.Logger.warn("System=> add timer failed, cos module " + suncom.Common.convertEnumToString(mod, suncore.ModuleEnum) + " is paused.");
                 }
                 return 0;
             }
@@ -118,10 +118,6 @@ var suncore;
         System.removeTimer = function (timerId) {
             return System.timeStamp.timerManager.removeTimer(timerId);
         };
-        /**
-         * 是否开启打印
-         */
-        System.DEBUG = false;
         return System;
     }());
     suncore.System = System;

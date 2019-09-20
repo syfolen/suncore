@@ -66,7 +66,7 @@ var test;
             console.log("\u6D4B\u8BD5\u573A\u666F\u5B9A\u65F6\u5668, repeat:" + repeat + ", loops:" + loops);
         };
         TestClass.prototype.$gotoQuadtreeScene = function (repeat, loops) {
-            if (repeat == loops) {
+            if (repeat === loops) {
                 console.log("测试完毕");
                 suncore.System.timeline.stop();
                 suncore.System.timeStamp.stop();

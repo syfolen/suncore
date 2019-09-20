@@ -112,9 +112,6 @@ module suncore {
 
                     // 总处理条数累加
                     dealCount += count;
-                    if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                        ignoreCount && suncom.Logger.log(`MessageQueue=> mod:${this.$mod}, priority:${priority}, count:${count}, ignoreCount:${ignoreCount}`);
-                    }
                 }
             }
 

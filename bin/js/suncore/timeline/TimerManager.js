@@ -39,18 +39,18 @@ var suncore;
                 // 获取当前时间戳
                 var timestamp = suncore.System.getModuleTimestamp(mod);
                 // 当前模块未暂停
-                if (suncore.System.isModulePaused(mod) == false) {
+                if (suncore.System.isModulePaused(mod) === false) {
                     // 对模块中的所有定时器进行遍历
                     while (timers.length) {
                         var timer = timers[0];
                         // 若定时器有效
-                        if (timer.active) {
+                        if (timer.active === true) {
                             // 若定时器未到响应时间，则跳出
                             if (timer.timeout > timestamp) {
                                 break;
                             }
                             // 若 real 为 true ，则对执行次数进行真实递增
-                            if (timer.real == true) {
+                            if (timer.real === true) {
                                 timer.repeat++;
                             }
                             // 否则计算当前理论上的响应次数
@@ -59,14 +59,14 @@ var suncore;
                             }
                         }
                         // 移除无效定时器
-                        if (timer.active == false || (timer.loops > 0 && timer.repeat >= timer.loops)) {
+                        if (timer.active === false || (timer.loops > 0 && timer.repeat >= timer.loops)) {
                             delete this.$timerMap[timer.timerId];
                         }
                         else {
                             this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.repeat);
                         }
                         timers.shift();
-                        if (timer.active) {
+                        if (timer.active === true) {
                             timer.method.call(timer.caller, timer.repeat, timer.loops);
                         }
                     }
@@ -96,15 +96,15 @@ var suncore;
             var timer = new suncore.Timer();
             var currentTimestamp = suncore.System.getModuleTimestamp(mod);
             // 若编号未指定，则生成新的定时器
-            if (timerId == 0) {
+            if (timerId === 0) {
                 timerId = this.$createNewTimerId();
             }
             // 若创建时间未指定，则默认为系统时间
-            if (timestamp == -1) {
+            if (timestamp === -1) {
                 timestamp = currentTimestamp;
             }
             // 若上次响应时间未指定，则默认为系统时间
-            if (timeout == -1) {
+            if (timeout === -1) {
                 timeout = currentTimestamp;
             }
             // 定时器执行间隔不得小于 1 毫秒
@@ -114,7 +114,7 @@ var suncore;
             // 响应时间偏差值
             var dev = 0;
             // 根据定时器的特性来修正下次响应时间
-            if (real == true) {
+            if (real === true) {
                 /**
                  * 若定时器侧重于真实响应次数统计
                  * 为了确保定时器的两次响应之间的时间间隔完全一致
@@ -183,7 +183,7 @@ var suncore;
          * NOTE: 固定返回 0 ，方便外部用返回值清空 timerId
          */
         TimerManager.prototype.removeTimer = function (timerId) {
-            if (timerId && this.$timerMap[timerId]) {
+            if (timerId > 0 && this.$timerMap[timerId] !== void 0) {
                 this.$timerMap[timerId].active = false;
             }
             return 0;
@@ -193,7 +193,7 @@ var suncore;
          */
         TimerManager.prototype.clearTimer = function (mod) {
             var timers = this.$timers[mod];
-            while (timers.length) {
+            while (timers.length > 0) {
                 var timer = timers.pop();
                 delete this.$timerMap[timer.timerId];
             }

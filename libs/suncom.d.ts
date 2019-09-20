@@ -415,8 +415,6 @@ declare module suncom {
       */
     export class Handler implements IHandler {
 
-        constructor(caller: Object, method: Function, args?: any, once?: boolean);
-
         /**
          * 执行处理器
          */

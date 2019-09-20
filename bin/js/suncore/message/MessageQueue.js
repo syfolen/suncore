@@ -39,20 +39,20 @@ var suncore;
             for (var priority = suncore.MessagePriorityEnum.MIN; priority < suncore.MessagePriorityEnum.MAX; priority++) {
                 var queue = this.$queues[priority];
                 // 跳过惰性消息
-                if (priority == suncore.MessagePriorityEnum.PRIORITY_LAZY) {
+                if (priority === suncore.MessagePriorityEnum.PRIORITY_LAZY) {
                     continue;
                 }
                 // 若系统被暂停，则忽略网络消息
-                if (priority == suncore.MessagePriorityEnum.PRIORITY_SOCKET && suncore.System.timeStamp.paused) {
+                if (priority === suncore.MessagePriorityEnum.PRIORITY_SOCKET && suncore.System.timeStamp.paused === true) {
                     continue;
                 }
                 // 剩余消息条数累计
                 remainCount += queue.length;
                 // 任务消息
-                if (priority == suncore.MessagePriorityEnum.PRIORITY_TASK) {
+                if (priority === suncore.MessagePriorityEnum.PRIORITY_TASK) {
                     // 任务消息在返回 true 表示任务己完成
                     if (queue.length > 0) {
-                        if (this.$dealTaskMessage(queue[0]) == true) {
+                        if (this.$dealTaskMessage(queue[0]) === true) {
                             // 此时应当移除任务
                             queue.shift();
                         }
@@ -61,7 +61,7 @@ var suncore;
                     }
                 }
                 // 网络消息
-                else if (priority == suncore.MessagePriorityEnum.PRIORITY_SOCKET) {
+                else if (priority === suncore.MessagePriorityEnum.PRIORITY_SOCKET) {
                     // 消息队列不为空
                     if (queue.length > 0) {
                         // 处理消息
@@ -71,7 +71,7 @@ var suncore;
                     }
                 }
                 // 触发器消息
-                else if (priority == suncore.MessagePriorityEnum.PRIORITY_TRIGGER) {
+                else if (priority === suncore.MessagePriorityEnum.PRIORITY_TRIGGER) {
                     // 任务消息在返回 true 表示任务己完成
                     while (queue.length && this.$dealTriggerMessage(queue[0]) == true) {
                         // 此时应当移除任务
@@ -81,7 +81,7 @@ var suncore;
                     }
                 }
                 // 其它类型消息
-                else if (queue.length) {
+                else if (queue.length > 0) {
                     // 处理统计
                     var count = 0;
                     // 忽略统计
@@ -90,20 +90,20 @@ var suncore;
                     var totalCount = this.$getDealCountByPriority(priority);
                     // 若 totalCount 为 0 ，则表示处理所有消息
                     for (; queue.length && (totalCount == 0 || count < totalCount); count++) {
-                        if (this.$dealCustomMessage(queue.shift()) == false) {
+                        if (this.$dealCustomMessage(queue.shift()) === false) {
                             count--;
                             ignoreCount++;
                         }
                     }
                     // 总处理条数累加
                     dealCount += count;
-                    if (suncore.System.DEBUG == true) {
-                        ignoreCount && console.log("MessageQueue=> mod:" + this.$mod + ", priority:" + priority + ", count:" + count + ", ignoreCount:" + ignoreCount);
+                    if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
+                        ignoreCount && suncom.Logger.log("MessageQueue=> mod:" + this.$mod + ", priority:" + priority + ", count:" + count + ", ignoreCount:" + ignoreCount);
                     }
                 }
             }
             // 若只剩下惰性消息，则处理惰性消息
-            if (remainCount == 0 && this.$messages0.length == 0) {
+            if (remainCount === 0 && this.$messages0.length === 0) {
                 var queue = this.$queues[suncore.MessagePriorityEnum.PRIORITY_LAZY];
                 if (queue.length > 0) {
                     this.$dealCustomMessage(queue.shift());
@@ -118,9 +118,9 @@ var suncore;
         MessageQueue.prototype.$dealTaskMessage = function (message) {
             var task = message.task;
             // 若任务没有被开启，则开启任务
-            if (message.active == false) {
+            if (message.active === false) {
                 message.active = true;
-                if (task.run() == true) {
+                if (task.run() === true) {
                     task.done = true;
                 }
             }
@@ -158,16 +158,16 @@ var suncore;
          * 根据优先级返回每帧允许处理的消息条数
          */
         MessageQueue.prototype.$getDealCountByPriority = function (priority) {
-            if (priority == suncore.MessagePriorityEnum.PRIORITY_0) {
+            if (priority === suncore.MessagePriorityEnum.PRIORITY_0) {
                 return 0;
             }
-            if (priority == suncore.MessagePriorityEnum.PRIORITY_HIGH) {
+            if (priority === suncore.MessagePriorityEnum.PRIORITY_HIGH) {
                 return 7;
             }
-            if (priority == suncore.MessagePriorityEnum.PRIORITY_NOR) {
+            if (priority === suncore.MessagePriorityEnum.PRIORITY_NOR) {
                 return 2;
             }
-            if (priority == suncore.MessagePriorityEnum.PRIORITY_LOW) {
+            if (priority === suncore.MessagePriorityEnum.PRIORITY_LOW) {
                 return 1;
             }
             throw Error("错误的消息优先级");
@@ -178,7 +178,7 @@ var suncore;
         MessageQueue.prototype.classifyMessages0 = function () {
             while (this.$messages0.length) {
                 var message = this.$messages0.shift();
-                if (message.priority == suncore.MessagePriorityEnum.PRIORITY_TRIGGER) {
+                if (message.priority === suncore.MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
                 else {

@@ -9,7 +9,8 @@ var suncore;
         // 系统命令
         NotifyKey.STARTUP = "suncore.NotifyKey.STARTUP";
         NotifyKey.SHUTDOWN = "suncore.NotifyKey.SHUTDOWN";
-        NotifyKey.ENTER_FRAME = "suncore.NotifyKey.ENTER_FRAME";
+        NotifyKey.FRAME_ENTER = "suncore.NotifyKey.FRAME_ENTER";
+        NotifyKey.FRAME_LATER = "suncore.NotifyKey.FRAME_LATER";
         // 时间轴命令
         NotifyKey.CREATE_TIMELINE = "suncore.NotifyKey.CREATE_TIMELINE";
         NotifyKey.REMOVE_TIMELINE = "suncore.NotifyKey.REMOVE_TIMELINE";

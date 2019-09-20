@@ -41,24 +41,26 @@ var suncore;
          */
         TimeStamp.prototype.lapse = function (delta) {
             // 游戏未暂停
-            if (this.paused == false) {
+            if (this.paused === false) {
                 _super.prototype.lapse.call(this, delta);
                 // 时间轴未暂停
-                if (suncore.System.timeline.paused == false) {
+                if (suncore.System.timeline.paused === false) {
                     // 若游戏时间轴未开启帧同步，则直接对游戏时间进行同步
-                    if (suncore.System.timeline.lockStep == false) {
+                    if (suncore.System.timeline.lockStep === false) {
                         suncore.System.timeline.lapse(delta);
                     }
                 }
             }
+            // 始终派发帧相关事件
+            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.FRAME_ENTER);
             // 响应定时器
             this.$timerManager.executeTimer();
             // 处理消息
             this.$messageManager.dealMessage();
             // 处理临时消息
             this.$messageManager.classifyMessages0();
-            // 始终派发帧事件
-            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.ENTER_FRAME);
+            // 始终派发帧相关事件
+            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.FRAME_LATER);
         };
         /**
          * 停止时间轴

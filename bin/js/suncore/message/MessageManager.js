@@ -24,7 +24,7 @@ var suncore;
          */
         MessageManager.prototype.dealMessage = function () {
             for (var mod = suncore.ModuleEnum.MIN; mod < suncore.ModuleEnum.MAX; mod++) {
-                if (suncore.System.isModulePaused(mod) == false) {
+                if (suncore.System.isModulePaused(mod) === false) {
                     this.$queues[mod].dealMessage();
                 }
             }
@@ -34,7 +34,7 @@ var suncore;
          */
         MessageManager.prototype.classifyMessages0 = function () {
             for (var mod = suncore.ModuleEnum.MIN; mod < suncore.ModuleEnum.MAX; mod++) {
-                if (suncore.System.isModulePaused(mod) == false) {
+                if (suncore.System.isModulePaused(mod) === false) {
                     this.$queues[mod].classifyMessages0();
                 }
             }
