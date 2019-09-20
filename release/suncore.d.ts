@@ -491,6 +491,27 @@ declare module suncore {
     }
 
     /**
+     * 网络消息派发器
+     */
+    export abstract class MessageNotifier {
+
+        /**
+         * 通知网络消息
+         */
+        static notify(cmd: number, data: any): void;
+
+        /**
+         * 注册网络消息监听
+         */
+        static register(cmd: number, method: Function, caller: Object): void;
+
+        /**
+         * 移除网络消息监听
+         */
+        static unregister(cmd: number, method: Function, caller: Object): void;
+    }
+
+    /**
      * 简单任务对象
      */
     export class SimpleTask extends AbstractTask {
