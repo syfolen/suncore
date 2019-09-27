@@ -149,7 +149,7 @@ module suncore {
          */
         private $dealSocketMessage(message: Message): void {
             const data: ISocketData = message.data;
-            // NetConnectionNotifier.notify(data.cmd, data.socData);
+            MessageNotifier.notify(data.name, data.socData);
         }
 
         /**

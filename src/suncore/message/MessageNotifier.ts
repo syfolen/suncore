@@ -11,22 +11,22 @@ module suncore {
         /**
          * 通知网络消息
          */
-        static notify(cmd: number, data: any): void {
-            MessageNotifier.inst.dispatchEvent(cmd.toString(), data);
+        static notify(name: string, data: any): void {
+            MessageNotifier.inst.dispatchEvent(name, data);
         }
 
         /**
          * 注册网络消息监听
          */
-        static register(cmd: number, method: Function, caller: Object): void {
-            MessageNotifier.inst.addEventListener(cmd.toString(), method, caller);
+        static register(name: string, method: Function, caller: Object): void {
+            MessageNotifier.inst.addEventListener(name, method, caller);
         }
 
         /**
          * 移除网络消息监听
          */
-        static unregister(cmd: number, method: Function, caller: Object): void {
-            MessageNotifier.inst.removeEventListener(cmd.toString(), method, caller);
+        static unregister(name: string, method: Function, caller: Object): void {
+            MessageNotifier.inst.removeEventListener(name, method, caller);
         }
     }
 }

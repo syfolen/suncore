@@ -7,7 +7,7 @@ module suncore {
         /**
          * 协议
          */
-        cmd: number;
+        name: string;
 
         /**
          * 挂载数据

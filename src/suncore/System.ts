@@ -85,9 +85,9 @@ module suncore {
          * @cmd: 值为 SOCKET_STATE_CHANGE 表示掉线重连消息
          * @TODO: 不确定网络消息在切换场景的时候是否会被清理掉
          */
-        static addSocketMessage(cmd: number, socData: any): void {
+        static addSocketMessage(name: string, socData: any): void {
             const data: ISocketData = new SocketData();
-            data.cmd = cmd;
+            data.name = name;
             data.socData = socData;
             const message: Message = new Message();
             message.mod = ModuleEnum.SYSTEM;
