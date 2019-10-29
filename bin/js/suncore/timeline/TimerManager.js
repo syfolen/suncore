@@ -34,12 +34,12 @@ var suncore;
         TimerManager.prototype.executeTimer = function () {
             // 遍历所有模块中的所有定时器
             for (var mod = suncore.ModuleEnum.MIN; mod < suncore.ModuleEnum.MAX; mod++) {
-                // 获取模块中的所有定时器
-                var timers = this.$timers[mod];
-                // 获取当前时间戳
-                var timestamp = suncore.System.getModuleTimestamp(mod);
                 // 当前模块未暂停
                 if (suncore.System.isModulePaused(mod) === false) {
+                    // 获取模块中的所有定时器
+                    var timers = this.$timers[mod];
+                    // 获取当前时间戳
+                    var timestamp = suncore.System.getModuleTimestamp(mod);
                     // 对模块中的所有定时器进行遍历
                     while (timers.length) {
                         var timer = timers[0];

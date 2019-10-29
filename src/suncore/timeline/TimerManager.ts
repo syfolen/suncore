@@ -40,12 +40,12 @@ module suncore {
         executeTimer(): void {
             // 遍历所有模块中的所有定时器
             for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
-                // 获取模块中的所有定时器
-                const timers: Array<Timer> = this.$timers[mod];
-                // 获取当前时间戳
-                const timestamp: number = System.getModuleTimestamp(mod);
                 // 当前模块未暂停
                 if (System.isModulePaused(mod) === false) {
+                    // 获取模块中的所有定时器
+                    const timers: Array<Timer> = this.$timers[mod];
+                    // 获取当前时间戳
+                    const timestamp: number = System.getModuleTimestamp(mod);
                     // 对模块中的所有定时器进行遍历
                     while (timers.length) {
                         const timer: Timer = timers[0];

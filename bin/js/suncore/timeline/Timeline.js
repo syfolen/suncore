@@ -69,7 +69,7 @@ var suncore;
          * 2. 时间轴上所有的任务都会在时间轴被停止时清空
          */
         Timeline.prototype.stop = function () {
-            this.$stopped = true;
+            this.$paused = this.$stopped = true;
             // 清除定时器
             suncore.System.timeStamp.timerManager.clearTimer(suncore.ModuleEnum.TIMELINE);
             // 清除任务消息
@@ -81,12 +81,18 @@ var suncore;
          * 获取系统时间戳（毫秒）
          */
         Timeline.prototype.getTime = function () {
+            if (this.$stopped === true) {
+                throw Error("时间轴停止时不允许获取时间戳");
+            }
             return this.$runTime;
         };
         /**
          * 获取帧时间间隔（毫秒）
          */
         Timeline.prototype.getDelta = function () {
+            if (this.$stopped === true) {
+                throw Error("时间轴停止时不允许获取时间间隔");
+            }
             return this.$delta;
         };
         Object.defineProperty(Timeline.prototype, "paused", {

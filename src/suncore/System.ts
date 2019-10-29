@@ -18,14 +18,27 @@ module suncore {
         static timeStamp: ITimeStamp;
 
         /**
+         * 判断指定模块是否己停止
+         */
+        static isModuleStopped(mod: ModuleEnum): boolean {
+            if (mod === ModuleEnum.TIMELINE) {
+                return System.timeline.stopped;
+            }
+            else if (mod === ModuleEnum.CUSTOM) {
+                return System.timeStamp.stopped;
+            }
+            return false;
+        }
+
+        /**
          * 判断指定模块是否己暂停
          */
         static isModulePaused(mod: ModuleEnum): boolean {
-            if (mod === ModuleEnum.CUSTOM) {
-                return System.timeStamp.paused;
-            }
-            else if (mod === ModuleEnum.TIMELINE) {
+            if (mod === ModuleEnum.TIMELINE) {
                 return System.timeline.paused;
+            }
+            else if (mod === ModuleEnum.CUSTOM) {
+                return System.timeStamp.paused;
             }
             return false;
         }
@@ -47,11 +60,8 @@ module suncore {
          * 添加任务
          */
         static addTask(mod: ModuleEnum, task: ITask): void {
-            if (System.isModulePaused(mod) === true) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                    suncom.Logger.warn(`System=> add task failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
-                }
-                return;
+            if (System.isModuleStopped(mod) === true) {
+                throw Error("时间轴停止时不允许添加任务");
             }
             const message: Message = new Message();
             message.mod = mod;
@@ -65,11 +75,8 @@ module suncore {
          * 添加触发器
          */
         static addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void {
-            if (System.isModulePaused(mod) === true) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                    suncom.Logger.warn(`System=> add trigger failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
-                }
-                return;
+            if (System.isModuleStopped(mod) === true) {
+                throw Error("时间轴停止时不允许添加触发器");
             }
             // 获取模块依赖的时间轴的时间戳
             const message: Message = new Message();
@@ -98,17 +105,46 @@ module suncore {
 
         /**
          * 添加消息
+         * @handler: 若为帧事件消息，则应当以Function作为参数，否则应当以Handler作为参数
          */
-        static addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler): void {
-            if (System.isModulePaused(mod) === true) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                    suncom.Logger.warn(`System=> add message failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
-                }
-                return;
+        static addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler | Function, caller?: Object): void {
+            if (System.isModuleStopped(mod) === true) {
+                throw Error("时间轴停止时不允许添加消息");
             }
             const message: Message = new Message();
             message.mod = mod;
-            message.handler = handler;
+            message.active = true;
+            if (priority === MessagePriorityEnum.PRIORITY_FRAME) {
+                if (handler instanceof Function) {
+                    message.method = handler;
+                }
+                else {
+                    throw Error("帧消息只能以函数作为消息回调");
+                }
+            }
+            else if (handler instanceof Function) {
+                throw Error("非帧消息不允许以函数作为消息回调");
+            }
+            else {
+                message.handler = handler;
+            }
+            message.caller = caller;
+            message.priority = priority;
+            System.timeStamp.messageManager.putMessage(message);
+        }
+
+        /**
+         * 移除消息（目前移除的消息仅可能是帧消息）
+         */
+        static removeMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: Function, caller?: Object): void {
+            if (priority !== MessagePriorityEnum.PRIORITY_FRAME) {
+                throw Error("非帧消息不允许移除");
+            }
+            const message: Message = new Message();
+            message.mod = mod;
+            message.active = false;
+            message.method = handler;
+            message.caller = caller;
             message.priority = priority;
             System.timeStamp.messageManager.putMessage(message);
         }
@@ -122,11 +158,8 @@ module suncore {
          * @loops: 响应次数
          */
         static addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops: number = 1, real: boolean = false): number {
-            if (System.isModulePaused(mod) == true) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                    suncom.Logger.warn(`System=> add timer failed, cos module ${suncom.Common.convertEnumToString(mod, ModuleEnum)} is paused.`);
-                }
-                return 0;
+            if (System.isModuleStopped(mod) === true) {
+                throw Error("时间轴停止时不允许添加定时器");
             }
             return System.timeStamp.timerManager.addTimer(mod, delay, method, caller, loops, real);
         }

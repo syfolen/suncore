@@ -63,7 +63,7 @@ var suncore;
                 // 网络消息
                 else if (priority === suncore.MessagePriorityEnum.PRIORITY_SOCKET) {
                     // 消息队列不为空
-                    if (queue.length > 0) {
+                    while (queue.length > 0) {
                         // 处理消息
                         this.$dealSocketMessage(queue.shift());
                         // 总处理条数累加
@@ -80,26 +80,30 @@ var suncore;
                         dealCount++;
                     }
                 }
+                // 帧事件
+                else if (priority === suncore.MessagePriorityEnum.PRIORITY_FRAME) {
+                    for (var i = 0; i < queue.length; i++) {
+                        var msg = queue[i];
+                        msg.method.call(msg.caller);
+                    }
+                }
                 // 其它类型消息
                 else if (queue.length > 0) {
                     // 处理统计
-                    var count = 0;
+                    var count_1 = 0;
                     // 忽略统计
                     var ignoreCount = 0;
                     // 消息总条数
                     var totalCount = this.$getDealCountByPriority(priority);
                     // 若 totalCount 为 0 ，则表示处理所有消息
-                    for (; queue.length && (totalCount == 0 || count < totalCount); count++) {
+                    for (; queue.length > 0 && (totalCount == 0 || count_1 < totalCount); count_1++) {
                         if (this.$dealCustomMessage(queue.shift()) === false) {
-                            count--;
+                            count_1--;
                             ignoreCount++;
                         }
                     }
                     // 总处理条数累加
-                    dealCount += count;
-                    if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                        ignoreCount && suncom.Logger.log("MessageQueue=> mod:" + this.$mod + ", priority:" + priority + ", count:" + count + ", ignoreCount:" + ignoreCount);
-                    }
+                    dealCount += count_1;
                 }
             }
             // 若只剩下惰性消息，则处理惰性消息
@@ -131,7 +135,7 @@ var suncore;
          */
         MessageQueue.prototype.$dealSocketMessage = function (message) {
             var data = message.data;
-            // NetConnectionNotifier.notify(data.cmd, data.socData);
+            suncore.MessageNotifier.notify(data.name, data.socData);
         };
         /**
          * 触发器消息处理逻辑
@@ -176,13 +180,53 @@ var suncore;
          * 将临时消息按优先级分类
          */
         MessageQueue.prototype.classifyMessages0 = function () {
+            for (var i = this.$messages0.length - 1; i > -1; i--) {
+                var message = this.$messages0.shift();
+                if (message.priority === suncore.MessagePriorityEnum.PRIORITY_FRAME) {
+                    if (message.active === false) {
+                        this.$addFrameMessage(message);
+                        this.$messages0.slice(i, 1);
+                    }
+                }
+            }
             while (this.$messages0.length) {
                 var message = this.$messages0.shift();
                 if (message.priority === suncore.MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
+                else if (message.priority === suncore.MessagePriorityEnum.PRIORITY_FRAME) {
+                    this.$addFrameMessage(message);
+                }
                 else {
                     this.$queues[message.priority].push(message);
+                }
+            }
+        };
+        /**
+         * 添加帧消息
+         */
+        MessageQueue.prototype.$addFrameMessage = function (message) {
+            var queue = this.$queues[message.priority];
+            if (message.active === true) {
+                var exist = false;
+                for (var i = 0; i < queue.length; i++) {
+                    var msg = queue[i];
+                    if (msg.method === message.method && msg.caller === message.caller) {
+                        exist = true;
+                        break;
+                    }
+                }
+                if (exist === false) {
+                    queue.push(message);
+                }
+            }
+            else {
+                for (var i = queue.length - 1; i > -1; i--) {
+                    var msg = queue[i];
+                    if (msg.method === message.method && msg.caller === msg.caller) {
+                        queue.splice(i, 1);
+                        break;
+                    }
                 }
             }
         };

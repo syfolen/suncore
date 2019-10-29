@@ -9,8 +9,10 @@ var suncore;
         // 系统命令
         NotifyKey.STARTUP = "suncore.NotifyKey.STARTUP";
         NotifyKey.SHUTDOWN = "suncore.NotifyKey.SHUTDOWN";
-        NotifyKey.FRAME_ENTER = "suncore.NotifyKey.FRAME_ENTER";
-        NotifyKey.FRAME_LATER = "suncore.NotifyKey.FRAME_LATER";
+        NotifyKey.PHYSICS_FRAME = "suncore.NotifyKey.PHYSICS_FRAME";
+        NotifyKey.PHYSICS_PREPARE = "suncore.NotifyKey.PHYSICS_PREPARE";
+        NotifyKey.ENTER_FRAME = "suncore.NotifyKey.ENTER_FRAME";
+        NotifyKey.LATER_FRAME = "suncore.NotifyKey.LATER_FRAME";
         // 时间轴命令
         NotifyKey.CREATE_TIMELINE = "suncore.NotifyKey.CREATE_TIMELINE";
         NotifyKey.REMOVE_TIMELINE = "suncore.NotifyKey.REMOVE_TIMELINE";

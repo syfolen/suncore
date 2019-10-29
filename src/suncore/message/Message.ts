@@ -32,9 +32,19 @@ module suncore {
         task: ITask;
 
         /**
-         * 回调函数
+         * 回调执行器
          */
         handler: suncom.IHandler;
+
+        /**
+         * 回调方法
+         */
+        method: Function;
+
+        /**
+         * 回调对象
+         */
+        caller: Object;
 
         /**
          * 超时时间

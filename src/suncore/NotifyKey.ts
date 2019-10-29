@@ -9,8 +9,11 @@ module suncore {
         static readonly STARTUP: string = "suncore.NotifyKey.STARTUP";
         static readonly SHUTDOWN: string = "suncore.NotifyKey.SHUTDOWN";
 
-        static readonly FRAME_ENTER: string = "suncore.NotifyKey.FRAME_ENTER";
-        static readonly FRAME_LATER: string = "suncore.NotifyKey.FRAME_LATER";
+        static readonly PHYSICS_FRAME: string = "suncore.NotifyKey.PHYSICS_FRAME";
+        static readonly PHYSICS_PREPARE: string = "suncore.NotifyKey.PHYSICS_PREPARE";
+
+        static readonly ENTER_FRAME: string = "suncore.NotifyKey.ENTER_FRAME";
+        static readonly LATER_FRAME: string = "suncore.NotifyKey.LATER_FRAME";
 
         // 时间轴命令
         static readonly CREATE_TIMELINE: string = "suncore.NotifyKey.CREATE_TIMELINE";

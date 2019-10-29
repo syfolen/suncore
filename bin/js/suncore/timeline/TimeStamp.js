@@ -51,8 +51,11 @@ var suncore;
                     }
                 }
             }
+            // 物理相关事件
+            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PHYSICS_PREPARE);
+            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PHYSICS_FRAME);
             // 始终派发帧相关事件
-            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.FRAME_ENTER);
+            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.ENTER_FRAME);
             // 响应定时器
             this.$timerManager.executeTimer();
             // 处理消息
@@ -60,7 +63,7 @@ var suncore;
             // 处理临时消息
             this.$messageManager.classifyMessages0();
             // 始终派发帧相关事件
-            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.FRAME_LATER);
+            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.LATER_FRAME);
         };
         /**
          * 停止时间轴
@@ -68,7 +71,7 @@ var suncore;
          * 2. 时间轴上所有的任务都会在时间轴被停止时清空
          */
         TimeStamp.prototype.stop = function () {
-            this.$stopped = true;
+            this.$paused = this.$stopped = true;
             // 清除定时器
             suncore.System.timeStamp.timerManager.clearTimer(suncore.ModuleEnum.CUSTOM);
             // 清除任务消息
