@@ -304,9 +304,14 @@ module suncore {
          * 清除指定模块下的所有消息
          */
         clearMessages(): void {
-            this.$messages0.length = 0;
+            while (this.$messages0.length > 0) {
+                this.$cancelMessage(this.$messages0.pop());
+            }
             for (let priority: MessagePriorityEnum = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
-                this.$queues[priority].length = 0;
+                const queue = this.$queues[priority];
+                while (queue.length > 0) {
+                    this.$cancelMessage(queue.pop());
+                }
             }
         }
 
@@ -315,7 +320,9 @@ module suncore {
          * @message: 目前只有task才需要被取消
          */
         private $cancelMessage(message: Message): void {
-            message.task && message.task.cancel();
+            if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
+                message.task.cancel();
+            }
         }
     }
 }

@@ -19,6 +19,6 @@ module suncore {
         /**
          * 取消任务
          */
-        cancel?(): void;
+        cancel(): void;
     }
 }
