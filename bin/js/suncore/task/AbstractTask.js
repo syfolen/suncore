@@ -26,6 +26,11 @@ var suncore;
             _this.$done = false;
             return _this;
         }
+        /**
+         * 取消任务
+         */
+        AbstractTask.prototype.cancel = function () {
+        };
         Object.defineProperty(AbstractTask.prototype, "done", {
             /**
              * 任务是否己经完成
