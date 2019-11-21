@@ -3,6 +3,7 @@ module suncore {
 
     /**
      * 系统时间戳接口
+     * export
      */
     export interface ITimeStamp extends ITimeline {
 

@@ -1,6 +1,8 @@
 
 module suncore {
-
+    /**
+     * export
+     */
     export abstract class System {
         /**
          * 核心类
@@ -9,16 +11,19 @@ module suncore {
 
         /**
          * 游戏时间轴
+         * export
          */
         static timeline: ITimeline;
 
         /**
          * 场景时间轴
+         * export
          */
         static timeStamp: ITimeStamp;
 
         /**
          * 判断指定模块是否己停止
+         * export
          */
         static isModuleStopped(mod: ModuleEnum): boolean {
             if (mod === ModuleEnum.TIMELINE) {
@@ -32,6 +37,7 @@ module suncore {
 
         /**
          * 判断指定模块是否己暂停
+         * export
          */
         static isModulePaused(mod: ModuleEnum): boolean {
             if (mod === ModuleEnum.TIMELINE) {
@@ -45,6 +51,7 @@ module suncore {
 
         /**
          * 获取指定模块的时间戳
+         * export
          */
         static getModuleTimestamp(mod: ModuleEnum): number {
             if (mod === ModuleEnum.CUSTOM) {
@@ -58,6 +65,7 @@ module suncore {
 
         /**
          * 添加任务
+         * export
          */
         static addTask(mod: ModuleEnum, task: ITask): void {
             if (System.isModuleStopped(mod) === true) {
@@ -73,6 +81,7 @@ module suncore {
 
         /**
          * 添加触发器
+         * export
          */
         static addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void {
             if (System.isModuleStopped(mod) === true) {
@@ -106,6 +115,7 @@ module suncore {
         /**
          * 添加消息
          * @handler: 若为帧事件消息，则应当以Function作为参数，否则应当以Handler作为参数
+         * export
          */
         static addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler | Function, caller?: Object): void {
             if (System.isModuleStopped(mod) === true) {
@@ -135,6 +145,7 @@ module suncore {
 
         /**
          * 移除消息（目前移除的消息仅可能是帧消息）
+         * export
          */
         static removeMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: Function, caller?: Object): void {
             if (priority !== MessagePriorityEnum.PRIORITY_FRAME) {
@@ -156,6 +167,7 @@ module suncore {
          * @method: 回调函数
          * @caller: 回调对象
          * @loops: 响应次数
+         * export
          */
         static addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops: number = 1, real: boolean = false): number {
             if (System.isModuleStopped(mod) === true) {
@@ -166,6 +178,7 @@ module suncore {
 
         /**
          * 移除定时器
+         * export
          */
         static removeTimer(timerId: number): number {
             return System.timeStamp.timerManager.removeTimer(timerId);

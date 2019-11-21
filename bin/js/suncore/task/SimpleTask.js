@@ -15,9 +15,13 @@ var suncore;
 (function (suncore) {
     /**
      * 简单任务对象
+     * export
      */
     var SimpleTask = /** @class */ (function (_super) {
         __extends(SimpleTask, _super);
+        /**
+         * export
+         */
         function SimpleTask(handler) {
             var _this = _super.call(this) || this;
             _this.$handler = handler;
@@ -25,6 +29,7 @@ var suncore;
         }
         /**
          * 执行函数
+         * export
          */
         SimpleTask.prototype.run = function () {
             // 执行任务

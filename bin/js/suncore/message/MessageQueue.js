@@ -27,6 +27,15 @@ var suncore;
          */
         MessageQueue.prototype.putMessage = function (message) {
             this.$messages0.push(message);
+            if (message.priority === suncore.MessagePriorityEnum.PRIORITY_FRAME && message.active === false) {
+                var queue = this.$queues[message.priority];
+                for (var i = 0; i < queue.length; i++) {
+                    var msg = queue[i];
+                    if (msg.method === message.method && msg.caller === message.caller) {
+                        msg.active = false;
+                    }
+                }
+            }
         };
         /**
          * 处理消息

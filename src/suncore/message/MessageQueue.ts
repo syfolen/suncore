@@ -36,6 +36,15 @@ module suncore {
          */
         putMessage(message: Message): void {
             this.$messages0.push(message);
+            if (message.priority === MessagePriorityEnum.PRIORITY_FRAME && message.active === false) {
+                const queue = this.$queues[message.priority];
+                for (let i = 0; i < queue.length; i++) {
+                    const msg = queue[i];
+                    if (msg.method === message.method && msg.caller === message.caller) {
+                        msg.active = false;
+                    }
+                }
+            }
         }
 
         /**

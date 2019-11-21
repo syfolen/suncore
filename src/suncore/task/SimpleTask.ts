@@ -3,6 +3,7 @@ module suncore {
 
     /**
      * 简单任务对象
+     * export
      */
     export class SimpleTask extends AbstractTask {
         /**
@@ -10,6 +11,9 @@ module suncore {
          */
         private $handler: suncom.IHandler;
 
+        /**
+         * export
+         */
         constructor(handler: suncom.IHandler) {
             super();
             this.$handler = handler;
@@ -17,6 +21,7 @@ module suncore {
 
         /**
          * 执行函数
+         * export
          */
         run(): boolean {
             // 执行任务

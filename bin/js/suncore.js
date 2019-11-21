@@ -126,6 +126,11 @@ var suncore;
             _this.$done = false;
             return _this;
         }
+        /**
+         * 取消任务
+         */
+        AbstractTask.prototype.cancel = function () {
+        };
         Object.defineProperty(AbstractTask.prototype, "done", {
             /**
              * 任务是否己经完成
@@ -348,8 +353,10 @@ var suncore;
                 if (priority === MessagePriorityEnum.PRIORITY_SOCKET && System.timeStamp.paused === true) {
                     continue;
                 }
-                // 剩余消息条数累计
-                remainCount += queue.length;
+                // 剩余消息条数累计，不包括FRAME类型的消息
+                if (priority !== MessagePriorityEnum.PRIORITY_FRAME) {
+                    remainCount += queue.length;
+                }
                 // 任务消息
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
                     // 任务消息在返回 true 表示任务己完成
@@ -483,11 +490,11 @@ var suncore;
          */
         MessageQueue.prototype.classifyMessages0 = function () {
             for (var i = this.$messages0.length - 1; i > -1; i--) {
-                var message = this.$messages0.shift();
+                var message = this.$messages0[i];
                 if (message.priority === MessagePriorityEnum.PRIORITY_FRAME) {
                     if (message.active === false) {
                         this.$addFrameMessage(message);
-                        this.$messages0.slice(i, 1);
+                        this.$messages0.splice(i, 1);
                     }
                 }
             }
@@ -525,7 +532,7 @@ var suncore;
             else {
                 for (var i = queue.length - 1; i > -1; i--) {
                     var msg = queue[i];
-                    if (msg.method === message.method && msg.caller === msg.caller) {
+                    if (msg.method === message.method && msg.caller === message.caller) {
                         queue.splice(i, 1);
                         break;
                     }
@@ -570,9 +577,14 @@ var suncore;
          * 清除指定模块下的所有消息
          */
         MessageQueue.prototype.clearMessages = function () {
-            this.$messages0.length = 0;
+            while (this.$messages0.length > 0) {
+                this.$cancelMessage(this.$messages0.pop());
+            }
             for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
-                this.$queues[priority].length = 0;
+                var queue = this.$queues[priority];
+                while (queue.length > 0) {
+                    this.$cancelMessage(queue.pop());
+                }
             }
         };
         /**
@@ -580,7 +592,9 @@ var suncore;
          * @message: 目前只有task才需要被取消
          */
         MessageQueue.prototype.$cancelMessage = function (message) {
-            message.task && message.task.cancel();
+            if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
+                message.task.cancel();
+            }
         };
         return MessageQueue;
     }());

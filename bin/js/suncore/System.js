@@ -1,10 +1,14 @@
 var suncore;
 (function (suncore) {
+    /**
+     * export
+     */
     var System = /** @class */ (function () {
         function System() {
         }
         /**
          * 判断指定模块是否己停止
+         * export
          */
         System.isModuleStopped = function (mod) {
             if (mod === suncore.ModuleEnum.TIMELINE) {
@@ -17,6 +21,7 @@ var suncore;
         };
         /**
          * 判断指定模块是否己暂停
+         * export
          */
         System.isModulePaused = function (mod) {
             if (mod === suncore.ModuleEnum.TIMELINE) {
@@ -29,6 +34,7 @@ var suncore;
         };
         /**
          * 获取指定模块的时间戳
+         * export
          */
         System.getModuleTimestamp = function (mod) {
             if (mod === suncore.ModuleEnum.CUSTOM) {
@@ -41,6 +47,7 @@ var suncore;
         };
         /**
          * 添加任务
+         * export
          */
         System.addTask = function (mod, task) {
             if (System.isModuleStopped(mod) === true) {
@@ -55,6 +62,7 @@ var suncore;
         };
         /**
          * 添加触发器
+         * export
          */
         System.addTrigger = function (mod, delay, handler) {
             if (System.isModuleStopped(mod) === true) {
@@ -86,6 +94,7 @@ var suncore;
         /**
          * 添加消息
          * @handler: 若为帧事件消息，则应当以Function作为参数，否则应当以Handler作为参数
+         * export
          */
         System.addMessage = function (mod, priority, handler, caller) {
             if (System.isModuleStopped(mod) === true) {
@@ -114,6 +123,7 @@ var suncore;
         };
         /**
          * 移除消息（目前移除的消息仅可能是帧消息）
+         * export
          */
         System.removeMessage = function (mod, priority, handler, caller) {
             if (priority !== suncore.MessagePriorityEnum.PRIORITY_FRAME) {
@@ -134,6 +144,7 @@ var suncore;
          * @method: 回调函数
          * @caller: 回调对象
          * @loops: 响应次数
+         * export
          */
         System.addTimer = function (mod, delay, method, caller, loops, real) {
             if (loops === void 0) { loops = 1; }
@@ -145,6 +156,7 @@ var suncore;
         };
         /**
          * 移除定时器
+         * export
          */
         System.removeTimer = function (timerId) {
             return System.timeStamp.timerManager.removeTimer(timerId);

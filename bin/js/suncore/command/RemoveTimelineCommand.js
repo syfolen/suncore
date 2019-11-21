@@ -15,12 +15,16 @@ var suncore;
 (function (suncore) {
     /**
      * 移除游戏时间轴
+     * export
      */
     var RemoveTimelineCommand = /** @class */ (function (_super) {
         __extends(RemoveTimelineCommand, _super);
         function RemoveTimelineCommand() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
+        /**
+         * export
+         */
         RemoveTimelineCommand.prototype.execute = function () {
             suncore.System.engine.destroy();
         };

@@ -15,6 +15,7 @@ var suncore;
 (function (suncore) {
     /**
      * 任务抽象类
+     * export
      */
     var AbstractTask = /** @class */ (function (_super) {
         __extends(AbstractTask, _super);
@@ -22,6 +23,7 @@ var suncore;
             var _this = _super !== null && _super.apply(this, arguments) || this;
             /**
              * 外部会访问此变量来判断任务是否己经完成
+             * export
              */
             _this.$done = false;
             return _this;
@@ -34,10 +36,14 @@ var suncore;
         Object.defineProperty(AbstractTask.prototype, "done", {
             /**
              * 任务是否己经完成
+             * export
              */
             get: function () {
                 return this.$done;
             },
+            /**
+             * export
+             */
             set: function (yes) {
                 this.$done = yes;
             },

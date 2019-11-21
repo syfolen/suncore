@@ -15,12 +15,16 @@ var suncore;
 (function (suncore) {
     /**
      * 创建游戏时间轴
+     * export
      */
     var CreateTimelineCommand = /** @class */ (function (_super) {
         __extends(CreateTimelineCommand, _super);
         function CreateTimelineCommand() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
+        /**
+         * export
+         */
         CreateTimelineCommand.prototype.execute = function () {
             suncore.System.engine = new suncore.Engine();
             suncore.System.timeline = new suncore.Timeline(false);

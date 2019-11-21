@@ -10,6 +10,7 @@ module suncore {
      * 
      * 注意：
      * 尽量不要添加新的模块，因为模块越多，消息响应的调度算法就会越复杂
+     * export
      */
     export enum ModuleEnum {
         /**
@@ -20,18 +21,21 @@ module suncore {
         /**
          * 系统模块
          * 此模块为常驻模块，该模块下的消息永远不会被清理
+         * export
          */
-        SYSTEM = MIN,
+        SYSTEM = 0,
 
         /**
          * 通用模块
          * 此模块下的消息会在当前场景退出的同时被清理
+         * export
          */
         CUSTOM,
 
         /**
          * 时间轴模块
          * 此模块下的消息会在时间轴被销毁的同时被清理
+         * export
          */
         TIMELINE,
 
