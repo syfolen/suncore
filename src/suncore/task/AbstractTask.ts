@@ -22,6 +22,7 @@ module suncore {
 
         /**
          * 取消任务
+         * export
          */
         cancel(): void {
 

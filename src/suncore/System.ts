@@ -69,7 +69,8 @@ module suncore {
          */
         static addTask(mod: ModuleEnum, task: ITask): void {
             if (System.isModuleStopped(mod) === true) {
-                throw Error("时间轴停止时不允许添加任务");
+                console.error("时间轴停止时不允许添加任务");
+                return;
             }
             const message: Message = new Message();
             message.mod = mod;
@@ -85,7 +86,8 @@ module suncore {
          */
         static addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void {
             if (System.isModuleStopped(mod) === true) {
-                throw Error("时间轴停止时不允许添加触发器");
+                console.error("时间轴停止时不允许添加触发器");
+                return;
             }
             // 获取模块依赖的时间轴的时间戳
             const message: Message = new Message();
@@ -119,7 +121,7 @@ module suncore {
          */
         static addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler | Function, caller?: Object): void {
             if (System.isModuleStopped(mod) === true) {
-                throw Error("时间轴停止时不允许添加消息");
+                console.error("时间轴停止时不允许添加消息");
             }
             const message: Message = new Message();
             message.mod = mod;
@@ -129,11 +131,13 @@ module suncore {
                     message.method = handler;
                 }
                 else {
-                    throw Error("帧消息只能以函数作为消息回调");
+                    console.error("帧消息只能以函数作为消息回调");
+                    return;
                 }
             }
             else if (handler instanceof Function) {
-                throw Error("非帧消息不允许以函数作为消息回调");
+                console.error("非帧消息不允许以函数作为消息回调");
+                return;
             }
             else {
                 message.handler = handler;
@@ -149,7 +153,8 @@ module suncore {
          */
         static removeMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: Function, caller?: Object): void {
             if (priority !== MessagePriorityEnum.PRIORITY_FRAME) {
-                throw Error("非帧消息不允许移除");
+                console.error("非帧消息不允许移除");
+                return;
             }
             const message: Message = new Message();
             message.mod = mod;
@@ -171,7 +176,8 @@ module suncore {
          */
         static addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops: number = 1, real: boolean = false): number {
             if (System.isModuleStopped(mod) === true) {
-                throw Error("时间轴停止时不允许添加定时器");
+                console.error("时间轴停止时不允许添加定时器");
+                return;
             }
             return System.timeStamp.timerManager.addTimer(mod, delay, method, caller, loops, real);
         }
