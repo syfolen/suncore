@@ -4,9 +4,8 @@ var suncore;
      * 命令枚举
      * export
      */
-    var NotifyKey = /** @class */ (function () {
-        function NotifyKey() {
-        }
+    var NotifyKey;
+    (function (NotifyKey) {
         /**
          * export
          */
@@ -39,8 +38,6 @@ var suncore;
          * depends
          */
         NotifyKey.LATER_FRAME = "suncore.NotifyKey.LATER_FRAME";
-        return NotifyKey;
-    }());
-    suncore.NotifyKey = NotifyKey;
+    })(NotifyKey = suncore.NotifyKey || (suncore.NotifyKey = {}));
 })(suncore || (suncore = {}));
 //# sourceMappingURL=NotifyKey.js.map

@@ -233,7 +233,7 @@ module suncore {
                 this.$cancelMessage(this.$messages0.pop());
             }
             for (let priority: MessagePriorityEnum = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
-                const queue = this.$queues[priority];
+                const queue: Message[] = this.$queues[priority];
                 while (queue.length > 0) {
                     this.$cancelMessage(queue.pop());
                 }

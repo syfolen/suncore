@@ -46,6 +46,7 @@ var suncore;
         System.isModulePaused = isModulePaused;
         /**
          * 获取时间间隔（所有模块共享）
+         * export
          */
         function getDelta() {
             return suncore.M.engine.getDelta();

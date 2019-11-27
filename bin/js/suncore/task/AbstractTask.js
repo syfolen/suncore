@@ -29,9 +29,9 @@ var suncore;
             return _this;
         }
         /**
-         * 取消任务
+         * 任务取消
          * 说明：
-         * 1. 当时间轴停止时，此方法会被调用，用以清理资源
+         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行
          * export
          */
         AbstractTask.prototype.cancel = function () {
