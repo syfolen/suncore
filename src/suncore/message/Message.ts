@@ -1,13 +1,11 @@
 
 module suncore {
-
     /**
      * 系统消息结构
      */
     export class Message {
-
         /**
-         * 模块
+         * 挂靠模块
          */
         mod: ModuleEnum;
 
@@ -22,17 +20,13 @@ module suncore {
         active: boolean;
 
         /**
-         * 挂载的数据对象
-         */
-        data: ISocketData;
-
-        /**
          * 挂载的任务
          */
         task: ITask;
 
         /**
          * 回调执行器
+         * 说明：对于部分优先级的消息来说，返回值是有效的，详见 MessagePriorityEnum 的 PRIORITY_LAZY 说明
          */
         handler: suncom.IHandler;
 

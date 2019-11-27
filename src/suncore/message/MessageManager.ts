@@ -1,11 +1,9 @@
 
 module suncore {
-
     /**
      * 消息管理器
      */
     export class MessageManager implements IMessageManager {
-
         /**
          * 消息队列列表
          */

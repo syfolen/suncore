@@ -1,6 +1,5 @@
 
 module suncore {
-
     /**
      * 模块枚举
      * 

@@ -1,6 +1,5 @@
 
 module suncore {
-
     /**
      * 定时器管理器
      */

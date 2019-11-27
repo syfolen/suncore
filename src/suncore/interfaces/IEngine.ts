@@ -1,6 +1,5 @@
 
 module suncore {
-
     /**
      * 框架引擎接口
      */

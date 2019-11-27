@@ -1,6 +1,5 @@
 
 module suncore {
-
     /**
      * 消息队列接口
      */

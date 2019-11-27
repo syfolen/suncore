@@ -1,9 +1,7 @@
-/**
- * 常用库
- */
+
 declare module suncom {
     /**
-     * 调试模式
+     * 调试模式，主要用于控制LOG的打印
      */
     enum DebugMode {
         /**
@@ -43,7 +41,7 @@ declare module suncom {
     }
 
     /**
-     * 环境模式
+     * 环境模式，主要用于代码的版本控制
      */
     enum EnvMode {
         /**
@@ -53,7 +51,7 @@ declare module suncom {
     }
 
     /**
-     * 字典接口
+     * 字典接口，通常用于作为一个大量数据的集合，用于快速获取数据集中的某条数据
      */
     interface IDictionary<T> {
         /**
@@ -93,7 +91,7 @@ declare module suncom {
 
         /**
          * 为每个数据执行方法（谨慎在此方法中新增或移除数据）
-         * 若method返回true，则会中断遍历
+         * 若method的返回值为true，则会中断遍历
          */
         forEach(method: (data: T) => any): void;
     }
@@ -129,151 +127,24 @@ declare module suncom {
     }
 
     /**
-     * 事件处理器接口
+     * 回调执行器接口
      */
     interface IHandler {
 
         /**
-         * 执行处理器
+         * 执行回调
          */
         run(): any;
 
         /**
-         * 执行处理器，携带额外的参数
-         * @param args 参数列表，允许为任意类型的数据
+         * 执行回调，同时携带额外的参数
+         * @args 参数列表，允许为任意类型的数据
          */
         runWith(args: any): any;
     }
 
     /**
-     * 纯 js 公共方法类
-     */
-    abstract class Common {
-
-        /**
-         * 获取 Hash ID
-         */
-        static readonly hashId: number;
-
-        /**
-         * 获取类名
-         * @cls: 指定类型
-         */
-        static getClassName(cls:any): string;
-
-        /**
-         * 返回对象的类名
-         */
-        static getQualifiedClassName(obj:any): string;
-
-        /**
-         * 将枚举转化成字符串
-         */
-        static convertEnumToString(value:number, oEnum:any): string;
-
-        /**
-         * 将枚举转化成字符串
-         */
-        static addEnumString(key:string, oEnum:{ NAME, MODULE }, concat?:boolean): void;
-
-        /**
-         * =================================================
-         * 字符串相关
-         * 判断是否为数字
-         */
-        static isNumber(str:string | number): boolean;
-
-        /**
-         * 判断字符串是否为空
-         */
-        static isStringInvalidOrEmpty(str:string | number): boolean;
-
-        /**
-         * 格式化字符串
-         */
-        static formatString(str:string, args:Array<any>): string;
-
-        /**
-         * =================================================
-         * 数学相关
-         * 返回绝对值
-         */
-        static abs(a:number): number;
-
-        /**
-         * 返回a与b中的较小值
-         */
-        static min(a:number, b:number): number;
-
-        /**
-         * 返回a与b中的较大值
-         */
-        static max(a:number, b:number): number;
-
-        /**
-         * 将 value 限制制于 min 和 max 之间
-         */
-        static clamp(value:number, min:number, max:number): number;
-
-        /**
-         * 返回四舍五入后的结果
-         * 因各个平台实现的版本可能不一致，故自定义了此方法
-         * @n: 保留小数位数，默认为0
-         */
-        static round(value:number, n?:number): number;
-
-        /**
-         * 返回 >= min 且 < max 的随机整数
-         */
-        static random(min:number, max:number): number;
-
-        /**
-         * =================================================
-         * 时间相关
-         * 将参数转化为 Date
-         * @date: 任何格式的时间参数，可以为字符串或时间戳
-         * 支持的格式说明：
-         * 1. Date对象
-         * 2. 时间戳
-         * 3. hh:mm:ss
-         * 4. yyyy-MM-dd hh:mm:ss
-         */
-        static convertToDate(date:string | number | Date): Date;
-
-        /**
-         * 时间累加
-         * @datepart: yy, MM, ww, dd, hh, mm, ss, ms
-         * @increment： 增量，可为负
-         * @arg2: 时间参数
-         */
-        static dateAdd(datepart:string, increment:number, time:string | number | Date): number;
-
-        /**
-         * 计算时间差
-         * @datepart: yy, MM, ww, dd, hh, mm, ss, ms
-         */
-        static dateDiff(datepart:string, date:string | number | Date, date2:string | number | Date): number;
-
-        /**
-         * 格式化时间，支持：yy-MM-dd hh:mm:ss ms
-         */
-        static formatDate(str:string, time:string | number | Date): string;
-
-        /**
-         * =================================================
-         * 其它
-         * 返回 MD5 加密后的串
-         */
-        static md5(str:string): string;
-
-        /**
-         * 生成 HTTP 签名
-         */
-        static createSign(params:Object): string;
-    }
-
-    /**
-     * 字典
+     * 字典接口，通常用于作为一个大量数据的集合，用于快速获取数据集中的某条数据
      */
     class Dictionary<T> implements IDictionary<T> {
         /**
@@ -282,19 +153,9 @@ declare module suncom {
         source: Array<T>;
 
         /**
-         * @primaryKey: 指定主键字段名，字典会使用主键值来建立数据源与哈希表之间的映射关系，所以请确保主键值是恒值
+         * @primaryKey: 指定主键字段名，字典会使用主键值来作为数据索引，所以请确保主键值是恒值
          */
         constructor(primaryKey:number | string);
-
-        /**
-         * 根据数据在数据源中的索引来移除数据
-         */
-        private $removeByIndex(index:number): T;
-
-        /**
-         * 获取数据在数据源中的索引
-         */
-        private $getIndexByValue(key:string, value:any): number;
 
         /**
          * 添加数据
@@ -335,9 +196,6 @@ declare module suncom {
 
     /**
      * EventSystem 自定义事件系统
-     * 为避免注册与注销对正在派发的事件列表产生干扰：
-     * NOTE: 每个列表首个元素为布尔类型，默认为 false
-     * NOTE: 若该列表的事件类型正在派发，则其值为 true
      */
     class EventSystem implements IEventSystem {
 
@@ -411,8 +269,6 @@ declare module suncom {
      */
     class Handler implements IHandler {
 
-        constructor(caller:Object, method:Function, args?:any, once?:boolean);
-
         /**
          * 执行处理器
          */
@@ -420,7 +276,7 @@ declare module suncom {
 
         /**
          * 执行处理器，携带额外的参数
-         * @param args 参数列表，允许为任意类型的数据
+         * @args 参数列表，允许为任意类型的数据
          */
         runWith(args:any): any;
 
@@ -432,28 +288,248 @@ declare module suncom {
     }
 
     /**
+     * 日志接口
+     */
+    abstract class Logger {
+
+        /**
+         * 普通日志
+         */
+        static log(...args:Array<any>): void;
+
+        /**
+         * 警告日志
+         */
+        static warn(...args:Array<any>): void;
+
+        /**
+         * 错误日志
+         */
+        static error(...args:Array<any>): void;
+    }
+
+    /**
+     * 常用库（纯JS方法）
+     */
+    namespace Common {
+
+        /**
+         * 获取全局唯一的哈希值
+         */
+        function createHashId(): number;
+
+        /**
+         * 获取类名
+         * @cls: 指定类型
+         */
+        function getClassName(cls: any): string;
+
+        /**
+         * 返回对象的类名
+         */
+        function getQualifiedClassName(obj: any): string;
+
+        /**
+         * 将枚举转化成字符串
+         */
+        function convertEnumToString(value: number, oEnum: any): string;
+
+        /**
+         * 将枚举转化成字符串
+         */
+        function addEnumString(key: string, oEnum: { NAME, MODULE }, concat?: boolean): void;
+
+        /**
+         * 判断是否为数字
+         */
+        function isNumber(str: string | number): boolean;
+
+        /**
+         * 判断字符串是否为空
+         */
+        function isStringInvalidOrEmpty(str: string | number): boolean;
+
+        /**
+         * 格式化字符串
+         */
+        function formatString(str: string, args: Array<any>): string;
+
+        /**
+         * 返回绝对值
+         */
+        function abs(a: number): number;
+
+        /**
+         * 返回a与b中的较小值
+         */
+        function min(a: number, b: number): number;
+
+        /**
+         * 返回a与b中的较大值
+         */
+        function max(a: number, b: number): number;
+
+        /**
+         * 将value限制于min和max之间
+         */
+        function clamp(value: number, min: number, max: number): number;
+
+        /**
+         * 返回近似值
+         * 因各个平台实现的版本可能不一致，故自定义了此方法
+         * @n: 需要保留小数位数，默认为0
+         * NOTE: 此方法采用了四舍六入五成双的规则来取近似值
+         */
+        function round(value: number, n?: number): number;
+
+        /**
+         * 返回>=min且<max的随机整数
+         */
+        function random(min: number, max: number): number;
+
+        /**
+         * 将参数转化为 Date
+         * @date: 任何格式的时间参数，可以为字符串或时间戳
+         * 支持的格式说明：
+         * 1. Date对象
+         * 2. 时间戳
+         * 3. hh:mm:ss
+         * 4. yyyy-MM-dd hh:mm:ss
+         */
+        function convertToDate(date: string | number | Date): Date;
+
+        /**
+         * 时间累加
+         * @datepart: yy, MM, ww, dd, hh, mm, ss, ms
+         * @increment： 增量，可为负
+         * @arg2: 时间参数
+         */
+        function dateAdd(datepart: string, increment: number, time: string | number | Date): number;
+
+        /**
+         * 计算时间差
+         * @datepart: yy, MM, ww, dd, hh, mm, ss, ms
+         */
+        function dateDiff(datepart: string, date: string | number | Date, date2: string | number | Date): number;
+
+        /**
+         * 格式化时间，支持：yy-MM-dd hh:mm:ss ms
+         */
+        function formatDate(str: string, time: string | number | Date): string;
+
+        /**
+         * 从数组中查找数据
+         * @array: 数据源
+         * @method: 查询规则，返回true表示与规则匹配
+         * @out: 若为null，则只返回查询到的第一条数据，否则将以数组的形式返回查询到的所有数据
+         */
+        function findFromArray<T>(array: T[], method: (data: T) => boolean, out?: T[]): T | T[];
+
+        /**
+         * 将数据从数组中移除
+         */
+        function removeItemFromArray<T>(item: T, array: T[]): void;
+
+        /**
+         * 将数据从数组中移除
+         */
+        function removeItemsFromArray<T>(items: T[], array: T[]): void;
+    }
+
+    /**
+     * 伪数据库服务
+     */
+    namespace DBService {
+
+        /**
+         * 获取数据
+         */
+        function get(name: number): any;
+
+        /**
+         * 存储数据
+         */
+        function put(name: number, data: any): void;
+
+        /**
+         * 删除数据
+         */
+        function drop(name: number): void;
+    }
+
+    /**
+     * 事件管理器
+     */
+    namespace EventManager {
+
+        /**
+         * 取消当前正在派发的事件
+         */
+        function dispatchCancel(): void;
+
+        /**
+         * 事件派发
+         * @args[]: 参数列表，允许为任意类型的数据
+         * @cancelable: 事件是否允许被中断，默认为false
+         */
+        function dispatchEvent(type: string, args?: any, cancelable?: boolean): void;
+
+        /**
+         * 事件注册
+         * @receiveOnce: 是否只响应一次，默认为false
+         * @priority: 事件优先级，优先级高的先被执行，默认为 1
+         */
+        function addEventListener(type: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: number): void;
+
+        /**
+         * 移除事件
+         */
+        function removeEventListener(type: string, method: Function, caller: Object): void;
+    }
+
+    /**
      * 对象池
      */
-    abstract class Pool {
+    namespace Pool {
 
         /**
          * 根据标识从池中获取对象，获取失败时返回null
+         * @sign: 对象标识
          */
-        static getItem<T>(sign:string): T;
+        function getItem(sign: string): any;
 
         /**
          * 根据标识从池中获取对象，获取失败时将创建新的对象
+         * @sign: 对象标识
+         * @cls: 对象类型，支持Laya.Prefab
+         * @args: 构造函数参数列表，若cls为Laya.Prefab，则args应当为字符串
          */
-        static getItemByClass<T>(sign:string, cls:any, args?:any): T;
+        function getItemByClass(sign: string, cls: any, args?: any): any;
 
         /**
          * 根据标识回收对象
          */
-        static recover(sign:string, item:any): void;
+        function recover(sign: string, item: any): void;
 
         /**
          * 清缓指定标识下的所有己缓存对象
          */
-        static clear(sign:string): void;
+        function clear(sign: string): void;
+    }
+
+    /**
+     * 线性同余发生器
+     */
+    namespace Random {
+
+        /**
+         * 指定随机种子
+         */
+        function seed(value: number): void;
+
+        /**
+         * 返回一个随机数
+         */
+        function random(): number;
     }
 }

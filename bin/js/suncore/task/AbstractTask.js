@@ -30,6 +30,9 @@ var suncore;
         }
         /**
          * 取消任务
+         * 说明：
+         * 1. 当时间轴停止时，此方法会被调用，用以清理资源
+         * export
          */
         AbstractTask.prototype.cancel = function () {
         };
@@ -42,7 +45,7 @@ var suncore;
                 return this.$done;
             },
             /**
-             * export
+             * depends
              */
             set: function (yes) {
                 this.$done = yes;

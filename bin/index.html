@@ -40,33 +40,27 @@
 	<!--自定义的js(src文件夹下)文件自动添加到下面jsfile模块标签里面里-->
 	<!--删除标签，ide不会自动添加js文件，请谨慎操作-->
 	<!--jsfile--startTag-->
+	<script src="js/suncore/utils/System.js"></script>
+	<script src="js/suncore/utils/NotifyKey.js"></script>
 	<script src="js/suncore/timeline/Timer.js"></script>
-	<script src="js/suncore/System.js"></script>
-	<script src="js/suncore/NotifyKey.js"></script>
 	<script src="js/suncore/message/ModuleEnum.js"></script>
 	<script src="js/suncore/message/MessagePriorityEnum.js"></script>
-	<script src="js/suncore/message/MessageNotifier.js"></script>
 	<script src="js/suncore/message/Message.js"></script>
 	<script src="js/suncore/interfaces/timeline/ITimerManager.js"></script>
 	<script src="js/suncore/interfaces/timeline/ITimeline.js"></script>
 	<script src="js/suncore/interfaces/task/ITask.js"></script>
-	<script src="js/suncore/interfaces/message/ISocketData.js"></script>
 	<script src="js/suncore/interfaces/message/IMessageQueue.js"></script>
 	<script src="js/suncore/interfaces/message/IMessageManager.js"></script>
-	<script src="js/suncore/command/CreateTimelineCommand.js"></script>
-	<script src="js/suncore/command/RemoveTimelineCommand.js"></script>
+	<script src="js/suncore/command/PauseTimelineCommand.js"></script>
+	<script src="js/suncore/command/StartTimelineCommand.js"></script>
 	<script src="js/suncore/interfaces/IEngine.js"></script>
-	<script src="js/suncore.js"></script>
 	<script src="js/suncore/Engine.js"></script>
-	<script src="js/suncore/interfaces/timeline/ITimeStamp.js"></script>
 	<script src="js/suncore/message/MessageManager.js"></script>
 	<script src="js/suncore/message/MessageQueue.js"></script>
-	<script src="js/suncore/message/SocketData.js"></script>
 	<script src="js/suncore/task/AbstractTask.js"></script>
 	<script src="js/suncore/task/SimpleTask.js"></script>
 	<script src="js/suncore/timeline/Timeline.js"></script>
 	<script src="js/suncore/timeline/TimerManager.js"></script>
-	<script src="js/suncore/timeline/TimeStamp.js"></script>
 	<script src="js/test/StartupCommand.js"></script>
 	<script src="js/test/TestClass.js"></script>
 	<script src="js/test/TestTask.js"></script>
@@ -75,6 +69,7 @@
 
 	<!--启动类添加到这里-->
 	<!--jsfile--Main-->
+	<script src="js/suncore/M.js"></script>
 	<script src="js/Main.js"></script>
 	<!--jsfile--Main-->
 </body>

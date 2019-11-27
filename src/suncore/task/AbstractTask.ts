@@ -1,12 +1,10 @@
 
 module suncore {
-
     /**
      * 任务抽象类
      * export
      */
     export abstract class AbstractTask extends puremvc.Notifier implements ITask {
-
         /**
          * 外部会访问此变量来判断任务是否己经完成
          * export
@@ -21,7 +19,9 @@ module suncore {
         abstract run(): boolean;
 
         /**
-         * 取消任务
+         * 任务取消
+         * 说明：
+         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行
          * export
          */
         cancel(): void {
@@ -35,8 +35,9 @@ module suncore {
         get done(): boolean {
             return this.$done;
         }
+
         /**
-         * export
+         * depends
          */
         set done(yes: boolean) {
             this.$done = yes;

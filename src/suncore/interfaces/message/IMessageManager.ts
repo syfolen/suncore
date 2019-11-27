@@ -1,6 +1,5 @@
 
 module suncore {
-
     /**
      * 消息管理器接口
      */

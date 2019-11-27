@@ -1,4 +1,10 @@
 D .
+D bones
+R 19DFA584 xuanwo.png
+R 9D4BB20F xuanwo.sk
+R CC3E7A9C xuanwo_ske.json
+R B85BD6D3 xuanwo_tex.json
+R 19DFA584 xuanwo_tex.png
 D comp
 P D12221A9 bg.png
 P 9401CC40 blank.png

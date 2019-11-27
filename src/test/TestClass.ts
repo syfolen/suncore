@@ -58,8 +58,8 @@ module test {
         private $gotoQuadtreeScene(repeat: number, loops: number): void {
             if (repeat === loops) {
                 console.log("测试完毕");
-                suncore.System.timeline.stop();
-                suncore.System.timeStamp.stop();
+                this.facade.sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
+                this.facade.sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.TIMELINE, true]);
             }
         }
     }

@@ -1,19 +1,24 @@
 
 module suncore {
-
     /**
-     * 核心类
+     * 系统时间轴
+     * 
+     * 此类实现了整个客户端的核心机制，包括：
+     * 1. 系统时间戳实现
+     * 2. 游戏时间轴调度
+     * 3. 自定义定时器调度
+     * 4. 不同类型游戏消息的派发
      */
-    export class Engine implements IEngine {
-        /**
-         * 运行时间
-         */
-        private $runTime: number = 0;
-
+    export class Engine extends puremvc.Notifier implements IEngine {
         /**
          * 帧时间间隔（毫秒）
          */
         private $delta: number = 0;
+
+        /**
+         * 运行时间
+         */
+        private $runTime: number = 0;
 
         /**
          * 本地时间
@@ -21,6 +26,7 @@ module suncore {
         private $localTime: number = new Date().valueOf();
 
         constructor() {
+            super();
             // 注册帧事件
             Laya.timer.frameLoop(1, this, this.$onFrameLoop);
         }
@@ -49,8 +55,40 @@ module suncore {
                 // 运行时间累加
                 this.$runTime += this.$delta;
                 // 时间流逝逻辑
-                System.timeStamp.lapse(this.$delta);
+                this.$lapse(this.$delta);
             }
+        }
+
+        /**
+         * 时间流逝逻辑
+         */
+        private $lapse(delta: number): void {
+            // 游戏时间轴未暂停
+            if (System.isModulePaused(ModuleEnum.TIMELINE) === false) {
+                M.timeline.lapse(delta);
+            }
+            // 场景时间轴未暂停
+            if (System.isModulePaused(ModuleEnum.CUSTOM) === false) {
+                M.timeStamp.lapse(delta);
+            }
+
+            // 物理相关事件
+            this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);
+            this.facade.sendNotification(NotifyKey.PHYSICS_FRAME);
+
+            // 始终派发帧相关事件
+            this.facade.sendNotification(NotifyKey.ENTER_FRAME);
+
+            // 响应定时器
+            M.timerManager.executeTimer();
+
+            // 处理消息
+            M.messageManager.dealMessage();
+            // 处理临时消息
+            M.messageManager.classifyMessages0();
+
+            // 始终派发帧相关事件
+            this.facade.sendNotification(NotifyKey.LATER_FRAME);
         }
 
         /**

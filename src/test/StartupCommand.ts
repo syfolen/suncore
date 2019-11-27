@@ -4,13 +4,12 @@ module test {
     export class StartupCommand extends puremvc.SimpleCommand {
 
         execute(): void {
-            puremvc.Facade.getInstance().registerCommand(suncore.NotifyKey.CREATE_TIMELINE, suncore.CreateTimelineCommand);
-            puremvc.Facade.getInstance().registerCommand(suncore.NotifyKey.REMOVE_TIMELINE, suncore.RemoveTimelineCommand);
+            this.facade.registerCommand(suncore.NotifyKey.START_TIMELINE, suncore.StartTimelineCommand);
+            this.facade.registerCommand(suncore.NotifyKey.PAUSE_TIMELINE, suncore.PauseTimelineCommand);
 
-            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.CREATE_TIMELINE);
-
-            suncore.System.timeline.resume();
-            suncore.System.timeStamp.resume();
+            this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, suncore.ModuleEnum.SYSTEM);
+            this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, suncore.ModuleEnum.CUSTOM);
+            this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, suncore.ModuleEnum.TIMELINE);
 
             const handler: suncom.IHandler = suncom.Handler.create(this, this.$onStartup);
             suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, handler);

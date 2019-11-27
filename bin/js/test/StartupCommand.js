@@ -19,11 +19,11 @@ var test;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         StartupCommand.prototype.execute = function () {
-            puremvc.Facade.getInstance().registerCommand(suncore.NotifyKey.CREATE_TIMELINE, suncore.CreateTimelineCommand);
-            puremvc.Facade.getInstance().registerCommand(suncore.NotifyKey.REMOVE_TIMELINE, suncore.RemoveTimelineCommand);
-            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.CREATE_TIMELINE);
-            suncore.System.timeline.resume();
-            suncore.System.timeStamp.resume();
+            this.facade.registerCommand(suncore.NotifyKey.START_TIMELINE, suncore.StartTimelineCommand);
+            this.facade.registerCommand(suncore.NotifyKey.PAUSE_TIMELINE, suncore.PauseTimelineCommand);
+            this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, suncore.ModuleEnum.SYSTEM);
+            this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, suncore.ModuleEnum.CUSTOM);
+            this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, suncore.ModuleEnum.TIMELINE);
             var handler = suncom.Handler.create(this, this.$onStartup);
             suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, handler);
         };

@@ -1,6 +1,5 @@
 
 module suncore {
-
     /**
      * 简单任务对象
      * export

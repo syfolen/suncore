@@ -27,15 +27,6 @@ var suncore;
          */
         MessageQueue.prototype.putMessage = function (message) {
             this.$messages0.push(message);
-            if (message.priority === suncore.MessagePriorityEnum.PRIORITY_FRAME && message.active === false) {
-                var queue = this.$queues[message.priority];
-                for (var i = 0; i < queue.length; i++) {
-                    var msg = queue[i];
-                    if (msg.method === message.method && msg.caller === message.caller) {
-                        msg.active = false;
-                    }
-                }
-            }
         };
         /**
          * 处理消息
@@ -51,14 +42,8 @@ var suncore;
                 if (priority === suncore.MessagePriorityEnum.PRIORITY_LAZY) {
                     continue;
                 }
-                // 若系统被暂停，则忽略网络消息
-                if (priority === suncore.MessagePriorityEnum.PRIORITY_SOCKET && suncore.System.timeStamp.paused === true) {
-                    continue;
-                }
-                // 剩余消息条数累计，不包括FRAME类型的消息
-                if (priority !== suncore.MessagePriorityEnum.PRIORITY_FRAME) {
-                    remainCount += queue.length;
-                }
+                // 剩余消息条数累计
+                remainCount += queue.length;
                 // 任务消息
                 if (priority === suncore.MessagePriorityEnum.PRIORITY_TASK) {
                     // 任务消息在返回 true 表示任务己完成
@@ -71,50 +56,30 @@ var suncore;
                         dealCount++;
                     }
                 }
-                // 网络消息
-                else if (priority === suncore.MessagePriorityEnum.PRIORITY_SOCKET) {
-                    // 消息队列不为空
-                    while (queue.length > 0) {
-                        // 处理消息
-                        this.$dealSocketMessage(queue.shift());
-                        // 总处理条数累加
-                        dealCount++;
-                    }
-                }
                 // 触发器消息
                 else if (priority === suncore.MessagePriorityEnum.PRIORITY_TRIGGER) {
                     // 任务消息在返回 true 表示任务己完成
-                    while (queue.length && this.$dealTriggerMessage(queue[0]) == true) {
+                    while (queue.length && this.$dealTriggerMessage(queue[0]) === true) {
                         // 此时应当移除任务
                         queue.shift();
                         // 总处理条数累加
                         dealCount++;
                     }
                 }
-                // 帧事件
-                else if (priority === suncore.MessagePriorityEnum.PRIORITY_FRAME) {
-                    for (var i = 0; i < queue.length; i++) {
-                        var msg = queue[i];
-                        msg.method.call(msg.caller);
-                    }
-                }
                 // 其它类型消息
                 else if (queue.length > 0) {
                     // 处理统计
-                    var count_1 = 0;
-                    // 忽略统计
-                    var ignoreCount = 0;
+                    var okCount = 0;
                     // 消息总条数
                     var totalCount = this.$getDealCountByPriority(priority);
                     // 若 totalCount 为 0 ，则表示处理所有消息
-                    for (; queue.length > 0 && (totalCount == 0 || count_1 < totalCount); count_1++) {
+                    for (; queue.length > 0 && (totalCount === 0 || okCount < totalCount); okCount++) {
                         if (this.$dealCustomMessage(queue.shift()) === false) {
-                            count_1--;
-                            ignoreCount++;
+                            okCount--;
                         }
                     }
                     // 总处理条数累加
-                    dealCount += count_1;
+                    dealCount += okCount;
                 }
             }
             // 若只剩下惰性消息，则处理惰性消息
@@ -139,14 +104,7 @@ var suncore;
                     task.done = true;
                 }
             }
-            return task.done == true;
-        };
-        /**
-         * 网络消息处理逻辑
-         */
-        MessageQueue.prototype.$dealSocketMessage = function (message) {
-            var data = message.data;
-            suncore.MessageNotifier.notify(data.name, data.socData);
+            return task.done === true;
         };
         /**
          * 触发器消息处理逻辑
@@ -161,6 +119,7 @@ var suncore;
         };
         /**
          * 其它类型消息处理逻辑
+         * 执行器的返回值意义请参考 MessagePriorityEnum 的 PRIORITY_LAZY 注释
          */
         MessageQueue.prototype.$dealCustomMessage = function (message) {
             var res = message.handler.run();
@@ -177,10 +136,10 @@ var suncore;
                 return 0;
             }
             if (priority === suncore.MessagePriorityEnum.PRIORITY_HIGH) {
-                return 7;
+                return 10;
             }
             if (priority === suncore.MessagePriorityEnum.PRIORITY_NOR) {
-                return 2;
+                return 3;
             }
             if (priority === suncore.MessagePriorityEnum.PRIORITY_LOW) {
                 return 1;
@@ -191,53 +150,13 @@ var suncore;
          * 将临时消息按优先级分类
          */
         MessageQueue.prototype.classifyMessages0 = function () {
-            for (var i = this.$messages0.length - 1; i > -1; i--) {
-                var message = this.$messages0[i];
-                if (message.priority === suncore.MessagePriorityEnum.PRIORITY_FRAME) {
-                    if (message.active === false) {
-                        this.$addFrameMessage(message);
-                        this.$messages0.splice(i, 1);
-                    }
-                }
-            }
             while (this.$messages0.length) {
                 var message = this.$messages0.shift();
                 if (message.priority === suncore.MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
-                else if (message.priority === suncore.MessagePriorityEnum.PRIORITY_FRAME) {
-                    this.$addFrameMessage(message);
-                }
                 else {
                     this.$queues[message.priority].push(message);
-                }
-            }
-        };
-        /**
-         * 添加帧消息
-         */
-        MessageQueue.prototype.$addFrameMessage = function (message) {
-            var queue = this.$queues[message.priority];
-            if (message.active === true) {
-                var exist = false;
-                for (var i = 0; i < queue.length; i++) {
-                    var msg = queue[i];
-                    if (msg.method === message.method && msg.caller === message.caller) {
-                        exist = true;
-                        break;
-                    }
-                }
-                if (exist === false) {
-                    queue.push(message);
-                }
-            }
-            else {
-                for (var i = queue.length - 1; i > -1; i--) {
-                    var msg = queue[i];
-                    if (msg.method === message.method && msg.caller === message.caller) {
-                        queue.splice(i, 1);
-                        break;
-                    }
                 }
             }
         };

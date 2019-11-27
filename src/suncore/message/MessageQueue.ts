@@ -1,6 +1,5 @@
 
 module suncore {
-
     /**
      * 消息队列
      */
@@ -36,15 +35,6 @@ module suncore {
          */
         putMessage(message: Message): void {
             this.$messages0.push(message);
-            if (message.priority === MessagePriorityEnum.PRIORITY_FRAME && message.active === false) {
-                const queue = this.$queues[message.priority];
-                for (let i = 0; i < queue.length; i++) {
-                    const msg = queue[i];
-                    if (msg.method === message.method && msg.caller === message.caller) {
-                        msg.active = false;
-                    }
-                }
-            }
         }
 
         /**
@@ -63,14 +53,8 @@ module suncore {
                 if (priority === MessagePriorityEnum.PRIORITY_LAZY) {
                     continue;
                 }
-                // 若系统被暂停，则忽略网络消息
-                if (priority === MessagePriorityEnum.PRIORITY_SOCKET && System.timeStamp.paused === true) {
-                    continue;
-                }
-                // 剩余消息条数累计，不包括FRAME类型的消息
-                if (priority !== MessagePriorityEnum.PRIORITY_FRAME) {
-                    remainCount += queue.length;
-                }
+                // 剩余消息条数累计
+                remainCount += queue.length;
 
                 // 任务消息
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
@@ -84,52 +68,32 @@ module suncore {
                         dealCount++;
                     }
                 }
-                // 网络消息
-                else if (priority === MessagePriorityEnum.PRIORITY_SOCKET) {
-                    // 消息队列不为空
-                    while (queue.length > 0) {
-                        // 处理消息
-                        this.$dealSocketMessage(queue.shift());
-                        // 总处理条数累加
-                        dealCount++;
-                    }
-                }
                 // 触发器消息
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     // 任务消息在返回 true 表示任务己完成
-                    while (queue.length && this.$dealTriggerMessage(queue[0]) == true) {
+                    while (queue.length && this.$dealTriggerMessage(queue[0]) === true) {
                         // 此时应当移除任务
                         queue.shift();
                         // 总处理条数累加
                         dealCount++;
                     }
                 }
-                // 帧事件
-                else if (priority === MessagePriorityEnum.PRIORITY_FRAME) {
-                    for (let i = 0; i < queue.length; i++) {
-                        const msg = queue[i];
-                        msg.method.call(msg.caller);
-                    }
-                }
                 // 其它类型消息
                 else if (queue.length > 0) {
                     // 处理统计
-                    let count: number = 0;
-                    // 忽略统计
-                    let ignoreCount: number = 0;
+                    let okCount: number = 0;
                     // 消息总条数
                     const totalCount: number = this.$getDealCountByPriority(priority);
 
                     // 若 totalCount 为 0 ，则表示处理所有消息
-                    for (; queue.length > 0 && (totalCount == 0 || count < totalCount); count++) {
+                    for (; queue.length > 0 && (totalCount === 0 || okCount < totalCount); okCount++) {
                         if (this.$dealCustomMessage(queue.shift()) === false) {
-                            count--;
-                            ignoreCount++;
+                            okCount--;
                         }
                     }
 
                     // 总处理条数累加
-                    dealCount += count;
+                    dealCount += okCount;
                 }
             }
 
@@ -159,15 +123,7 @@ module suncore {
                 }
             }
 
-            return task.done == true;
-        }
-
-        /**
-         * 网络消息处理逻辑
-         */
-        private $dealSocketMessage(message: Message): void {
-            const data: ISocketData = message.data;
-            MessageNotifier.notify(data.name, data.socData);
+            return task.done === true;
         }
 
         /**
@@ -185,6 +141,7 @@ module suncore {
 
         /**
          * 其它类型消息处理逻辑
+         * 执行器的返回值意义请参考 MessagePriorityEnum 的 PRIORITY_LAZY 注释
          */
         private $dealCustomMessage(message: Message): boolean {
             const res: boolean = message.handler.run();
@@ -202,10 +159,10 @@ module suncore {
                 return 0;
             }
             if (priority === MessagePriorityEnum.PRIORITY_HIGH) {
-                return 7;
+                return 10;
             }
             if (priority === MessagePriorityEnum.PRIORITY_NOR) {
-                return 2;
+                return 3;
             }
             if (priority === MessagePriorityEnum.PRIORITY_LOW) {
                 return 1;
@@ -217,54 +174,13 @@ module suncore {
          * 将临时消息按优先级分类
          */
         classifyMessages0(): void {
-            for (let i = this.$messages0.length - 1; i > -1; i--) {
-                const message: Message = this.$messages0[i];
-                if (message.priority === MessagePriorityEnum.PRIORITY_FRAME) {
-                    if (message.active === false) {
-                        this.$addFrameMessage(message);
-                        this.$messages0.splice(i, 1);
-                    }
-                }
-            }
             while (this.$messages0.length) {
                 const message: Message = this.$messages0.shift();
                 if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
-                else if (message.priority === MessagePriorityEnum.PRIORITY_FRAME) {
-                    this.$addFrameMessage(message);
-                }
                 else {
                     this.$queues[message.priority].push(message);
-                }
-            }
-        }
-
-        /**
-         * 添加帧消息
-         */
-        private $addFrameMessage(message: Message): void {
-            const queue = this.$queues[message.priority];
-            if (message.active === true) {
-                let exist = false;
-                for (let i = 0; i < queue.length; i++) {
-                    const msg = queue[i];
-                    if (msg.method === message.method && msg.caller === message.caller) {
-                        exist = true;
-                        break;
-                    }
-                }
-                if (exist === false) {
-                    queue.push(message);
-                }
-            }
-            else {
-                for (let i = queue.length - 1; i > -1; i--) {
-                    const msg = queue[i];
-                    if (msg.method === message.method && msg.caller === message.caller) {
-                        queue.splice(i, 1);
-                        break;
-                    }
                 }
             }
         }

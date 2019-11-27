@@ -1,6 +1,5 @@
 
 module suncore {
-
     /**
      * 任务接口
      * export
