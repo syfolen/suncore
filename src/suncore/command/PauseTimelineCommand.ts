@@ -40,6 +40,13 @@ module suncore {
                 return;
             }
 
+            if (mod === suncore.ModuleEnum.SYSTEM) {
+                if (System.isModuleStopped(suncore.ModuleEnum.TIMELINE) === false || System.isModuleStopped(suncore.ModuleEnum.CUSTOM) === false) {
+                    throw Error(`SYSTEM 不能停止因为 CUSTOM 或 TIMELINE 依然在运行`);
+                }
+            }
+
+            // 移除模块下的消息和定时器
             M.timerManager.clearTimer(mod);
             M.messageManager.clearMessages(mod);
 
@@ -52,6 +59,11 @@ module suncore {
             else {
                 M.engine.destroy();
                 M.engine = null;
+            }
+
+            if (mod === ModuleEnum.SYSTEM) {
+                M.timerManager = null;
+                M.messageManager = null;
             }
         }
     }

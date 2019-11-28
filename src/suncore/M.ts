@@ -22,11 +22,11 @@ module suncore {
         /**
          * 定时器管理器
          */
-        export let timerManager: ITimerManager = new TimerManager();
+        export let timerManager: ITimerManager = null;
 
         /**
          * 消息管理器
          */
-        export let messageManager: IMessageManager = new MessageManager();
+        export let messageManager: IMessageManager = null;
     }
 }

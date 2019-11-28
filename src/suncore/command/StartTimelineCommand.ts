@@ -18,6 +18,13 @@ module suncore {
                 console.error(`Module ${ModuleEnum[mod]} Is Already Started!!!`);
                 return;
             }
+            
+            // 注册数据
+            if (mod === ModuleEnum.SYSTEM && M.engine === null) {
+                M.timerManager = new TimerManager();
+                M.messageManager = new MessageManager();
+            }
+
             if (mod === ModuleEnum.TIMELINE) {
                 if (M.timeline === null) {
                     M.timeline = new Timeline();
