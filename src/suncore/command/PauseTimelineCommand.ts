@@ -14,6 +14,9 @@ module suncore {
          * export
          */
         execute(mod: ModuleEnum, stop: boolean = true): void {
+            if (stop === void 0) {
+                throw Error(`暂停时间轴时应当指定参数 stop 的值`);
+            }
             if (stop === true) {
                 if (System.isModuleStopped(mod) === true) {
                     console.error(`Module ${ModuleEnum[mod]} Is Already Stopped!!!`);
