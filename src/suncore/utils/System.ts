@@ -58,8 +58,7 @@ module suncore {
          */
         export function getModuleTimestamp(mod: ModuleEnum): number {
             if (isModuleStopped(mod) === true) {
-                console.error("模块停止时不允许获取时间戳");
-                return;
+                console.error(`尝试获取时间戳，但模块己停止 mod:${suncom.Common.convertEnumToString(mod, ModuleEnum)}`);
             }
             if (mod === ModuleEnum.TIMELINE) {
                 return M.timeline.getTime();
@@ -76,7 +75,7 @@ module suncore {
          */
         export function addTask(mod: ModuleEnum, task: ITask): void {
             if (System.isModuleStopped(mod) === true) {
-                console.error("模块停止时不允许添加任务");
+                console.error(`尝试添加任务，但模块己停止 mod:${suncom.Common.convertEnumToString(mod, ModuleEnum)}`);
                 return;
             }
             const message: Message = new Message();
@@ -93,7 +92,7 @@ module suncore {
          */
         export function addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void {
             if (System.isModuleStopped(mod) === true) {
-                console.error("模块停止时不允许添加触发器");
+                console.error(`尝试添加触发器，但模块己停止 mod:${suncom.Common.convertEnumToString(mod, ModuleEnum)}`);
                 return;
             }
             // 获取模块依赖的时间轴的时间戳
@@ -111,7 +110,7 @@ module suncore {
          */
         export function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler): void {
             if (System.isModuleStopped(mod) === true) {
-                console.error("模块停止时不允许添加消息");
+                console.error(`尝试添加消息，但模块己停止 mod:${suncom.Common.convertEnumToString(mod, ModuleEnum)}`);
                 return;
             }
             const message: Message = new Message();
@@ -133,7 +132,7 @@ module suncore {
          */
         export function addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops: number = 1, real: boolean = false): number {
             if (System.isModuleStopped(mod) === true) {
-                console.error("模块停止时不允许添加定时器");
+                console.error(`尝试添加定时器，但模块己停止 mod:${suncom.Common.convertEnumToString(mod, ModuleEnum)}`);
                 return;
             }
             return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
