@@ -26,6 +26,12 @@ module suncore {
         static readonly PAUSE_TIMELINE: string = "suncore.NotifyKey.PAUSE_TIMELINE";
 
         /**
+         * 同步网络消息
+         * export
+         */
+        static readonly NOTIFY_MESSAGE: string = "suncore.NotifyKey.NOTIFY_MESSAGE";
+
+        /**
          * export
          */
         static readonly PHYSICS_FRAME: string = "suncore.NotifyKey.PHYSICS_FRAME";
@@ -44,5 +50,11 @@ module suncore {
          * depends
          */
         static readonly LATER_FRAME: string = "suncore.NotifyKey.LATER_FRAME";
+
+        /**
+         * MsgQ业务
+         * export
+         */
+        static readonly MSG_Q_BUSINESS: string = "suncore.NotifyKey.MSG_Q_BUSINESS";
     }
 }

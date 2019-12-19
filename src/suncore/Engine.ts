@@ -72,6 +72,11 @@ module suncore {
                 M.timeStamp.lapse(delta);
             }
 
+            // 更新消息序列号
+            MsgQ.seqId++;
+            // 同步网络消息
+            this.facade.sendNotification(NotifyKey.NOTIFY_MESSAGE);
+
             // 物理相关事件
             this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);
             this.facade.sendNotification(NotifyKey.PHYSICS_FRAME);
@@ -89,6 +94,8 @@ module suncore {
 
             // 始终派发帧相关事件
             this.facade.sendNotification(NotifyKey.LATER_FRAME);
+            // 处理MsgQ业务
+            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS);
         }
 
         /**
