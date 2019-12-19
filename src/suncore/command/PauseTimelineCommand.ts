@@ -43,8 +43,8 @@ module suncore {
                 return;
             }
 
-            if (mod === suncore.ModuleEnum.SYSTEM) {
-                if (System.isModuleStopped(suncore.ModuleEnum.TIMELINE) === false || System.isModuleStopped(suncore.ModuleEnum.CUSTOM) === false) {
+            if (mod === ModuleEnum.SYSTEM) {
+                if (System.isModuleStopped(ModuleEnum.TIMELINE) === false || System.isModuleStopped(ModuleEnum.CUSTOM) === false) {
                     throw Error(`SYSTEM 不能停止因为 CUSTOM 或 TIMELINE 依然在运行`);
                 }
             }

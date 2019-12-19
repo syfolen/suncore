@@ -74,8 +74,8 @@ module suncore {
 
             // 更新消息序列号
             MsgQ.seqId++;
-            // 同步网络消息
-            this.facade.sendNotification(NotifyKey.NOTIFY_MESSAGE);
+            // 优先广播MsgQModEnum.NET的数据（谨慎修改）
+            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NET);
 
             // 物理相关事件
             this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);

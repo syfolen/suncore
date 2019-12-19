@@ -112,7 +112,6 @@ module suncore {
 
         /**
          * 设置模块是否己激活
-         * export
          */
         export function setModuleActive(mod: MsgQModEnum, active: boolean): void {
             $modStats[mod] = active;
