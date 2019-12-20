@@ -1,24 +1,3 @@
-/**
- *    Copyright 2019 Binfeng Sun<christon.sun@qq.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/**
- * @license suncore.js (c) 2019 Binfeng Sun <christon.sun@qq.com>
- * Released under the Apache License, Version 2.0
- * https://blog.csdn.net/syfolen
- * https://github.com/syfolen/suncore
- */
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -37,14 +16,13 @@ var suncore;
     var MessagePriorityEnum;
     (function (MessagePriorityEnum) {
         MessagePriorityEnum[MessagePriorityEnum["MIN"] = 0] = "MIN";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_0"] = 0] = "PRIORITY_0";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_HIGH"] = 1] = "PRIORITY_HIGH";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_NOR"] = 2] = "PRIORITY_NOR";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LOW"] = 3] = "PRIORITY_LOW";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LAZY"] = 4] = "PRIORITY_LAZY";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TRIGGER"] = 5] = "PRIORITY_TRIGGER";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TASK"] = 6] = "PRIORITY_TASK";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_SOCKET"] = 7] = "PRIORITY_SOCKET";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_0"] = 1] = "PRIORITY_0";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_HIGH"] = 2] = "PRIORITY_HIGH";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_NOR"] = 3] = "PRIORITY_NOR";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LOW"] = 4] = "PRIORITY_LOW";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LAZY"] = 5] = "PRIORITY_LAZY";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TRIGGER"] = 6] = "PRIORITY_TRIGGER";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TASK"] = 7] = "PRIORITY_TASK";
         MessagePriorityEnum[MessagePriorityEnum["MAX"] = 8] = "MAX";
     })(MessagePriorityEnum = suncore.MessagePriorityEnum || (suncore.MessagePriorityEnum = {}));
     var ModuleEnum;
@@ -55,6 +33,26 @@ var suncore;
         ModuleEnum[ModuleEnum["TIMELINE"] = 2] = "TIMELINE";
         ModuleEnum[ModuleEnum["MAX"] = 3] = "MAX";
     })(ModuleEnum = suncore.ModuleEnum || (suncore.ModuleEnum = {}));
+    var MsgQIdEnum;
+    (function (MsgQIdEnum) {
+        MsgQIdEnum[MsgQIdEnum["NET_MSG_ID_BEGIN"] = 1] = "NET_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["NET_MSG_ID_END"] = 10] = "NET_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_BEGIN"] = 10] = "CUI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_END"] = 100] = "CUI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_BEGIN"] = 100] = "GUI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_END"] = 200] = "GUI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["OSL_MSG_ID_BEGIN"] = 200] = "OSL_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["OSL_MSG_ID_END"] = 300] = "OSL_MSG_ID_END";
+    })(MsgQIdEnum = suncore.MsgQIdEnum || (suncore.MsgQIdEnum = {}));
+    var MsgQModEnum;
+    (function (MsgQModEnum) {
+        MsgQModEnum[MsgQModEnum["MMI"] = 9527] = "MMI";
+        MsgQModEnum[MsgQModEnum["SYS"] = 0] = "SYS";
+        MsgQModEnum[MsgQModEnum["CUI"] = 1] = "CUI";
+        MsgQModEnum[MsgQModEnum["GUI"] = 2] = "GUI";
+        MsgQModEnum[MsgQModEnum["OSL"] = 3] = "OSL";
+        MsgQModEnum[MsgQModEnum["NET"] = 4] = "NET";
+    })(MsgQModEnum = suncore.MsgQModEnum || (suncore.MsgQModEnum = {}));
     var AbstractTask = (function (_super) {
         __extends(AbstractTask, _super);
         function AbstractTask() {
@@ -62,6 +60,8 @@ var suncore;
             _this.$done = false;
             return _this;
         }
+        AbstractTask.prototype.cancel = function () {
+        };
         Object.defineProperty(AbstractTask.prototype, "done", {
             get: function () {
                 return this.$done;
@@ -75,25 +75,48 @@ var suncore;
         return AbstractTask;
     }(puremvc.Notifier));
     suncore.AbstractTask = AbstractTask;
-    var CreateTimelineCommand = (function (_super) {
-        __extends(CreateTimelineCommand, _super);
-        function CreateTimelineCommand() {
-            return _super !== null && _super.apply(this, arguments) || this;
+    var BaseService = (function (_super) {
+        __extends(BaseService, _super);
+        function BaseService() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.$running = false;
+            return _this;
         }
-        CreateTimelineCommand.prototype.execute = function () {
-            System.engine = new Engine();
-            System.timeline = new Timeline(false);
-            System.timeStamp = new TimeStamp();
+        BaseService.prototype.run = function () {
+            if (this.$running === true) {
+                console.warn("\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u5DF1\u8FD0\u884C");
+                return;
+            }
+            this.$running = true;
+            this.$onRun();
         };
-        return CreateTimelineCommand;
-    }(puremvc.SimpleCommand));
-    suncore.CreateTimelineCommand = CreateTimelineCommand;
-    var Engine = (function () {
+        BaseService.prototype.stop = function () {
+            if (this.$running === false) {
+                console.warn("\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u672A\u8FD0\u884C");
+                return;
+            }
+            this.$running = false;
+            this.$onStop();
+        };
+        Object.defineProperty(BaseService.prototype, "running", {
+            get: function () {
+                return this.$running;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return BaseService;
+    }(puremvc.Notifier));
+    suncore.BaseService = BaseService;
+    var Engine = (function (_super) {
+        __extends(Engine, _super);
         function Engine() {
-            this.$runTime = 0;
-            this.$delta = 0;
-            this.$localTime = new Date().valueOf();
-            Laya.timer.frameLoop(1, this, this.$onFrameLoop);
+            var _this = _super.call(this, MsgQModEnum.SYS) || this;
+            _this.$delta = 0;
+            _this.$runTime = 0;
+            _this.$localTime = new Date().valueOf();
+            Laya.timer.frameLoop(1, _this, _this.$onFrameLoop);
+            return _this;
         }
         Engine.prototype.destroy = function () {
             Laya.timer.clear(this, this.$onFrameLoop);
@@ -104,8 +127,26 @@ var suncore;
             this.$delta = this.$localTime - oldTime;
             if (this.$delta > 0) {
                 this.$runTime += this.$delta;
-                System.timeStamp.lapse(this.$delta);
+                this.$lapse(this.$delta);
             }
+        };
+        Engine.prototype.$lapse = function (delta) {
+            if (System.isModulePaused(ModuleEnum.TIMELINE) === false) {
+                M.timeline.lapse(delta);
+            }
+            if (System.isModulePaused(ModuleEnum.CUSTOM) === false) {
+                M.timeStamp.lapse(delta);
+            }
+            MsgQ.seqId++;
+            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NET);
+            this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);
+            this.facade.sendNotification(NotifyKey.PHYSICS_FRAME);
+            this.facade.sendNotification(NotifyKey.ENTER_FRAME);
+            M.timerManager.executeTimer();
+            M.messageManager.dealMessage();
+            M.messageManager.classifyMessages0();
+            this.facade.sendNotification(NotifyKey.LATER_FRAME);
+            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS);
         };
         Engine.prototype.getTime = function () {
             return this.$runTime;
@@ -114,7 +155,7 @@ var suncore;
             return this.$delta;
         };
         return Engine;
-    }());
+    }(puremvc.Notifier));
     suncore.Engine = Engine;
     var Message = (function () {
         function Message() {
@@ -141,7 +182,7 @@ var suncore;
         };
         MessageManager.prototype.classifyMessages0 = function () {
             for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
-                if (System.isModulePaused(mod) === false) {
+                if (System.isModuleStopped(mod) === false) {
                     this.$queues[mod].classifyMessages0();
                 }
             }
@@ -152,22 +193,6 @@ var suncore;
         return MessageManager;
     }());
     suncore.MessageManager = MessageManager;
-    var MessageNotifier = (function () {
-        function MessageNotifier() {
-        }
-        MessageNotifier.notify = function (cmd, data) {
-            MessageNotifier.inst.dispatchEvent(cmd.toString(), data);
-        };
-        MessageNotifier.register = function (cmd, method, caller) {
-            MessageNotifier.inst.addEventListener(cmd.toString(), method, caller);
-        };
-        MessageNotifier.unregister = function (cmd, method, caller) {
-            MessageNotifier.inst.removeEventListener(cmd.toString(), method, caller);
-        };
-        MessageNotifier.inst = new suncom.EventSystem();
-        return MessageNotifier;
-    }());
-    suncore.MessageNotifier = MessageNotifier;
     var MessageQueue = (function () {
         function MessageQueue(mod) {
             this.$queues = [];
@@ -188,9 +213,6 @@ var suncore;
                 if (priority === MessagePriorityEnum.PRIORITY_LAZY) {
                     continue;
                 }
-                if (priority === MessagePriorityEnum.PRIORITY_SOCKET && System.timeStamp.paused === true) {
-                    continue;
-                }
                 remainCount += queue.length;
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
                     if (queue.length > 0) {
@@ -200,29 +222,21 @@ var suncore;
                         dealCount++;
                     }
                 }
-                else if (priority === MessagePriorityEnum.PRIORITY_SOCKET) {
-                    if (queue.length > 0) {
-                        this.$dealSocketMessage(queue.shift());
-                        dealCount++;
-                    }
-                }
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
-                    while (queue.length && this.$dealTriggerMessage(queue[0]) == true) {
+                    while (queue.length && this.$dealTriggerMessage(queue[0]) === true) {
                         queue.shift();
                         dealCount++;
                     }
                 }
                 else if (queue.length > 0) {
-                    var count = 0;
-                    var ignoreCount = 0;
+                    var okCount = 0;
                     var totalCount = this.$getDealCountByPriority(priority);
-                    for (; queue.length && (totalCount == 0 || count < totalCount); count++) {
+                    for (; queue.length > 0 && (totalCount === 0 || okCount < totalCount); okCount++) {
                         if (this.$dealCustomMessage(queue.shift()) === false) {
-                            count--;
-                            ignoreCount++;
+                            okCount--;
                         }
                     }
-                    dealCount += count;
+                    dealCount += okCount;
                 }
             }
             if (remainCount === 0 && this.$messages0.length === 0) {
@@ -242,10 +256,7 @@ var suncore;
                     task.done = true;
                 }
             }
-            return task.done == true;
-        };
-        MessageQueue.prototype.$dealSocketMessage = function (message) {
-            var data = message.data;
+            return task.done === true;
         };
         MessageQueue.prototype.$dealTriggerMessage = function (message) {
             if (message.timeout > System.getModuleTimestamp(this.$mod)) {
@@ -266,10 +277,10 @@ var suncore;
                 return 0;
             }
             if (priority === MessagePriorityEnum.PRIORITY_HIGH) {
-                return 7;
+                return 10;
             }
             if (priority === MessagePriorityEnum.PRIORITY_NOR) {
-                return 2;
+                return 3;
             }
             if (priority === MessagePriorityEnum.PRIORITY_LOW) {
                 return 1;
@@ -319,42 +330,134 @@ var suncore;
             }
         };
         MessageQueue.prototype.clearMessages = function () {
-            this.$messages0.length = 0;
+            while (this.$messages0.length > 0) {
+                this.$cancelMessage(this.$messages0.pop());
+            }
             for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
-                this.$queues[priority].length = 0;
+                var queue = this.$queues[priority];
+                while (queue.length > 0) {
+                    this.$cancelMessage(queue.pop());
+                }
             }
         };
         MessageQueue.prototype.$cancelMessage = function (message) {
-            message.task && message.task.cancel();
+            if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
+                message.task.cancel();
+            }
         };
         return MessageQueue;
     }());
     suncore.MessageQueue = MessageQueue;
+    var MsgQService = (function (_super) {
+        __extends(MsgQService, _super);
+        function MsgQService(msgQMod) {
+            var _this = _super.call(this) || this;
+            _this.$msgQMod = null;
+            _this.$msgQMod = msgQMod;
+            return _this;
+        }
+        MsgQService.prototype.$onRun = function () {
+            MsgQ.setModuleActive(this.$msgQMod, true);
+            this.facade.registerObserver(NotifyKey.MSG_Q_BUSINESS, this.$onMsgQBusiness, this);
+        };
+        MsgQService.prototype.$onStop = function () {
+            MsgQ.setModuleActive(this.$msgQMod, false);
+            this.facade.removeObserver(NotifyKey.MSG_Q_BUSINESS, this.$onMsgQBusiness, this);
+        };
+        MsgQService.prototype.$onMsgQBusiness = function (mod) {
+            var msg = null;
+            while (true) {
+                if (mod === MsgQModEnum.NET) {
+                    msg = MsgQ.fetch(MsgQModEnum.NET, 2);
+                }
+                else if (this.$msgQMod === MsgQModEnum.NET) {
+                    msg = MsgQ.fetch(MsgQModEnum.NET, 1);
+                }
+                else {
+                    msg = MsgQ.fetch(mod);
+                }
+                if (msg === null) {
+                    break;
+                }
+                this.$dealMsgQMsg(msg);
+            }
+        };
+        return MsgQService;
+    }(BaseService));
+    suncore.MsgQService = MsgQService;
     var NotifyKey = (function () {
         function NotifyKey() {
         }
         NotifyKey.STARTUP = "suncore.NotifyKey.STARTUP";
         NotifyKey.SHUTDOWN = "suncore.NotifyKey.SHUTDOWN";
-        NotifyKey.FRAME_ENTER = "suncore.NotifyKey.FRAME_ENTER";
-        NotifyKey.FRAME_LATER = "suncore.NotifyKey.FRAME_LATER";
-        NotifyKey.CREATE_TIMELINE = "suncore.NotifyKey.CREATE_TIMELINE";
-        NotifyKey.REMOVE_TIMELINE = "suncore.NotifyKey.REMOVE_TIMELINE";
-        NotifyKey.TIMELINE_STOPPED = "suncore.NotifyKey.TIMELINE_STOPPED";
-        NotifyKey.TIMESTAMP_STOPPED = "suncore.NotifyKey.TIMESTAMP_STOPPED";
+        NotifyKey.START_TIMELINE = "suncore.NotifyKey.START_TIMELINE";
+        NotifyKey.PAUSE_TIMELINE = "suncore.NotifyKey.PAUSE_TIMELINE";
+        NotifyKey.PHYSICS_FRAME = "suncore.NotifyKey.PHYSICS_FRAME";
+        NotifyKey.PHYSICS_PREPARE = "suncore.NotifyKey.PHYSICS_PREPARE";
+        NotifyKey.ENTER_FRAME = "suncore.NotifyKey.ENTER_FRAME";
+        NotifyKey.LATER_FRAME = "suncore.NotifyKey.LATER_FRAME";
+        NotifyKey.MSG_Q_BUSINESS = "suncore.NotifyKey.MSG_Q_BUSINESS";
         return NotifyKey;
     }());
     suncore.NotifyKey = NotifyKey;
-    var RemoveTimelineCommand = (function (_super) {
-        __extends(RemoveTimelineCommand, _super);
-        function RemoveTimelineCommand() {
+    var PauseTimelineCommand = (function (_super) {
+        __extends(PauseTimelineCommand, _super);
+        function PauseTimelineCommand() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        RemoveTimelineCommand.prototype.execute = function () {
-            System.engine.destroy();
+        PauseTimelineCommand.prototype.execute = function (mod, stop) {
+            if (stop === void 0) { stop = true; }
+            if (stop === void 0) {
+                throw Error("\u6682\u505C\u65F6\u95F4\u8F74\u65F6\u5E94\u5F53\u6307\u5B9A\u53C2\u6570 stop \u7684\u503C");
+            }
+            if (stop === true) {
+                if (System.isModuleStopped(mod) === true) {
+                    console.error("Module " + ModuleEnum[mod] + " Is Already Stopped!!!");
+                    return;
+                }
+            }
+            else if (System.isModulePaused(mod) === true) {
+                console.error("Module " + ModuleEnum[mod] + " Is Already Paused!!!");
+                return;
+            }
+            else if (mod === ModuleEnum.SYSTEM) {
+                console.error("Module " + ModuleEnum[mod] + " Cannot Be Paused!!!");
+                return;
+            }
+            if (mod === ModuleEnum.TIMELINE) {
+                M.timeline.pause(stop);
+            }
+            else if (mod === ModuleEnum.CUSTOM) {
+                M.timeStamp.pause(stop);
+            }
+            if (stop === false) {
+                return;
+            }
+            if (mod === ModuleEnum.SYSTEM) {
+                if (System.isModuleStopped(ModuleEnum.TIMELINE) === false || System.isModuleStopped(ModuleEnum.CUSTOM) === false) {
+                    throw Error("SYSTEM \u4E0D\u80FD\u505C\u6B62\u56E0\u4E3A CUSTOM \u6216 TIMELINE \u4F9D\u7136\u5728\u8FD0\u884C");
+                }
+            }
+            M.timerManager.clearTimer(mod);
+            M.messageManager.clearMessages(mod);
+            if (mod === ModuleEnum.TIMELINE) {
+                M.timeline = null;
+            }
+            else if (mod === ModuleEnum.CUSTOM) {
+                M.timeStamp = null;
+            }
+            else {
+                M.engine.destroy();
+                M.engine = null;
+            }
+            if (mod === ModuleEnum.SYSTEM) {
+                M.timerManager = null;
+                M.messageManager = null;
+            }
         };
-        return RemoveTimelineCommand;
+        return PauseTimelineCommand;
     }(puremvc.SimpleCommand));
-    suncore.RemoveTimelineCommand = RemoveTimelineCommand;
+    suncore.PauseTimelineCommand = PauseTimelineCommand;
     var SimpleTask = (function (_super) {
         __extends(SimpleTask, _super);
         function SimpleTask(handler) {
@@ -369,132 +472,66 @@ var suncore;
         return SimpleTask;
     }(AbstractTask));
     suncore.SimpleTask = SimpleTask;
-    var SocketData = (function () {
-        function SocketData() {
+    var StartTimelineCommand = (function (_super) {
+        __extends(StartTimelineCommand, _super);
+        function StartTimelineCommand() {
+            return _super !== null && _super.apply(this, arguments) || this;
         }
-        return SocketData;
-    }());
-    suncore.SocketData = SocketData;
-    var System = (function () {
-        function System() {
-        }
-        System.isModulePaused = function (mod) {
-            if (mod === ModuleEnum.CUSTOM) {
-                return System.timeStamp.paused;
+        StartTimelineCommand.prototype.execute = function (mod, pause) {
+            if (pause === void 0) { pause = false; }
+            if (pause === void 0) {
+                throw Error("\u6682\u505C\u65F6\u95F4\u8F74\u65F6\u5E94\u5F53\u6307\u5B9A\u53C2\u6570 pause \u7684\u503C");
             }
-            else if (mod === ModuleEnum.TIMELINE) {
-                return System.timeline.paused;
-            }
-            return false;
-        };
-        System.getModuleTimestamp = function (mod) {
-            if (mod === ModuleEnum.CUSTOM) {
-                return System.timeStamp.getTime();
-            }
-            else if (mod === ModuleEnum.TIMELINE) {
-                return System.timeline.getTime();
-            }
-            return System.engine.getTime();
-        };
-        System.addTask = function (mod, task) {
-            if (System.isModulePaused(mod) === true) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                    suncom.Logger.warn("System=> add task failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
-                }
+            if (System.isModulePaused(mod) === false) {
+                console.error("Module " + ModuleEnum[mod] + " Is Already Started!!!");
                 return;
             }
-            var message = new Message();
-            message.mod = mod;
-            message.task = task;
-            message.active = false;
-            message.priority = MessagePriorityEnum.PRIORITY_TASK;
-            System.timeStamp.messageManager.putMessage(message);
-        };
-        System.addTrigger = function (mod, delay, handler) {
-            if (System.isModulePaused(mod) === true) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                    suncom.Logger.warn("System=> add trigger failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
-                }
-                return;
+            if (mod === ModuleEnum.SYSTEM && M.engine === null) {
+                M.timerManager = new TimerManager();
+                M.messageManager = new MessageManager();
             }
-            var message = new Message();
-            message.mod = mod;
-            message.handler = handler;
-            message.timeout = System.getModuleTimestamp(mod) + delay;
-            message.priority = MessagePriorityEnum.PRIORITY_TRIGGER;
-            System.timeStamp.messageManager.putMessage(message);
-        };
-        System.addSocketMessage = function (cmd, socData) {
-            var data = new SocketData();
-            data.cmd = cmd;
-            data.socData = socData;
-            var message = new Message();
-            message.mod = ModuleEnum.SYSTEM;
-            message.data = data;
-            message.priority = MessagePriorityEnum.PRIORITY_SOCKET;
-            return System.timeStamp.messageManager.putMessage(message);
-        };
-        System.addMessage = function (mod, priority, handler) {
-            if (System.isModulePaused(mod) === true) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                    suncom.Logger.warn("System=> add message failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
+            if (mod === ModuleEnum.TIMELINE) {
+                if (M.timeline === null) {
+                    M.timeline = new Timeline();
                 }
-                return;
+                M.timeline.resume(pause);
             }
-            var message = new Message();
-            message.mod = mod;
-            message.handler = handler;
-            message.priority = priority;
-            System.timeStamp.messageManager.putMessage(message);
-        };
-        System.addTimer = function (mod, delay, method, caller, loops, real) {
-            if (loops === void 0) { loops = 1; }
-            if (real === void 0) { real = false; }
-            if (System.isModulePaused(mod) == true) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                    suncom.Logger.warn("System=> add timer failed, cos module " + suncom.Common.convertEnumToString(mod, ModuleEnum) + " is paused.");
+            else if (mod === ModuleEnum.CUSTOM) {
+                if (M.timeStamp === null) {
+                    M.timeStamp = new Timeline();
                 }
-                return 0;
+                M.timeStamp.resume(pause);
             }
-            return System.timeStamp.timerManager.addTimer(mod, delay, method, caller, loops, real);
+            else if (mod === ModuleEnum.SYSTEM) {
+                if (M.engine === null) {
+                    M.engine = new Engine();
+                }
+            }
         };
-        System.removeTimer = function (timerId) {
-            return System.timeStamp.timerManager.removeTimer(timerId);
-        };
-        return System;
-    }());
-    suncore.System = System;
+        return StartTimelineCommand;
+    }(puremvc.SimpleCommand));
+    suncore.StartTimelineCommand = StartTimelineCommand;
     var Timeline = (function () {
-        function Timeline(lockStep) {
+        function Timeline() {
+            this.$runTime = 0;
             this.$paused = true;
             this.$stopped = true;
-            this.$runTime = 0;
-            this.$delta = 0;
-            this.$lockStep = lockStep;
         }
         Timeline.prototype.lapse = function (delta) {
-            this.$delta = delta;
             this.$runTime += delta;
         };
-        Timeline.prototype.pause = function () {
+        Timeline.prototype.pause = function (stop) {
+            if (stop === void 0) { stop = false; }
             this.$paused = true;
+            this.$stopped = stop;
         };
         Timeline.prototype.resume = function (paused) {
             if (paused === void 0) { paused = false; }
             this.$paused = paused;
             this.$stopped = false;
         };
-        Timeline.prototype.stop = function () {
-            this.$stopped = true;
-            System.timeStamp.timerManager.clearTimer(ModuleEnum.TIMELINE);
-            System.timeStamp.messageManager.clearMessages(ModuleEnum.TIMELINE);
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.TIMELINE_STOPPED);
-        };
         Timeline.prototype.getTime = function () {
             return this.$runTime;
-        };
-        Timeline.prototype.getDelta = function () {
-            return this.$delta;
         };
         Object.defineProperty(Timeline.prototype, "paused", {
             get: function () {
@@ -506,13 +543,6 @@ var suncore;
         Object.defineProperty(Timeline.prototype, "stopped", {
             get: function () {
                 return this.$stopped;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Timeline.prototype, "lockStep", {
-            get: function () {
-                return this.$lockStep;
             },
             enumerable: true,
             configurable: true
@@ -541,9 +571,9 @@ var suncore;
         };
         TimerManager.prototype.executeTimer = function () {
             for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
-                var timers = this.$timers[mod];
-                var timestamp = System.getModuleTimestamp(mod);
                 if (System.isModulePaused(mod) === false) {
+                    var timers = this.$timers[mod];
+                    var timestamp = System.getModuleTimestamp(mod);
                     while (timers.length) {
                         var timer = timers[0];
                         if (timer.active === true) {
@@ -659,50 +689,199 @@ var suncore;
         return TimerManager;
     }());
     suncore.TimerManager = TimerManager;
-    var TimeStamp = (function (_super) {
-        __extends(TimeStamp, _super);
-        function TimeStamp() {
-            var _this = _super.call(this, false) || this;
-            _this.$timerManager = new TimerManager();
-            _this.$messageManager = new MessageManager();
-            return _this;
+    var M;
+    (function (M) {
+        M.engine = null;
+        M.timeline = null;
+        M.timeStamp = null;
+        M.timerManager = null;
+        M.messageManager = null;
+    })(M = suncore.M || (suncore.M = {}));
+    var MsgQ;
+    (function (MsgQ) {
+        var $queues = {};
+        var $modStats = {};
+        MsgQ.seqId = 1;
+        function send(src, dest, id, data) {
+            if (isModuleActive(dest) === false) {
+                console.warn("\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6A21\u5757\u5DF1\u6682\u505C mod:" + MsgQModEnum[dest]);
+                return;
+            }
+            if (check(dest, id) === false) {
+                console.warn("\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6D88\u606FID\u975E\u6CD5 mod:" + dest + ", id:" + id);
+                return;
+            }
+            var array = $queues[dest] || null;
+            if (array === null) {
+                array = $queues[dest] = [];
+            }
+            var msg = {
+                src: src,
+                dest: dest,
+                seqId: MsgQ.seqId,
+                id: id,
+                data: data
+            };
+            array.push(msg);
         }
-        TimeStamp.prototype.lapse = function (delta) {
-            if (this.paused === false) {
-                _super.prototype.lapse.call(this, delta);
-                if (System.timeline.paused === false) {
-                    if (System.timeline.lockStep === false) {
-                        System.timeline.lapse(delta);
+        MsgQ.send = send;
+        function fetch(mod, id) {
+            var queue = $queues[mod] || null;
+            if (queue === null || queue.length === 0) {
+                return null;
+            }
+            for (var i = 0; i < queue.length; i++) {
+                var msg = queue[i];
+                if (mod === MsgQModEnum.NET || msg.seqId < MsgQ.seqId) {
+                    if (id === void 0 || msg.id === id) {
+                        queue.splice(i, 1);
+                        return msg;
                     }
                 }
             }
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.FRAME_ENTER);
-            this.$timerManager.executeTimer();
-            this.$messageManager.dealMessage();
-            this.$messageManager.classifyMessages0();
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.FRAME_LATER);
-        };
-        TimeStamp.prototype.stop = function () {
-            this.$stopped = true;
-            System.timeStamp.timerManager.clearTimer(ModuleEnum.CUSTOM);
-            System.timeStamp.messageManager.clearMessages(ModuleEnum.CUSTOM);
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.TIMESTAMP_STOPPED);
-        };
-        Object.defineProperty(TimeStamp.prototype, "timerManager", {
-            get: function () {
-                return this.$timerManager;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(TimeStamp.prototype, "messageManager", {
-            get: function () {
-                return this.$messageManager;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return TimeStamp;
-    }(Timeline));
-    suncore.TimeStamp = TimeStamp;
+            return null;
+        }
+        MsgQ.fetch = fetch;
+        function check(mod, id) {
+            var min, max;
+            if (mod === MsgQModEnum.NET) {
+                min = MsgQIdEnum.NET_MSG_ID_BEGIN;
+                max = MsgQIdEnum.NET_MSG_ID_END;
+            }
+            else if (mod === MsgQModEnum.OSL) {
+                min = MsgQIdEnum.OSL_MSG_ID_BEGIN;
+                max = MsgQIdEnum.OSL_MSG_ID_END;
+            }
+            else if (mod === MsgQModEnum.CUI) {
+                min = MsgQIdEnum.CUI_MSG_ID_BEGIN;
+                max = MsgQIdEnum.CUI_MSG_ID_END;
+            }
+            else if (mod === MsgQModEnum.GUI) {
+                min = MsgQIdEnum.GUI_MSG_ID_BEGIN;
+                max = MsgQIdEnum.GUI_MSG_ID_END;
+            }
+            else {
+                throw Error("\u672A\u77E5\u7684\u6D88\u606F\u8303\u56F4 mod:" + mod);
+            }
+            return id >= min && id < max;
+        }
+        function isModuleActive(mod) {
+            return $modStats[mod] === true;
+        }
+        MsgQ.isModuleActive = isModuleActive;
+        function setModuleActive(mod, active) {
+            $modStats[mod] = active;
+            if (active === true) {
+                return;
+            }
+            var queue = $queues[mod] || null;
+            if (queue === null) {
+                return;
+            }
+            queue.length = 0;
+        }
+        MsgQ.setModuleActive = setModuleActive;
+    })(MsgQ = suncore.MsgQ || (suncore.MsgQ = {}));
+    var System;
+    (function (System) {
+        function isModuleStopped(mod) {
+            if (mod === ModuleEnum.TIMELINE) {
+                if (M.timeline === null || M.timeline.stopped === true) {
+                    return true;
+                }
+            }
+            else if (mod === ModuleEnum.CUSTOM) {
+                if (M.timeStamp === null || M.timeStamp.stopped === true) {
+                    return true;
+                }
+            }
+            else if (M.engine === null) {
+                return true;
+            }
+            return false;
+        }
+        System.isModuleStopped = isModuleStopped;
+        function isModulePaused(mod) {
+            if (isModuleStopped(mod) === true) {
+                return true;
+            }
+            if (mod === ModuleEnum.TIMELINE) {
+                return M.timeline.paused;
+            }
+            else if (mod === ModuleEnum.CUSTOM) {
+                return M.timeStamp.paused;
+            }
+            return false;
+        }
+        System.isModulePaused = isModulePaused;
+        function getDelta() {
+            return M.engine.getDelta();
+        }
+        System.getDelta = getDelta;
+        function getModuleTimestamp(mod) {
+            if (isModuleStopped(mod) === true) {
+                console.error("\u5C1D\u8BD5\u83B7\u53D6\u65F6\u95F4\u6233\uFF0C\u4F46\u6A21\u5757\u5DF1\u505C\u6B62 mod:" + suncom.Common.convertEnumToString(mod, ModuleEnum));
+            }
+            if (mod === ModuleEnum.TIMELINE) {
+                return M.timeline.getTime();
+            }
+            else if (mod === ModuleEnum.CUSTOM) {
+                return M.timeStamp.getTime();
+            }
+            return M.engine.getTime();
+        }
+        System.getModuleTimestamp = getModuleTimestamp;
+        function addTask(mod, task) {
+            if (System.isModuleStopped(mod) === true) {
+                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u4EFB\u52A1\uFF0C\u4F46\u6A21\u5757\u5DF1\u505C\u6B62 mod:" + suncom.Common.convertEnumToString(mod, ModuleEnum));
+                return;
+            }
+            var message = new Message();
+            message.mod = mod;
+            message.task = task;
+            message.active = false;
+            message.priority = MessagePriorityEnum.PRIORITY_TASK;
+            M.messageManager.putMessage(message);
+        }
+        System.addTask = addTask;
+        function addTrigger(mod, delay, handler) {
+            if (System.isModuleStopped(mod) === true) {
+                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u89E6\u53D1\u5668\uFF0C\u4F46\u6A21\u5757\u5DF1\u505C\u6B62 mod:" + suncom.Common.convertEnumToString(mod, ModuleEnum));
+                return;
+            }
+            var message = new Message();
+            message.mod = mod;
+            message.handler = handler;
+            message.timeout = System.getModuleTimestamp(mod) + delay;
+            message.priority = MessagePriorityEnum.PRIORITY_TRIGGER;
+            M.messageManager.putMessage(message);
+        }
+        System.addTrigger = addTrigger;
+        function addMessage(mod, priority, handler) {
+            if (System.isModuleStopped(mod) === true) {
+                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u6D88\u606F\uFF0C\u4F46\u6A21\u5757\u5DF1\u505C\u6B62 mod:" + suncom.Common.convertEnumToString(mod, ModuleEnum));
+                return;
+            }
+            var message = new Message();
+            message.mod = mod;
+            message.handler = handler;
+            message.priority = priority;
+            M.messageManager.putMessage(message);
+        }
+        System.addMessage = addMessage;
+        function addTimer(mod, delay, method, caller, loops, real) {
+            if (loops === void 0) { loops = 1; }
+            if (real === void 0) { real = false; }
+            if (System.isModuleStopped(mod) === true) {
+                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u5B9A\u65F6\u5668\uFF0C\u4F46\u6A21\u5757\u5DF1\u505C\u6B62 mod:" + suncom.Common.convertEnumToString(mod, ModuleEnum));
+                return;
+            }
+            return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
+        }
+        System.addTimer = addTimer;
+        function removeTimer(timerId) {
+            return M.timerManager.removeTimer(timerId);
+        }
+        System.removeTimer = removeTimer;
+    })(System = suncore.System || (suncore.System = {}));
 })(suncore || (suncore = {}));

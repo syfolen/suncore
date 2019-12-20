@@ -1,40 +1,22 @@
 /**
- *    Copyright 2019 Binfeng Sun<christon.sun@qq.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
- 
-/**
- * @license suncore.d.ts (c) 2013 Binfeng Sun <christon.sun@qq.com>
+ * @license suncore (c) 2013 Binfeng Sun <christon.sun@qq.com>
  * Released under the Apache License, Version 2.0
  * https://blog.csdn.net/syfolen
  * https://github.com/syfolen/suncore
  */
 declare module suncore {
-
     /**
      * 消息优先级
+     * 设计说明：
+     * 1. 使用消息机制的意义主要在于解决游戏表现层的流畅性问题
+     * 2. 由于消息机制中并没有提供由使用者主动取消消息的功能，所以消息机制并不适用于作线性逻辑方面的构建
+     * 3. 消息机制被用于实现场景跳转只是一个意外，因为场景跳转的逻辑是不可回滚的
      */
-    export enum MessagePriorityEnum {
-        /**
-         * 枚举开始
-         */
-        MIN = 0,
-
+    enum MessagePriorityEnum {
         /**
          * 始终立即响应
          */
-        PRIORITY_0 = MIN,
+        PRIORITY_0,
 
         /**
          * 每帧至多响应十次消息
@@ -55,6 +37,7 @@ declare module suncore {
          * 惰性消息
          * 说明：
          * 1. 当前帧若没有处理过任何消息，则会处理此类型的消息
+         * 2. 当消息优先级为 [0, HIGH, NOR, LOW] 的消息回调执行后的返回值为false，则该次执行将会被LAZY忽略
          */
         PRIORITY_LAZY,
 
@@ -63,30 +46,17 @@ declare module suncore {
          * 说明：
          * 1. 触发器在指定时刻必定会被触发
          * 2. 为了简化系统，同一个触发器只能被触发一次
+         * 3. 此类型的消息存在的唯一原因是消息机制不能感知定时器的存在
          */
         PRIORITY_TRIGGER,
 
         /**
          * 任务消息
          * 说明：
-         * 1. 任务消息会反复执行，直至任务完成
+         * 1. 任务消息在执行时，会阻塞整个消息队列，直至任务完成
          * 2. 新的任务只会在下一帧被开始执行
          */
         PRIORITY_TASK,
-
-        /**
-         * 网络消息
-         * 说明：
-         * 1. 网络消息每帧只会被派发一个
-         * 2. 为了防止网络消息被清除，网络消息始终会被添加到系统消息队列中
-         * 3. 当系统被暂停时，网络消息不会被广播
-         */
-        PRIORITY_SOCKET,
-
-        /**
-         * 枚举结束
-         */
-        MAX
     }
 
     /**
@@ -99,17 +69,12 @@ declare module suncore {
      * 注意：
      * 尽量不要添加新的模块，因为模块越多，消息响应的调度算法就会越复杂
      */
-    export enum ModuleEnum {
-        /**
-         * 枚举开始
-         */
-        MIN = 0,
-
+    enum ModuleEnum {
         /**
          * 系统模块
          * 此模块为常驻模块，该模块下的消息永远不会被清理
          */
-        SYSTEM = MIN,
+        SYSTEM = 0,
 
         /**
          * 通用模块
@@ -122,38 +87,95 @@ declare module suncore {
          * 此模块下的消息会在时间轴被销毁的同时被清理
          */
         TIMELINE,
-
-        /**
-         * 枚举结束
-         */
-        MAX
     }
 
     /**
-     * 框架引擎接口
+     * MsgQId枚举
      */
-    export interface IEngine {
+    enum MsgQIdEnum {
+        /**
+         * 网络层消息枚举
+         */
+        NET_MSG_ID_BEGIN = 1,
+
+        NET_MSG_ID_END = 10,
 
         /**
-         * 销毁对象
+         * CUI消息枚举
          */
-        destroy(): void;
+        CUI_MSG_ID_BEGIN = NET_MSG_ID_END,
+
+        CUI_MSG_ID_END = 100,
 
         /**
-         * 获取系统运行时间（毫秒）
+         * GUI消息枚举
          */
-        getTime(): number;
+        GUI_MSG_ID_BEGIN = CUI_MSG_ID_END,
+
+        GUI_MSG_ID_END = 200,
 
         /**
-         * 获取帧间隔时间（毫秒）
+         * 逻辑层消息枚举
          */
-        getDelta(): number;
+        OSL_MSG_ID_BEGIN = GUI_MSG_ID_END,
+
+        OSL_MSG_ID_END = 300
+    }
+
+    /**
+     * MsgQ的模块枚举
+     */
+    enum MsgQModEnum {
+        /**
+         * 通用界面
+         */
+        CUI = 1,
+
+        /**
+         * 游戏界面
+         */
+        GUI,
+
+        /**
+         * 逻辑层
+         */
+        OSL,
+
+        /**
+         * 网络层
+         */
+        NET
+    }
+
+    /**
+     * MsgQ的消息对象
+     */
+    interface IMsgQMsg {
+        /**
+         * 发送消息的模块
+         */
+        src: MsgQModEnum;
+
+        /**
+         * 接收消息的模块
+         */
+        dest: MsgQModEnum;
+
+        /**
+         * 消息编号
+         */
+        id: number;
+
+        /**
+         * 消息挂载的数据
+         */
+        data: any;
     }
 
     /**
      * 任务接口
      */
-    export interface ITask {
+    interface ITask {
         /**
          * 任务是否己经完成
          */
@@ -168,90 +190,22 @@ declare module suncore {
         /**
          * 取消任务
          */
-        cancel?(): void;
-    }
-
-    /**
-     * 时间轴类
-     * 
-     * 说明：
-     * 1. 游戏时间轴实现
-     * 1. 游戏时间轴中并没有关于计算游戏时间的真正的实现
-     * 2. 若游戏是基于帧同步的，则游戏时间以服务端时间为准
-     * 3. 若游戏是基于状态同步的，则游戏时间以框架时间为准
-     * 
-     * 注意：
-     * 1. 由于此类为系统类，故请勿擅自对此类进行实例化
-     */
-    export interface ITimeline {
-
-        /**
-         * 暂停时间轴
-         * 1. 时间轴暂停时，对应的模块允许被添加任务
-         */
-        pause(): void;
-
-        /**
-         * 继续时间轴
-         * @paused: 是否暂停时间轴，默认为false
-         */
-        resume(paused?: boolean): void;
-
-        /**
-         * 停止时间轴
-         * 1. 时间轴停止时，对应的模块无法被添加任务
-         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
-         */
-        stop(): void;
-
-        /**
-         * 获取系统时间戳（毫秒）
-         */
-        getTime(): number;
-
-        /**
-         * 获取帧时间间隔（毫秒）
-         */
-        getDelta(): number;
-
-        /**
-         * 时间轴是否己暂停
-         */
-        readonly paused: boolean;
-
-        /**
-         * 时间轴是否己停止
-         */
-        readonly stopped: boolean;
-
-        /**
-         * 帧同步是否己开启
-         */
-        readonly lockStep: boolean;
-    }
-
-    /**
-     * 系统时间戳
-     * 
-     * 此类实现了整个客户端的核心机制，包括：
-     * 1. 系统时间戳实现
-     * 2. 游戏时间轴调度
-     * 3. 自定义定时器调度
-     * 4. 不同类型游戏消息的派发
-     */
-    export interface ITimeStamp extends ITimeline {
-        
+        cancel(): void;
     }
 
     /**
      * 任务抽象类
      */
-    export abstract class AbstractTask extends puremvc.Notifier implements ITask {
-
+    abstract class AbstractTask extends puremvc.Notifier implements ITask {
         /**
          * 外部会访问此变量来判断任务是否己经完成
          */
-        private $done: boolean;
+        protected $done: boolean;
+
+        /**
+         * 任务是否己经完成
+         */
+        done: boolean;
 
         /**
          * 执行函数
@@ -260,92 +214,203 @@ declare module suncore {
         abstract run(): boolean;
 
         /**
-         * 任务是否己经完成
+         * 任务取消
+         * 说明：
+         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行
          */
-        done: boolean;
+        cancel(): void;
     }
 
     /**
-     * 创建游戏时间轴
+     * 服务（主要用于逻辑层架构）
+     * 说明：
+     * 1. 每个服务均有独立的生命周期。
+     * 2. 服务被设计用来处理与表现层无关的有状态的业务。
      */
-    export class CreateTimelineCommand extends puremvc.SimpleCommand {
+    abstract class BaseService extends puremvc.Notifier {
 
-        execute(): void;
+        /**
+         * 服务启动入口
+         */
+        run(): void;
+
+        /**
+         * 服务停止接口
+         */
+        stop(): void;
+
+        /**
+         * 启动回调
+         */
+        protected abstract $onRun(): void;
+
+        /**
+         * 停止回调
+         */
+        protected abstract $onStop(): void;
+
+        /**
+         * 服务是否正在运行
+         */
+        readonly running: boolean;
+    }
+
+    /**
+     * MsgQ服务类（主要用于模块间的解偶）
+     * 说明：
+     * 1. 理论上每个MsgQ模块都必须实现一个MsgQService对象，否则此模块的消息不能被处理
+     */
+    abstract class MsgQService extends BaseService {
+
+        /**
+         * MsgQService在被构建时必须指定MsgQ消息模块
+         */
+        constructor(msgQMod:MsgQModEnum);
+
+        /**
+         * 启动回调
+         */
+        protected $onRun(): void;
+
+        /**
+         * 停止回调
+         */
+        protected $onStop(): void;
+
+        /**
+         * 处理MsgQ消息
+         */
+        protected abstract $dealMsgQMsg(msg:IMsgQMsg): void;
     }
 
     /**
      * 命令枚举
      */
-    export abstract class NotifyKey {
-        // 系统命令
-        static readonly STARTUP: string;
-        static readonly SHUTDOWN: string;
-        static readonly FRAME_ENTER: string;
-        static readonly FRAME_LATER: string;
+    abstract class NotifyKey {
 
-        // 时间轴命令
-        static readonly CREATE_TIMELINE: string;
-        static readonly REMOVE_TIMELINE: string;
-        static readonly TIMELINE_STOPPED: string;
-        static readonly TIMESTAMP_STOPPED: string;
+        static readonly STARTUP: string;
+
+        static readonly SHUTDOWN: string;
+
+        static readonly START_TIMELINE: string;
+
+        static readonly PAUSE_TIMELINE: string;
+
+        static readonly PHYSICS_FRAME: string;
+
+        static readonly PHYSICS_PREPARE: string;
+
+        static readonly ENTER_FRAME: string;
+
+        static readonly LATER_FRAME: string;
     }
 
     /**
-     * 移除游戏时间轴
+     * 暂停时间轴
      */
-    export class RemoveTimelineCommand extends puremvc.SimpleCommand {
+    class PauseTimelineCommand extends puremvc.SimpleCommand {
 
-        execute(): void;
+        /**
+         * @mod: 时间轴模块
+         * @stop: 是否停止时间轴，默认为true
+         * 1. 时间轴停止时，对应的模块无法被添加任务
+         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
+         */
+        execute(mod:ModuleEnum, stop?:boolean): void;
     }
 
-    export abstract class System {
+    /**
+     * 简单任务对象
+     */
+    class SimpleTask extends AbstractTask {
+
+        constructor(handler:suncom.IHandler);
 
         /**
-         * 核心类
+         * 执行函数
          */
-        static engine: IEngine;
+        run(): boolean;
+    }
+
+    /**
+     * 开始时间轴，若时间轴不存在，则会自动创建
+     */
+    class StartTimelineCommand extends puremvc.SimpleCommand {
 
         /**
-         * 游戏时间轴
+         * @mod: 时间轴模块
+         * @pause: 时间轴在开启时是否处于暂停状态
+         * 说明：
+         * 1. 参数pause并不会对SYSTEM模块的时间轴生效
          */
-        static timeline: ITimeline;
+        execute(mod:ModuleEnum, pause?:boolean): void;
+    }
+
+    /**
+     * MsgQ接口类
+     * 设计说明：
+     * 1. 设计MsgQ的主要目的是为了对不同的模块进行彻底的解耦
+     * 2. 考虑到在实际环境中，网络可能存在波动，而UI层可能会涉及到资源的动态加载与释放管理，故MsgQ中的消息是以异步的形式进行派发的
+     * 3. 由于MsgQ的异步机制，故每条消息的处理都必须考虑并避免因模块间的数据可能的不同步而带来的报错问题
+     */
+    namespace MsgQ {
 
         /**
-         * 场景时间轴
+         * 发送消息（异步）
          */
-        static timeStamp: ITimeStamp;
+        function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data: any): void;
+
+        /**
+         * 获取消息
+         * @id: 只获取指定ID消息，若为void 0则不校验
+         */
+        function fetch(mod: MsgQModEnum, id?: number): IMsgQMsg;
+
+        /**
+         * 判断模块是否己激活
+         */
+        function isModuleActive(mod: MsgQModEnum): boolean;
+    }
+
+    /**
+     * 系统接口
+     */
+    namespace System {
+
+        /**
+         * 判断指定模块是否己停止
+         */
+        function isModuleStopped(mod: ModuleEnum): boolean;
 
         /**
          * 判断指定模块是否己暂停
          */
-        static isModulePaused(mod: ModuleEnum): boolean;
+        function isModulePaused(mod: ModuleEnum): boolean;
+
+        /**
+         * 获取时间间隔（所有模块共享）
+         */
+        function getDelta(): number;
 
         /**
          * 获取指定模块的时间戳
          */
-        static getModuleTimestamp(mod: ModuleEnum): number;
+        function getModuleTimestamp(mod: ModuleEnum): number;
 
         /**
          * 添加任务
          */
-        static addTask(mod: ModuleEnum, task: ITask): void;
+        function addTask(mod: ModuleEnum, task: ITask): void;
 
         /**
          * 添加触发器
          */
-        static addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void;
-
-        /**
-         * 添加网络消息
-         * @cmd: 值为 SOCKET_STATE_CHANGE 表示掉线重连消息
-         * @TODO: 不确定网络消息在切换场景的时候是否会被清理掉
-         */
-        static addSocketMessage(cmd: number, socData: any): void;
+        function addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void;
 
         /**
          * 添加消息
          */
-        static addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler): void;
+        function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler): void;
 
         /**
          * 添加自定义定时器
@@ -353,52 +418,14 @@ declare module suncore {
          * @delay: 响应延时
          * @method: 回调函数
          * @caller: 回调对象
-         * @loops: 响应次数，默认1
-         * @real:是否按设定的次数真实执行，默认为fase
+         * @loops: 响应次数，默认为1
+         * @real: 是否计算真实次数，默认为false
          */
-        static addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops?: number, real?: boolean): number;
+        function addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops?: number, real?: boolean): number;
 
         /**
          * 移除定时器
          */
-        static removeTimer(timerId: number): number;
-    }
-
-    /**
-     * 网络消息派发器
-     */
-    export abstract class MessageNotifier {
-
-        /**
-         * 通知网络消息
-         */
-        static notify(cmd: number, data: any): void;
-
-        /**
-         * 注册网络消息监听
-         */
-        static register(cmd: number, method: Function, caller: Object): void;
-
-        /**
-         * 移除网络消息监听
-         */
-        static unregister(cmd: number, method: Function, caller: Object): void;
-    }
-
-    /**
-     * 简单任务对象
-     */
-    export class SimpleTask extends AbstractTask {
-        /**
-         * 任务逻辑Handler
-         */
-        private $handler: suncom.IHandler;
-
-        constructor(handler: suncom.IHandler);
-
-        /**
-         * 执行函数
-         */
-        run(): boolean;
+        function removeTimer(timerId: number): number;
     }
 }
