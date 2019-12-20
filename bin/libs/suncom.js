@@ -12,7 +12,9 @@ var suncom;
     })(DebugMode = suncom.DebugMode || (suncom.DebugMode = {}));
     var EnvMode;
     (function (EnvMode) {
-        EnvMode[EnvMode["SIMULATOR"] = 0] = "SIMULATOR";
+        EnvMode[EnvMode["DEVELOP"] = 0] = "DEVELOP";
+        EnvMode[EnvMode["DEBUG"] = 1] = "DEBUG";
+        EnvMode[EnvMode["WEB"] = 2] = "WEB";
     })(EnvMode = suncom.EnvMode || (suncom.EnvMode = {}));
     var Dictionary = (function () {
         function Dictionary(primaryKey) {
@@ -237,19 +239,6 @@ var suncom;
         return EventSystem;
     }());
     suncom.EventSystem = EventSystem;
-    var Global = (function () {
-        function Global() {
-        }
-        Global.envMode = EnvMode.SIMULATOR;
-        Global.debugMode = DebugMode.NORMAL | DebugMode.NATIVE | DebugMode.NETWORK | DebugMode.NETWORK_HEARTBEAT | DebugMode.ENGINE | DebugMode.ENGINEER | DebugMode.DEBUG;
-        Global.WIDTH = 1280;
-        Global.HEIGHT = 720;
-        Global.width = 1280;
-        Global.height = 720;
-        Global.VERSION = "1.0.0";
-        return Global;
-    }());
-    suncom.Global = Global;
     var Handler = (function () {
         function Handler(caller, method, args, once) {
             this.$args = args;
@@ -283,33 +272,6 @@ var suncom;
         return Handler;
     }());
     suncom.Handler = Handler;
-    var Logger = (function () {
-        function Logger() {
-        }
-        Logger.log = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            console.log(args.join(" "));
-        };
-        Logger.warn = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            console.warn(args.join(" "));
-        };
-        Logger.error = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            console.error(args.join(" "));
-        };
-        return Logger;
-    }());
-    suncom.Logger = Logger;
     var Common;
     (function (Common) {
         var $hashId = 0;
@@ -638,6 +600,7 @@ var suncom;
         Common.dateDiff = dateDiff;
         function formatDate(str, time) {
             var date = Common.convertToDate(time);
+            str = str.replace("MS", ("00" + (date.getMilliseconds()).toString()).substr(-3));
             str = str.replace("ms", (date.getMilliseconds()).toString());
             str = str.replace("yyyy", date.getFullYear().toString());
             str = str.replace("yy", date.getFullYear().toString().substr(2, 2));
@@ -700,6 +663,62 @@ var suncom;
             }
         }
         Common.removeItemsFromArray = removeItemsFromArray;
+        function compareVersion(ver) {
+            if (typeof ver !== "string") {
+                console.error("\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548");
+                return 0;
+            }
+            if (typeof Global.VERSION !== "string") {
+                console.error("\u7248\u672C\u53F7\u672A\u8BBE\u7F6E");
+                return 0;
+            }
+            var array = ver.split(".");
+            var array2 = Global.VERSION.split(".");
+            var length = array.length > array2.length ? array.length : array2.length;
+            while (array.length < length) {
+                array.push("0");
+            }
+            while (array2.length < length) {
+                array2.push("0");
+            }
+            var a = false;
+            var b = false;
+            for (var i = 0; i < length; i++) {
+                var s0 = array[i];
+                var s1 = array2[i];
+                if (Common.isNumber(s0) === false) {
+                    a = true;
+                    array[i] = "0";
+                }
+                if (Common.isNumber(s1) === false) {
+                    b = true;
+                    array2[i] = "0";
+                }
+            }
+            if (a === true) {
+                console.error("\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548 ver:" + ver);
+            }
+            if (b === true) {
+                console.error("\u5F53\u524D\u7248\u672C\u53F7\u65E0\u6548 ver:" + Global.VERSION);
+            }
+            if (a === true || b === true) {
+                return 0;
+            }
+            for (var i = 0; i < length; i++) {
+                var s0 = array[i];
+                var s1 = array2[i];
+                var reg0 = Number(s0);
+                var reg1 = Number(s1);
+                if (reg0 < reg1) {
+                    return 1;
+                }
+                else if (reg0 > reg1) {
+                    return -1;
+                }
+            }
+            return 0;
+        }
+        Common.compareVersion = compareVersion;
     })(Common = suncom.Common || (suncom.Common = {}));
     var DBService;
     (function (DBService) {
@@ -717,26 +736,43 @@ var suncom;
         }
         DBService.drop = drop;
     })(DBService = suncom.DBService || (suncom.DBService = {}));
-    var EventManager;
-    (function (EventManager) {
-        var $system = new EventSystem();
-        function dispatchCancel() {
-            $system.dispatchCancel();
+    var Global;
+    (function (Global) {
+        Global.envMode = EnvMode.DEVELOP;
+        Global.debugMode = 0;
+        Global.WIDTH = 1280;
+        Global.HEIGHT = 720;
+        Global.width = 1280;
+        Global.height = 720;
+        Global.VERSION = "1.0.0";
+    })(Global = suncom.Global || (suncom.Global = {}));
+    var Logger;
+    (function (Logger) {
+        function log() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            console.log(args.join(" "));
         }
-        EventManager.dispatchCancel = dispatchCancel;
-        function dispatchEvent(type, args, cancelable) {
-            $system.dispatchEvent(type, args, cancelable);
+        Logger.log = log;
+        function warn() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            console.warn(args.join(" "));
         }
-        EventManager.dispatchEvent = dispatchEvent;
-        function addEventListener(type, method, caller, receiveOnce, priority) {
-            $system.addEventListener(type, method, caller, receiveOnce, priority);
+        Logger.warn = warn;
+        function error() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            console.error(args.join(" "));
         }
-        EventManager.addEventListener = addEventListener;
-        function removeEventListener(type, method, caller) {
-            $system.removeEventListener(type, method, caller);
-        }
-        EventManager.removeEventListener = removeEventListener;
-    })(EventManager = suncom.EventManager || (suncom.EventManager = {}));
+        Logger.error = error;
+    })(Logger = suncom.Logger || (suncom.Logger = {}));
     var Pool;
     (function (Pool) {
         var $pool = {};

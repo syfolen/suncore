@@ -26,7 +26,7 @@ module suncore {
         private $localTime: number = new Date().valueOf();
 
         constructor() {
-            super();
+            super(MsgQModEnum.SYS);
             // 注册帧事件
             Laya.timer.frameLoop(1, this, this.$onFrameLoop);
         }

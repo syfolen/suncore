@@ -7,37 +7,37 @@ declare module suncom {
         /**
          * 调试信息
          */
-        DEBUG,
+        DEBUG = 0x1,
 
         /**
          * 工程模式
          */
-        ENGINEER,
+        ENGINEER = 0x02,
 
         /**
          * 框架
          */
-        ENGINE,
+        ENGINE = 0x4,
 
         /**
          * 原生
          */
-        NATIVE,
+        NATIVE = 0x8,
 
         /**
          * 网络
          */
-        NETWORK,
+        NETWORK = 0x10,
 
         /**
          * 网络心跳
          */
-        NETWORK_HEARTBEAT,
+        NETWORK_HEARTBEAT = 0x20,
 
         /**
          * 普通
          */
-        NORMAL
+        NORMAL = 0x40
     }
 
     /**
@@ -45,9 +45,19 @@ declare module suncom {
      */
     enum EnvMode {
         /**
-         * 模拟器
+         * 开发环境
          */
-        SIMULATOR
+        DEVELOP = 0,
+
+        /**
+         * 调试模式
+         */
+        DEBUG,
+
+        /**
+         * 网页版
+         */
+        WEB
     }
 
     /**
@@ -225,46 +235,6 @@ declare module suncom {
     }
 
     /**
-     * 全局常量或变量
-     */
-    abstract class Global {
-        /**
-         * 运行环境
-         */
-        static readonly envMode: EnvMode;
-
-        /**
-         * 调试模式
-         */
-        static readonly debugMode: DebugMode;
-
-        /**
-         * 设计分辨率
-         */
-        static readonly WIDTH: number;
-
-        /**
-         * 设计分辨率
-         */
-        static readonly HEIGHT: number;
-
-        /**
-         * 实际分辨率
-         */
-        static width: number;
-
-        /**
-         * 实际分辨率
-         */
-        static height: number;
-
-        /**
-         * 游戏版本
-         */
-        static readonly VERSION: string;
-    }
-
-    /**
      * 事件处理器
      */
     class Handler implements IHandler {
@@ -285,27 +255,6 @@ declare module suncom {
          * @once: 己弃用
          */
         static create(caller:Object, method:Function, args?:Array<any>, once?:boolean): IHandler;
-    }
-
-    /**
-     * 日志接口
-     */
-    abstract class Logger {
-
-        /**
-         * 普通日志
-         */
-        static log(...args:Array<any>): void;
-
-        /**
-         * 警告日志
-         */
-        static warn(...args:Array<any>): void;
-
-        /**
-         * 错误日志
-         */
-        static error(...args:Array<any>): void;
     }
 
     /**
@@ -413,7 +362,7 @@ declare module suncom {
         function dateDiff(datepart: string, date: string | number | Date, date2: string | number | Date): number;
 
         /**
-         * 格式化时间，支持：yy-MM-dd hh:mm:ss ms
+         * 格式化时间，支持：yy-MM-dd hh:mm:ss MS|ms
          */
         function formatDate(str: string, time: string | number | Date): string;
 
@@ -434,6 +383,15 @@ declare module suncom {
          * 将数据从数组中移除
          */
         function removeItemsFromArray<T>(items: T[], array: T[]): void;
+
+        /**
+         * 版本比较
+         * 比较版本号
+         * 若当前版本低于参数版本，返回 -1
+         * 若当前版本高于参数版本，返回 1
+         * 否则返回 0
+         */
+        function compareVersion(ver: string): number;
     }
 
     /**
@@ -458,33 +416,64 @@ declare module suncom {
     }
 
     /**
-     * 事件管理器
+     * 全局常量或变量
      */
-    namespace EventManager {
+    namespace Global {
+        /**
+         * 运行环境
+         */
+        let envMode: EnvMode;
 
         /**
-         * 取消当前正在派发的事件
+         * 调试模式
          */
-        function dispatchCancel(): void;
+        let debugMode: DebugMode;
 
         /**
-         * 事件派发
-         * @args[]: 参数列表，允许为任意类型的数据
-         * @cancelable: 事件是否允许被中断，默认为false
+         * 设计分辨率
          */
-        function dispatchEvent(type: string, args?: any, cancelable?: boolean): void;
+        const WIDTH: number;
 
         /**
-         * 事件注册
-         * @receiveOnce: 是否只响应一次，默认为false
-         * @priority: 事件优先级，优先级高的先被执行，默认为 1
+         * 设计分辨率
          */
-        function addEventListener(type: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: number): void;
+        const HEIGHT: number;
 
         /**
-         * 移除事件
+         * 实际分辨率
          */
-        function removeEventListener(type: string, method: Function, caller: Object): void;
+        let width: number;
+
+        /**
+         * 实际分辨率
+         */
+        let height: number;
+
+        /**
+         * 游戏版本
+         */
+        let VERSION: string;
+    }
+
+    /**
+     * 日志接口
+     */
+    namespace Logger {
+
+        /**
+         * 普通日志
+         */
+        function log(...args: Array<any>): void;
+
+        /**
+         * 警告日志
+         */
+        function warn(...args: Array<any>): void;
+
+        /**
+         * 错误日志
+         */
+        function error(...args: Array<any>): void;
     }
 
     /**
