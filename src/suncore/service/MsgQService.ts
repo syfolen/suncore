@@ -7,26 +7,13 @@ module suncore {
      * export
      */
     export abstract class MsgQService extends BaseService {
-        /**
-         * MsgQ消息模块
-         */
-        private $msgQMod: MsgQModEnum = null;
-
-        /**
-         * MsgQService在被构建时必须指定MsgQ消息模块
-         * export
-         */
-        constructor(msgQMod: MsgQModEnum) {
-            super();
-            this.$msgQMod = msgQMod;
-        }
 
         /**
          * 启动回调
          * export
          */
         protected $onRun(): void {
-            MsgQ.setModuleActive(this.$msgQMod, true);
+            MsgQ.setModuleActive(this.msgQMod, true);
             this.facade.registerObserver(NotifyKey.MSG_Q_BUSINESS, this.$onMsgQBusiness, this);
         }
 
@@ -35,7 +22,7 @@ module suncore {
          * export
          */
         protected $onStop(): void {
-            MsgQ.setModuleActive(this.$msgQMod, false);
+            MsgQ.setModuleActive(this.msgQMod, false);
             this.facade.removeObserver(NotifyKey.MSG_Q_BUSINESS, this.$onMsgQBusiness, this);
         }
 
@@ -47,15 +34,19 @@ module suncore {
          */
         private $onMsgQBusiness(mod: MsgQModEnum): void {
             let msg: IMsgQMsg = null;
+            // 非指定模块不响应指定的业务
+            if (mod !== void 0 && mod !== this.msgQMod) {
+                return;
+            }
             while (true) {
                 if (mod === MsgQModEnum.NET) {
                     msg = MsgQ.fetch(MsgQModEnum.NET, 2);
                 }
-                else if (this.$msgQMod === MsgQModEnum.NET) {
+                else if (this.msgQMod === MsgQModEnum.NET) {
                     msg = MsgQ.fetch(MsgQModEnum.NET, 1);
                 }
                 else {
-                    msg = MsgQ.fetch(mod);
+                    msg = MsgQ.fetch(this.msgQMod);
                 }
                 if (msg === null) {
                     break;

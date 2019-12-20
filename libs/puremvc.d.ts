@@ -126,6 +126,8 @@ declare module puremvc {
         constructor(msgQMod?:number);
 
         protected readonly facade: IFacade;
+
+        protected readonly msgQMod: number;
     }
 
     class Proxy extends Notifier implements IProxy {
