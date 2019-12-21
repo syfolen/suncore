@@ -164,7 +164,7 @@ declare module suncore {
         /**
          * 消息编号
          */
-        id: MsgQIdEnum;
+        id: number;
 
         /**
          * 消息挂载的数据
@@ -353,18 +353,13 @@ declare module suncore {
         /**
          * 发送消息（异步）
          */
-        function send(src: MsgQModEnum, dest: MsgQModEnum, id: MsgQIdEnum, data: any): void;
+        function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data: any): void;
 
         /**
          * 获取消息
          * @id: 只获取指定ID消息，若为void 0则不校验
          */
-        function fetch(mod: MsgQModEnum, id?: MsgQIdEnum): IMsgQMsg;
-
-        /**
-         * 判断模块是否己激活
-         */
-        function isModuleActive(mod: MsgQModEnum): boolean;
+        function fetch(mod: MsgQModEnum, id?: number): IMsgQMsg;
     }
 
     /**
