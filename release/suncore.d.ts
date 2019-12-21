@@ -164,7 +164,7 @@ declare module suncore {
         /**
          * 消息编号
          */
-        id: number;
+        id: MsgQIdEnum;
 
         /**
          * 消息挂载的数据
@@ -263,11 +263,6 @@ declare module suncore {
     abstract class MsgQService extends BaseService {
 
         /**
-         * MsgQService在被构建时必须指定MsgQ消息模块
-         */
-        constructor(msgQMod:MsgQModEnum);
-
-        /**
          * 启动回调
          */
         protected $onRun(): void;
@@ -358,18 +353,84 @@ declare module suncore {
         /**
          * 发送消息（异步）
          */
-        function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data: any): void;
+        function send(src: MsgQModEnum, dest: MsgQModEnum, id: MsgQIdEnum, data: any): void;
 
         /**
          * 获取消息
          * @id: 只获取指定ID消息，若为void 0则不校验
          */
-        function fetch(mod: MsgQModEnum, id?: number): IMsgQMsg;
+        function fetch(mod: MsgQModEnum, id?: MsgQIdEnum): IMsgQMsg;
 
         /**
          * 判断模块是否己激活
          */
         function isModuleActive(mod: MsgQModEnum): boolean;
+    }
+
+    /**
+     * 互斥体，用于实现模块之间的互斥
+     */
+    namespace Mutex {
+        /**
+         * 激活互斥体的MsgQ模块
+         * 说明：
+         * 1. 当此变量的值为-1时，允许激活互斥体
+         * 2. 首次引用互斥体视为激活互斥体
+         * 3. 激活互斥体的模块将被记录在此变量中
+         * 4. 若激活消息的模块为MMI模块，则此记录值允许被替换成其它MMI模块的消息，仅第一次生效
+         * 5. 此变量会在互斥引用为0时重新置为-1
+         */
+        let actMsgQMod: MsgQModEnum;
+
+        /**
+         * 是否校验消息前缀，默认为false
+         */
+        let checkPrefix: boolean;
+
+        /**
+         * 表现层模块集
+         */
+        const mmiMsgQMap: { [prefix: string]: MsgQModEnum };
+
+        /**
+         * 表现层前缀集
+         */
+        const mmiMsgQCmd: { [msgQMod: number]: string };
+
+        /**
+         * 激活互斥体
+         */
+        function active(msgQMod: MsgQModEnum): void;
+
+        /**
+         * 关闭互斥体
+         */
+        function deactive(): void;
+
+        /**
+         * 锁定互斥体
+         */
+        function lock(name: string): void;
+
+        /**
+         * 释放互斥体
+         */
+        function unlock(name: string): void;
+
+        /**
+         * 判断是否允许执行MMI的行为
+         */
+        function enableMMIAction(): boolean;
+
+        /**
+         * 为对象初始化一个互斥量
+         */
+        function create(name: string, target: Object): void;
+
+        /**
+         * 释放互斥量
+         */
+        function release(name: string, target: Object): void;
     }
 
     /**

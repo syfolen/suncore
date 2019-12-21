@@ -83,7 +83,6 @@ var puremvc;
             this.$initializeController();
         };
         Facade.prototype.$initMsgQ = function () {
-            this.$regMMICmd(1, "OSL");
         };
         Facade.prototype.$initializeModel = function () {
         };
@@ -92,68 +91,69 @@ var puremvc;
         Facade.prototype.$initializeController = function () {
         };
         Facade.prototype.$regMMICmd = function (msgQMod, prefix) {
-            Mutex.checkPrefix = true;
-            Mutex.mmiMsgQMap[prefix] = msgQMod;
+            suncore.Mutex.checkPrefix = true;
+            suncore.Mutex.mmiMsgQMap[prefix] = msgQMod;
+            suncore.Mutex.mmiMsgQCmd[msgQMod] = prefix;
         };
         Facade.prototype.registerObserver = function (name, method, caller, receiveOnce, priority) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             this.$view.registerObserver(name, method, caller, receiveOnce, priority);
         };
         Facade.prototype.removeObserver = function (name, method, caller) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             this.$view.removeObserver(name, method, caller);
         };
         Facade.prototype.registerCommand = function (name, cls) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             this.$controller.registerCommand(name, cls);
         };
         Facade.prototype.removeCommand = function (name) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             this.$controller.removeCommand(name);
         };
         Facade.prototype.hasCommand = function (name) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             return this.$controller.hasCommand(name);
         };
         Facade.prototype.registerProxy = function (proxy) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             this.$model.registerProxy(proxy);
         };
         Facade.prototype.removeProxy = function (name) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             this.$model.removeProxy(name);
         };
         Facade.prototype.retrieveProxy = function (name) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             return this.$model.retrieveProxy(name);
         };
         Facade.prototype.hasProxy = function (name) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             return this.$model.hasProxy(name);
         };
         Facade.prototype.registerMediator = function (mediator) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             this.$view.registerMediator(mediator);
         };
         Facade.prototype.removeMediator = function (name) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             this.$view.removeMediator(name);
         };
         Facade.prototype.retrieveMediator = function (name) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             return this.$view.retrieveMediator(name);
         };
         Facade.prototype.hasMediator = function (name) {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             return this.$view.hasMediator(name);
         };
         Facade.prototype.sendNotification = function (name, args, cancelable) {
-            Mutex.active(9527);
+            suncore.Mutex.active(9527);
             this.$view.notifyObservers(name, args, cancelable);
-            Mutex.deactive();
+            suncore.Mutex.deactive();
         };
         Facade.prototype.notifyCancel = function () {
-            Mutex.deactive();
+            suncore.Mutex.deactive();
             this.$view.notifyCancel();
         };
         Facade.SINGLETON_MSG = "Facade singleton already constructed!";
@@ -177,7 +177,7 @@ var puremvc;
             if (this.hasProxy(name) === true) {
                 throw Error("Register Duplicate Proxy " + name);
             }
-            if (Mutex.enableMMIAction() === false) {
+            if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             this.$proxies[name] = proxy;
@@ -191,20 +191,20 @@ var puremvc;
             if (proxy === null) {
                 throw Error("Remove Non-Existent Proxy " + name);
             }
-            if (Mutex.enableMMIAction() === false) {
+            if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             delete this.$proxies[name];
             proxy.onRemove();
         };
         Model.prototype.retrieveProxy = function (name) {
-            if (Mutex.enableMMIAction() === false) {
+            if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             return this.$proxies[name] || null;
         };
         Model.prototype.hasProxy = function (name) {
-            if (Mutex.enableMMIAction() === false) {
+            if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             return this.retrieveProxy(name) != null;
@@ -216,17 +216,23 @@ var puremvc;
     puremvc.Model = Model;
     var Notifier = (function () {
         function Notifier(msgQMod) {
-            if (msgQMod === void 0) { msgQMod = 0; }
             this.$msgQMod = 9527;
             this.$facade = Facade.getInstance();
-            if (msgQMod > 0) {
+            if (msgQMod !== void 0) {
                 this.$msgQMod = msgQMod;
             }
         }
         Object.defineProperty(Notifier.prototype, "facade", {
             get: function () {
-                Mutex.active(this.$msgQMod);
+                suncore.Mutex.active(this.$msgQMod);
                 return this.$facade;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Notifier.prototype, "msgQMod", {
+            get: function () {
+                return this.$msgQMod;
             },
             enumerable: true,
             configurable: true
@@ -297,7 +303,7 @@ var puremvc;
             if (method === void 0) {
                 throw Error("Register Invalid Observer Method");
             }
-            Mutex.create(name, caller);
+            suncore.Mutex.create(name, caller);
             var observers = this.$observers[name];
             if (observers === void 0) {
                 observers = this.$observers[name] = [false];
@@ -337,7 +343,7 @@ var puremvc;
             if (method === void 0) {
                 throw Error("Remove Invalid Observer Method");
             }
-            Mutex.release(name, caller);
+            suncore.Mutex.release(name, caller);
             var observers = this.$observers[name];
             if (observers === void 0) {
                 return;
@@ -370,7 +376,7 @@ var puremvc;
                 return;
             }
             observers[0] = true;
-            Mutex.lock(name);
+            suncore.Mutex.lock(name);
             var isCanceled = this.$isCanceled;
             this.$isCanceled = false;
             for (var i = 1; i < observers.length; i++) {
@@ -396,7 +402,7 @@ var puremvc;
             }
             this.$isCanceled = isCanceled;
             observers[0] = false;
-            Mutex.unlock(name);
+            suncore.Mutex.unlock(name);
             while (this.$onceObservers.length > 0) {
                 var observer = this.$onceObservers.pop();
                 this.removeObserver(observer.name, observer.method, observer.caller);
@@ -410,7 +416,7 @@ var puremvc;
             if (this.hasMediator(name) === true) {
                 throw Error("Register Duplicate Mediator " + name);
             }
-            if (Mutex.enableMMIAction() === false) {
+            if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             this.$mediators[name] = mediator;
@@ -425,7 +431,7 @@ var puremvc;
             if (mediator === null) {
                 throw Error("Remove Non-Existent Mediator " + name);
             }
-            if (Mutex.enableMMIAction() === false) {
+            if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             delete this.$mediators[name];
@@ -433,13 +439,13 @@ var puremvc;
             mediator.onRemove();
         };
         View.prototype.retrieveMediator = function (name) {
-            if (Mutex.enableMMIAction() === false) {
+            if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             return this.$mediators[name] || null;
         };
         View.prototype.hasMediator = function (name) {
-            if (Mutex.enableMMIAction() === false) {
+            if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             return this.retrieveMediator(name) != null;
@@ -512,166 +518,4 @@ var puremvc;
         return Mediator;
     }(Notifier));
     puremvc.Mediator = Mediator;
-    var Mutex;
-    (function (Mutex) {
-        var SYSTEM_COMMAND_PREFIX = "sun";
-        var MUTEX_PREFIX_KEY = "suncore$mutex$prefix";
-        var MUTEX_MUTEXES_KEY = "suncore$mutex$mutexes";
-        var MUTEX_REFERENCES_KEY = "suncore$mutex$references";
-        var mutexes = 0;
-        var references = 0;
-        var currentPrefix = null;
-        Mutex.actMsgQMod = -1;
-        Mutex.checkPrefix = false;
-        Mutex.mmiMsgQMap = {};
-        Mutex.mmiMsgQCmd = {};
-        function getCommandPrefix(name) {
-            var index = name.indexOf("_");
-            if (index < 1) {
-                throw Error("\u5FC5\u987B\u4E3A\u547D\u4EE4\u6307\u5B9A\u4E00\u4E2A\u6A21\u5757\u540D\uFF0C\u683C\u5F0F\u4E3A MOD_" + name);
-            }
-            return name.substr(0, index);
-        }
-        function isSunCmd(name) {
-            return name.substr(0, 3) === SYSTEM_COMMAND_PREFIX;
-        }
-        function isMMICmd(name) {
-            if (isSunCmd(name) === true) {
-                return false;
-            }
-            var prefix = getCommandPrefix(name);
-            var msgQMod = Mutex.mmiMsgQMap[prefix] || 0;
-            return msgQMod !== 0;
-        }
-        function active(msgQMod) {
-            if (Mutex.checkPrefix === false) {
-                return;
-            }
-            if (Mutex.actMsgQMod === -1) {
-                Mutex.actMsgQMod = msgQMod;
-            }
-        }
-        Mutex.active = active;
-        function deactive() {
-            if (Mutex.checkPrefix === false) {
-                return;
-            }
-            if (references === 0 && Mutex.actMsgQMod !== -1) {
-                Mutex.actMsgQMod = -1;
-            }
-        }
-        Mutex.deactive = deactive;
-        function lock(name) {
-            if (Mutex.checkPrefix === false) {
-                return;
-            }
-            if (isSunCmd(name) === true) {
-                references++;
-            }
-            else {
-                var prefix = getCommandPrefix(name);
-                if (currentPrefix === null || currentPrefix === prefix) {
-                    mutexes++;
-                    if (mutexes === 1) {
-                        currentPrefix = prefix;
-                    }
-                }
-                else {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F\uFF0Csrc:" + prefix + ", dest:" + getCommandPrefix(name));
-                }
-            }
-        }
-        Mutex.lock = lock;
-        function unlock(name) {
-            if (Mutex.checkPrefix === false) {
-                return;
-            }
-            if (isSunCmd(name) === true) {
-                references--;
-            }
-            else {
-                var prefix = getCommandPrefix(name);
-                if (currentPrefix === null || prefix === currentPrefix) {
-                    mutexes--;
-                    if (mutexes === 0) {
-                        currentPrefix = null;
-                    }
-                    else if (mutexes < 0) {
-                        throw Error("\u4E92\u65A5\u4F53\u91CA\u653E\u9519\u8BEF\uFF1A" + mutexes);
-                    }
-                }
-                else {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F\uFF0Csrc:" + prefix + ", dest:" + getCommandPrefix(name));
-                }
-            }
-        }
-        Mutex.unlock = unlock;
-        function enableMMIAction() {
-            if (Mutex.checkPrefix === false) {
-                return true;
-            }
-            if (currentPrefix === null) {
-                return true;
-            }
-            var msgQMod = Mutex.mmiMsgQMap[currentPrefix] || 0;
-            return msgQMod !== 0;
-        }
-        Mutex.enableMMIAction = enableMMIAction;
-        function create(name, target) {
-            if (Mutex.checkPrefix === false) {
-                return;
-            }
-            if (target === null || target === Controller.inst || target === View.inst) {
-                return;
-            }
-            if (isSunCmd(name) === true) {
-                return;
-            }
-            var mutex = target[MUTEX_MUTEXES_KEY] || 0;
-            if (mutex > 0) {
-                var prefix = target[MUTEX_PREFIX_KEY] || null;
-                if (prefix === null) {
-                    throw Error("\u610F\u5916\u7684\u4E92\u65A5\u91CF mutex:" + mutex);
-                }
-                if (prefix !== getCommandPrefix(name)) {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + prefix + ", dest:" + getCommandPrefix(name));
-                }
-            }
-            else {
-                target[MUTEX_PREFIX_KEY] = getCommandPrefix(name);
-            }
-            target[MUTEX_MUTEXES_KEY] = mutex + 1;
-        }
-        Mutex.create = create;
-        function release(name, target) {
-            if (Mutex.checkPrefix === false) {
-                return;
-            }
-            if (target === null || target === Controller.inst || target === View.inst) {
-                return;
-            }
-            if (isSunCmd(name) === true) {
-                return;
-            }
-            var mutex = target[MUTEX_MUTEXES_KEY] || 0;
-            if (mutex <= 0) {
-                throw Error("\u4E92\u65A5\u91CF\u4E0D\u5B58\u5728");
-            }
-            var prefix = target[MUTEX_PREFIX_KEY] || null;
-            if (prefix === null) {
-                throw Error("\u4E92\u65A5\u4F53\u4E0D\u5B58\u5728");
-            }
-            if (prefix !== getCommandPrefix(name)) {
-                throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + prefix + ", dest:" + getCommandPrefix(name));
-            }
-            if (mutex - 1 === 0) {
-                delete target[MUTEX_PREFIX_KEY];
-                delete target[MUTEX_MUTEXES_KEY];
-            }
-            else {
-                target[MUTEX_MUTEXES_KEY] = mutex - 1;
-            }
-        }
-        Mutex.release = release;
-    })(Mutex = puremvc.Mutex || (puremvc.Mutex = {}));
 })(puremvc || (puremvc = {}));

@@ -10,6 +10,9 @@
  */
 declare module puremvc {
 
+    interface IController {
+    }
+
     interface IFacade {
 
         registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: number): void;
@@ -53,6 +56,9 @@ declare module puremvc {
         onRemove(): void;
     }
 
+    interface IView {
+    }
+
     interface ICommand extends INotifier {
 
         execute(...args: Array<any>): void;
@@ -65,6 +71,11 @@ declare module puremvc {
         onRegister(): void;
 
         onRemove(): void;
+    }
+
+    class Controller implements IController {
+
+        static inst: IController;
     }
 
     class Facade implements IFacade {
@@ -86,7 +97,7 @@ declare module puremvc {
          * 说明：
          * 1. 只有通过此方法注册过的MsgQ模块才允许使用模型或视图接口
          */
-        protected $regMMICmd(msgQMod:number, prefix:string): void;
+        protected $regMMICmd(msgQMod:suncore.MsgQModEnum, prefix:string): void;
 
         registerObserver(name:string, method:Function, caller:Object, receiveOnce?:boolean, priority?:number): void;
 
@@ -123,11 +134,11 @@ declare module puremvc {
 
         private $facade: IFacade;
 
-        constructor(msgQMod?:number);
+        constructor(msgQMod?:suncore.MsgQModEnum);
 
         protected readonly facade: IFacade;
 
-        protected readonly msgQMod: number;
+        protected readonly msgQMod: suncore.MsgQModEnum;
     }
 
     class Proxy extends Notifier implements IProxy {
@@ -144,6 +155,11 @@ declare module puremvc {
     abstract class SimpleCommand extends Notifier implements ICommand {
 
         abstract execute(...args:Array<any>): void;
+    }
+
+    class View implements IView {
+
+        static inst: IView;
     }
 
     abstract class MacroCommand extends Notifier implements ICommand {

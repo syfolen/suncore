@@ -26,7 +26,7 @@ module suncore {
          * 消息编号
          * export
          */
-        id: number;
+        id: MsgQIdEnum;
 
         /**
          * 消息挂载的数据
