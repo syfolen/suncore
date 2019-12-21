@@ -54,7 +54,6 @@ module suncore {
         /**
          * 获取消息
          * @id: 只获取指定ID消息，若为void 0则不校验
-         * export
          */
         export function fetch(mod: MsgQModEnum, id?: number): IMsgQMsg {
             const queue: IMsgQMsg[] = $queues[mod] || null;
