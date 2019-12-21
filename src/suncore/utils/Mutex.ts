@@ -1,7 +1,7 @@
 
 module suncore {
     /**
-     * 互斥体，用于实现模块之间的互斥
+     * 互斥体，用于实现模块之间的消息互斥
      * export
      */
     export namespace Mutex {
