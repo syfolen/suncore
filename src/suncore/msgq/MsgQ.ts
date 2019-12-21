@@ -28,7 +28,7 @@ module suncore {
          * 发送消息（异步）
          * export
          */
-        export function send(src: MsgQModEnum, dest: MsgQModEnum, id: MsgQIdEnum, data: any): void {
+        export function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data: any): void {
             if (isModuleActive(dest) === false) {
                 console.warn(`消息发送失败，模块己暂停 mod:${MsgQModEnum[dest]}`);
                 return;
@@ -56,7 +56,7 @@ module suncore {
          * @id: 只获取指定ID消息，若为void 0则不校验
          * export
          */
-        export function fetch(mod: MsgQModEnum, id?: MsgQIdEnum): IMsgQMsg {
+        export function fetch(mod: MsgQModEnum, id?: number): IMsgQMsg {
             const queue: IMsgQMsg[] = $queues[mod] || null;
             // 消息队列为空
             if (queue === null || queue.length === 0) {
@@ -104,7 +104,6 @@ module suncore {
 
         /**
          * 判断模块是否己激活
-         * export
          */
         export function isModuleActive(mod: MsgQModEnum): boolean {
             return $modStats[mod] === true;
