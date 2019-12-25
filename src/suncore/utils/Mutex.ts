@@ -6,6 +6,11 @@ module suncore {
      */
     export namespace Mutex {
         /**
+         * MMI命令前缀
+         */
+        const MMI_COMMAND_PREFIX: string = "MMI";
+
+        /**
          * 系统命令前缀
          */
         const SYSTEM_COMMAND_PREFIX: string = "sun";
@@ -21,7 +26,7 @@ module suncore {
         const MUTEX_MUTEXES_KEY: string = "suncore$mutex$mutexes";
 
         /**
-         * 互斥引用计数标记
+         * 互斥引用计数标记（专用统计MMI的引用次数）
          */
         const MUTEX_REFERENCES_KEY: string = "suncore$mutex$references";
 
@@ -81,18 +86,14 @@ module suncore {
          * 获取命令前缀
          */
         function getCommandPrefix(name: string): string {
+            if (name.substr(0, 3) === SYSTEM_COMMAND_PREFIX) {
+                return SYSTEM_COMMAND_PREFIX;
+            }
             const index: number = name.indexOf("_");
             if (index < 1) {
                 throw Error(`必须为命令指定一个模块名，格式为 MOD_${name}`);
             }
             return name.substr(0, index);
-        }
-
-        /**
-         * 判断是否为通用消息
-         */
-        function isSunCmd(name: string): boolean {
-            return name.substr(0, 3) === SYSTEM_COMMAND_PREFIX;
         }
 
         /**
@@ -115,9 +116,9 @@ module suncore {
                     actMsgQMod = mmiMsgQMap[prefix];
                     currentPrefix = prefix;
                 }
-                // 否则不允许传递
-                else {
-                    throw Error(`禁止跨模块传递消息 src:MMI, dest:${prefix}`);
+                // 若消息前缀不为MMI，则不允许传递
+                else if (prefix !== MMI_COMMAND_PREFIX) {
+                    throw Error(`禁止跨模块传递消息 src:${MMI_COMMAND_PREFIX}, dest:${prefix}`);
                 }
             }
             return prefix;
@@ -157,12 +158,12 @@ module suncore {
             if (checkPrefix === false) {
                 return;
             }
+            const prefix: string = asserts(getCommandPrefix(name));
             // 锁定通用模块不会产生互斥量，但会产生引用计数
-            if (isSunCmd(name) === true) {
+            if (prefix === SYSTEM_COMMAND_PREFIX || prefix === MMI_COMMAND_PREFIX) {
                 references++;
             }
             else {
-                const prefix: string = asserts(getCommandPrefix(name));
                 if (currentPrefix === null || currentPrefix === prefix) {
                     mutexes++;
                     // 消息前缀将在非通用模块首次活动时被锁定
@@ -184,13 +185,13 @@ module suncore {
             if (checkPrefix === false) {
                 return;
             }
-            // 释放通用模块不会减少互斥量，但会减少引用计数
-            if (isSunCmd(name) === true) {
+            const prefix: string = getCommandPrefix(name);
+            // 锁定通用模块不会产生互斥量，但会产生引用计数
+            if (prefix === SYSTEM_COMMAND_PREFIX || prefix === MMI_COMMAND_PREFIX) {
                 references--;
             }
             else {
-                const prefix: string = getCommandPrefix(name);
-                if (currentPrefix === null || prefix === currentPrefix) {
+                if (currentPrefix === null || currentPrefix === prefix) {
                     mutexes--;
                     // 当计数器归0时应当释放对模块的锁定
                     if (mutexes === 0) {
@@ -233,26 +234,46 @@ module suncore {
             if (target === null || target === puremvc.Controller.inst || target === puremvc.View.inst) {
                 return;
             }
+
+            const prefix: string = getCommandPrefix(name);
             // 系统命令不产生互斥量
-            if (isSunCmd(name) === true) {
+            if (prefix === SYSTEM_COMMAND_PREFIX) {
                 return;
             }
+
+            // 互斥量
             const mutex: number = target[MUTEX_MUTEXES_KEY] || 0;
-            // 若互斥量己存在，则需要校验前缀
+            // MMI引用次数
+            const references: number = target[MUTEX_REFERENCES_KEY] || 0;
+
+            // 若没有指定前缀，则默认为MMI
+            let str: string = target[MUTEX_PREFIX_KEY] || MMI_COMMAND_PREFIX;
+            // 若当前正在传递的消息为MMI消息，则应当先对允许传递的消息前缀进行转化
+            if (references > 0 && str === MMI_COMMAND_PREFIX && isMMIPrefix(prefix) === true) {
+                str = prefix;
+            }
+
+            // 互斥量己存在
             if (mutex > 0) {
-                const prefix: string = target[MUTEX_PREFIX_KEY] || null;
-                if (prefix === null) {
-                    throw Error(`意外的互斥量 mutex:${mutex}`);
+                if (str !== prefix) {
+                    throw Error(`禁止跨模块监听消息，src:${str}, dest:${prefix}`);
                 }
-                if (prefix !== getCommandPrefix(name)) {
-                    throw Error(`禁止跨模块监听消息，src:${prefix}, dest:${getCommandPrefix(name)}`);
+            }
+            // MMI引用己存在
+            else if (references > 0) {
+                // 若当前正在传递的消息为MMI消息，则应当先对允许传递的消息前缀进行转化
+                if (str === "MMI" && isMMIPrefix(prefix) === true) {
+                    str = prefix;
                 }
             }
             else {
-                target[MUTEX_PREFIX_KEY] = getCommandPrefix(name);
+                // target[MUTEX_PREFIX_KEY] = getCommandPrefix(name);
             }
             // 互斥量递增
             target[MUTEX_MUTEXES_KEY] = mutex + 1;
+            if (prefix !== MMI_COMMAND_PREFIX) {
+                target[MUTEX_PREFIX_KEY] = prefix;
+            }
         }
 
         /**
@@ -266,8 +287,9 @@ module suncore {
             if (target === null || target === puremvc.Controller.inst || target === puremvc.View.inst) {
                 return;
             }
+            const prefix: string = getCommandPrefix(name);
             // 系统命令不会释放互斥量
-            if (isSunCmd(name) === true) {
+            if (prefix === SYSTEM_COMMAND_PREFIX) {
                 return;
             }
             const mutex: number = target[MUTEX_MUTEXES_KEY] || 0;
@@ -275,12 +297,12 @@ module suncore {
             if (mutex <= 0) {
                 throw Error(`互斥量不存在`);
             }
-            const prefix: string = target[MUTEX_PREFIX_KEY] || null;
-            if (prefix === null) {
+            const str: string = target[MUTEX_PREFIX_KEY] || null;
+            if (str === null) {
                 throw Error(`互斥体不存在`);
             }
-            if (prefix !== getCommandPrefix(name)) {
-                throw Error(`禁止跨模块监听消息，src:${prefix}, dest:${getCommandPrefix(name)}`);
+            if (str !== prefix) {
+                throw Error(`禁止跨模块监听消息，src:${str}, dest:${prefix}`);
             }
             if (mutex - 1 === 0) {
                 delete target[MUTEX_PREFIX_KEY];
