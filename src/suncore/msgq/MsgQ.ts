@@ -28,7 +28,7 @@ module suncore {
          * 发送消息（异步）
          * export
          */
-        export function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data: any): void {
+        export function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data?: any): void {
             if (isModuleActive(dest) === false) {
                 console.warn(`消息发送失败，模块己暂停 mod:${MsgQModEnum[dest]}`);
                 return;

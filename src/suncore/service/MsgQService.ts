@@ -35,23 +35,24 @@ module suncore {
         private $onMsgQBusiness(mod: MsgQModEnum): void {
             let msg: IMsgQMsg = null;
             // 非指定模块不响应指定的业务
-            if (mod !== void 0 && mod !== this.msgQMod) {
-                return;
-            }
-            while (true) {
-                if (mod === MsgQModEnum.NET) {
-                    msg = MsgQ.fetch(MsgQModEnum.NET, 2);
+            if (mod === void 0 || mod === this.msgQMod) {
+                while (true) {
+                    if (mod === MsgQModEnum.NET) {
+                        msg = MsgQ.fetch(MsgQModEnum.NET, 2);
+                    }
+                    else if (this.msgQMod === MsgQModEnum.NET) {
+                        msg = MsgQ.fetch(MsgQModEnum.NET, 1);
+                    }
+                    else {
+                        msg = MsgQ.fetch(this.msgQMod);
+                    }
+                    if (msg === null) {
+                        break;
+                    }
+                    this.$dealMsgQMsg(msg);
                 }
-                else if (this.msgQMod === MsgQModEnum.NET) {
-                    msg = MsgQ.fetch(MsgQModEnum.NET, 1);
-                }
-                else {
-                    msg = MsgQ.fetch(this.msgQMod);
-                }
-                if (msg === null) {
-                    break;
-                }
-                this.$dealMsgQMsg(msg);
+                // 更新消息序列号
+                MsgQ.seqId++;
             }
         }
 

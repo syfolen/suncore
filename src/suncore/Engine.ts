@@ -72,8 +72,6 @@ module suncore {
                 M.timeStamp.lapse(delta);
             }
 
-            // 更新消息序列号
-            MsgQ.seqId++;
             // 优先广播MsgQModEnum.NET的数据（谨慎修改）
             this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NET);
 
