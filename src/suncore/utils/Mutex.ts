@@ -38,6 +38,11 @@ module suncore {
         let mutexes: number = 0;
 
         /**
+         * 互斥引用计数阈值（若引用次数低于阈值，则应当将当前锁定的模块重置为SYS）
+         */
+        let threshold: number = 0;
+
+        /**
          * 互斥引用计数（主要用于帮助识别激活互斥体的模块）
          * 说明：
          * 1. 当消息开始传递，且互斥计数为0时，激活互斥体的MsgQ模块将被记录
@@ -107,6 +112,9 @@ module suncore {
          * 根据消息前缀校验可执行性
          */
         function asserts(prefix: string): string {
+            if (prefix === SYSTEM_COMMAND_PREFIX) {
+                return prefix;
+            }
             if (msgQMap[prefix] === void 0) {
                 throw Error(`未注册的MsgQ消息前缀：${prefix}`);
             }
@@ -122,7 +130,7 @@ module suncore {
                 }
             }
             // 己锁定MsgQ模块
-            else {
+            else if (actMsgQMod !== 0) {
                 const cmd: string = msgQCmd[actMsgQMod] || null;
                 if (cmd === null) {
                     throw Error(`意外的MsgQMod ${actMsgQMod}`);
@@ -148,7 +156,7 @@ module suncore {
                 return true;
             }
             // 默认锁定MMI模块
-            if (actMsgQMod === -1) {
+            if (actMsgQMod === -1 || actMsgQMod === MsgQModEnum.SYS) {
                 return true;
             }
             if (actMsgQMod === MsgQModEnum.MMI) {
@@ -192,6 +200,11 @@ module suncore {
                 return;
             }
             const prefix: string = asserts(getCommandPrefix(name));
+            // 若当前锁定的消息模块为系统模块，且当前传递的消息为非系统消息，则对消息模块进行重新锁定
+            if (actMsgQMod === 0 && prefix !== SYSTEM_COMMAND_PREFIX) {
+                threshold = references;
+                actMsgQMod = msgQMap[prefix];
+            }
             // 锁定通用模块不会产生互斥量，但会产生引用计数
             if (prefix === SYSTEM_COMMAND_PREFIX || prefix === MMI_COMMAND_PREFIX) {
                 references++;
@@ -220,6 +233,11 @@ module suncore {
                 if (mutexes < 0) {
                     throw Error(`互斥体释放错误：${mutexes}`);
                 }
+            }
+            // 若当前互斥量为0，且互斥引用计数降低至等同于阈值，则将当前消息模块重新锁定至系统模块
+            if (threshold === references && mutexes === 0) {
+                threshold = 0;
+                actMsgQMod = MsgQModEnum.SYS;
             }
         }
 
