@@ -6,25 +6,27 @@ module suncore {
      */
     export enum MsgQModEnum {
         /**
-         * 表现层
+         * 系统层
          * 说明：
          * 1. 此为保留值，仅用于支持puremvc框架中对通用指令的传递合法性校验
          * 2. 请勿修改此值，否则可能会引起MsgQ消息传递合法性校验失效
+         * export
          */
-        MMI = 9527,
+        OSL = 0,
 
         /**
-         * 系统层
+         * 表现层
          * 说明：
          * 1. 同MMI
+         * export
          */
-        SYS = 0,
+        MMI,
 
         /**
          * 通用界面
          * export
          */
-        CUI = 1,
+        CUI,
 
         /**
          * 游戏界面
@@ -36,7 +38,7 @@ module suncore {
          * 逻辑层
          * export
          */
-        OSL,
+        L4C,
 
         /**
          * 网络层
