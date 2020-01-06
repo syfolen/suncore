@@ -12,7 +12,7 @@ module suncore {
          * 2. 请勿修改此值，否则可能会引起MsgQ消息传递合法性校验失效
          * export
          */
-        OSL = 0,
+        KAL = 0,
 
         /**
          * 表现层
@@ -44,6 +44,6 @@ module suncore {
          * 网络层
          * export
          */
-        NET
+        NSL
     }
 }

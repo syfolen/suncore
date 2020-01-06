@@ -63,7 +63,7 @@ module suncore {
             }
             for (let i: number = 0; i < queue.length; i++) {
                 const msg: IMsgQMsg = queue[i];
-                if (mod === MsgQModEnum.NET || msg.seqId < seqId) {
+                if (mod === MsgQModEnum.NSL || msg.seqId < seqId) {
                     if (id === void 0 || msg.id === id) {
                         queue.splice(i, 1);
                         return msg;
@@ -79,13 +79,13 @@ module suncore {
         function check(mod: MsgQModEnum, id: MsgQIdEnum): boolean {
             // 校验id的范围
             let min: number, max: number;
-            if (mod === MsgQModEnum.NET) {
-                min = MsgQIdEnum.NET_MSG_ID_BEGIN;
-                max = MsgQIdEnum.NET_MSG_ID_END;
+            if (mod === MsgQModEnum.NSL) {
+                min = MsgQIdEnum.NSL_MSG_ID_BEGIN;
+                max = MsgQIdEnum.NSL_MSG_ID_END;
             }
-            else if (mod === MsgQModEnum.OSL) {
-                min = MsgQIdEnum.OSL_MSG_ID_BEGIN;
-                max = MsgQIdEnum.OSL_MSG_ID_END;
+            else if (mod === MsgQModEnum.KAL) {
+                min = MsgQIdEnum.KAL_MSG_ID_BEGIN;
+                max = MsgQIdEnum.KAL_MSG_ID_END;
             }
             else if (mod === MsgQModEnum.CUI) {
                 min = MsgQIdEnum.CUI_MSG_ID_BEGIN;

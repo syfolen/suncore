@@ -9,23 +9,45 @@ module suncore {
          * 网络层消息枚举
          * export
          */
-        NET_MSG_ID_BEGIN = 1,
+        NSL_MSG_ID_BEGIN = 1,
 
         /**
          * export
          */
-        NET_MSG_ID_END = 10,
+        NSL_MSG_ID_END = 10,
+
+        /**
+         * KAL消息枚举
+         * export
+         */
+        KAL_MSG_ID_BEGIN = NSL_MSG_ID_END,
+
+        /**
+         * export
+         */
+        KAL_MSG_ID_END = 100,
+
+        /**
+         * MMI消息枚举
+         * export
+         */
+        MMI_MSG_ID_BEGIN = KAL_MSG_ID_END,
+
+        /**
+         * export
+         */
+        MMI_MSG_ID_END = MMI_MSG_ID_BEGIN + 100,
 
         /**
          * CUI消息枚举
          * export
          */
-        CUI_MSG_ID_BEGIN = NET_MSG_ID_END,
+        CUI_MSG_ID_BEGIN = MMI_MSG_ID_END,
 
         /**
          * export
          */
-        CUI_MSG_ID_END = 100,
+        CUI_MSG_ID_END = CUI_MSG_ID_BEGIN + 100,
 
         /**
          * GUI消息枚举
@@ -36,17 +58,17 @@ module suncore {
         /**
          * export
          */
-        GUI_MSG_ID_END = 200,
+        GUI_MSG_ID_END = GUI_MSG_ID_BEGIN + 200,
 
         /**
          * 逻辑层消息枚举
          * export
          */
-        OSL_MSG_ID_BEGIN = GUI_MSG_ID_END,
+        L4C_MSG_ID_BEGIN = GUI_MSG_ID_END,
 
         /**
          * export
          */
-        OSL_MSG_ID_END = 300
+        L4C_MSG_ID_END = L4C_MSG_ID_BEGIN + 300
     }
 }

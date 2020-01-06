@@ -26,7 +26,7 @@ module suncore {
         private $localTime: number = new Date().valueOf();
 
         constructor() {
-            super(MsgQModEnum.KERNEL);
+            super(MsgQModEnum.KAL);
             // 注册帧事件
             Laya.timer.frameLoop(1, this, this.$onFrameLoop);
         }
@@ -73,7 +73,7 @@ module suncore {
             }
 
             // 优先广播MsgQModEnum.NET的数据（谨慎修改）
-            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NET);
+            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NSL);
 
             // 物理相关事件
             this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);

@@ -37,11 +37,11 @@ module suncore {
             // 非指定模块不响应指定的业务
             if (mod === void 0 || mod === this.msgQMod) {
                 while (true) {
-                    if (mod === MsgQModEnum.NET) {
-                        msg = MsgQ.fetch(MsgQModEnum.NET, 2);
+                    if (mod === MsgQModEnum.NSL) {
+                        msg = MsgQ.fetch(MsgQModEnum.NSL, 2);
                     }
-                    else if (this.msgQMod === MsgQModEnum.NET) {
-                        msg = MsgQ.fetch(MsgQModEnum.NET, 1);
+                    else if (this.msgQMod === MsgQModEnum.NSL) {
+                        msg = MsgQ.fetch(MsgQModEnum.NSL, 1);
                     }
                     else {
                         msg = MsgQ.fetch(this.msgQMod);
