@@ -140,6 +140,15 @@ declare module suncom {
      * 回调执行器接口
      */
     interface IHandler {
+        /**
+         * 回调对象
+         */
+        readonly caller: Object;
+
+        /**
+         * 回调方法
+         */
+        readonly method: Function;
 
         /**
          * 执行回调
@@ -249,6 +258,16 @@ declare module suncom {
          * @args 参数列表，允许为任意类型的数据
          */
         runWith(args:any): any;
+
+        /**
+         * 回调对象
+         */
+        readonly caller: Object;
+
+        /**
+         * 回调方法
+         */
+        readonly method: Function;
 
         /**
          * 创建Handler的简单工厂方法
@@ -408,6 +427,11 @@ declare module suncom {
          * 存储数据
          */
         function put(name: number, data: any): void;
+
+        /**
+         * 是否存在
+         */
+        function exist(name: number): boolean;
 
         /**
          * 删除数据

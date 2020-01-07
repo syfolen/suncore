@@ -15,9 +15,11 @@ declare module puremvc {
 
     interface IFacade {
 
-        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: number): void;
+        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: number): IObserver;
 
         removeObserver(name: string, method: Function, caller: Object): void;
+
+        hasObserver(name: string, method: Function, caller: Object): boolean;
 
         registerCommand(name: string, cls: new () => ICommand): void;
 
@@ -49,6 +51,9 @@ declare module puremvc {
     interface INotifier {
     }
 
+    interface IObserver {
+    }
+
     interface IProxy extends INotifier {
 
         onRegister(): void;
@@ -65,6 +70,8 @@ declare module puremvc {
     }
 
     interface IMediator extends INotifier {
+
+        listNotificationInterests(): void;
 
         handleNotification(name: string, method: Function): void;
 
@@ -99,9 +106,16 @@ declare module puremvc {
          */
         protected $regMMICmd(msgQMod:suncore.MsgQModEnum, prefix:string): void;
 
-        registerObserver(name:string, method:Function, caller:Object, receiveOnce?:boolean, priority?:number): void;
+        /**
+         * 注册MsgQ模块的命令前缀
+         */
+        protected $regMsgQCmd(msgQMod:suncore.MsgQModEnum, prefix:string): void;
+
+        registerObserver(name:string, method:Function, caller:Object, receiveOnce?:boolean, priority?:number): IObserver;
 
         removeObserver(name:string, method:Function, caller:Object): void;
+
+        hasObserver(name:string, method:Function, caller:Object): boolean;
 
         registerCommand(name:string, cls:new () => ICommand): void;
 
@@ -131,8 +145,6 @@ declare module puremvc {
     }
 
     class Notifier implements INotifier {
-
-        private $facade: IFacade;
 
         constructor(msgQMod?:suncore.MsgQModEnum);
 
@@ -176,6 +188,8 @@ declare module puremvc {
         protected viewComponent: any;
 
         constructor(name:string, viewComponent?:any);
+
+        listNotificationInterests(): void;
 
         handleNotification(name:string, method:Function): void;
 

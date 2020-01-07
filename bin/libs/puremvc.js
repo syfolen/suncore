@@ -91,17 +91,28 @@ var puremvc;
         Facade.prototype.$initializeController = function () {
         };
         Facade.prototype.$regMMICmd = function (msgQMod, prefix) {
+            this.$regMsgQCmd(msgQMod, prefix);
+            suncore.Mutex.mmiMsgQMap[msgQMod] = true;
+        };
+        Facade.prototype.$regMsgQCmd = function (msgQMod, prefix) {
             suncore.Mutex.checkPrefix = true;
-            suncore.Mutex.mmiMsgQMap[prefix] = msgQMod;
-            suncore.Mutex.mmiMsgQCmd[msgQMod] = prefix;
+            suncore.Mutex.msgQMap[prefix] = msgQMod;
+            suncore.Mutex.msgQCmd[msgQMod] = prefix;
         };
         Facade.prototype.registerObserver = function (name, method, caller, receiveOnce, priority) {
+            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            var observer = this.$view.registerObserver(name, method, caller, receiveOnce, priority);
             suncore.Mutex.deactive();
-            this.$view.registerObserver(name, method, caller, receiveOnce, priority);
+            return observer;
         };
         Facade.prototype.removeObserver = function (name, method, caller) {
-            suncore.Mutex.deactive();
+            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
             this.$view.removeObserver(name, method, caller);
+            suncore.Mutex.deactive();
+        };
+        Facade.prototype.hasObserver = function (name, method, caller) {
+            suncore.Mutex.deactive();
+            return this.$view.hasObserver(name, method, caller);
         };
         Facade.prototype.registerCommand = function (name, cls) {
             suncore.Mutex.deactive();
@@ -116,39 +127,47 @@ var puremvc;
             return this.$controller.hasCommand(name);
         };
         Facade.prototype.registerProxy = function (proxy) {
-            suncore.Mutex.deactive();
+            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
             this.$model.registerProxy(proxy);
+            suncore.Mutex.deactive();
         };
         Facade.prototype.removeProxy = function (name) {
-            suncore.Mutex.deactive();
+            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
             this.$model.removeProxy(name);
+            suncore.Mutex.deactive();
         };
         Facade.prototype.retrieveProxy = function (name) {
+            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            var proxy = this.$model.retrieveProxy(name);
             suncore.Mutex.deactive();
-            return this.$model.retrieveProxy(name);
+            return proxy;
         };
         Facade.prototype.hasProxy = function (name) {
             suncore.Mutex.deactive();
             return this.$model.hasProxy(name);
         };
         Facade.prototype.registerMediator = function (mediator) {
-            suncore.Mutex.deactive();
+            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
             this.$view.registerMediator(mediator);
+            suncore.Mutex.deactive();
         };
         Facade.prototype.removeMediator = function (name) {
-            suncore.Mutex.deactive();
+            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
             this.$view.removeMediator(name);
+            suncore.Mutex.deactive();
         };
         Facade.prototype.retrieveMediator = function (name) {
+            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            var mediator = this.$view.retrieveMediator(name);
             suncore.Mutex.deactive();
-            return this.$view.retrieveMediator(name);
+            return mediator;
         };
         Facade.prototype.hasMediator = function (name) {
             suncore.Mutex.deactive();
             return this.$view.hasMediator(name);
         };
         Facade.prototype.sendNotification = function (name, args, cancelable) {
-            suncore.Mutex.active(9527);
+            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
             this.$view.notifyObservers(name, args, cancelable);
             suncore.Mutex.deactive();
         };
@@ -216,7 +235,7 @@ var puremvc;
     puremvc.Model = Model;
     var Notifier = (function () {
         function Notifier(msgQMod) {
-            this.$msgQMod = 9527;
+            this.$msgQMod = suncore.MsgQModEnum.MMI;
             this.$facade = Facade.getInstance();
             if (msgQMod !== void 0) {
                 this.$msgQMod = msgQMod;
@@ -303,7 +322,6 @@ var puremvc;
             if (method === void 0) {
                 throw Error("Register Invalid Observer Method");
             }
-            suncore.Mutex.create(name, caller);
             var observers = this.$observers[name];
             if (observers === void 0) {
                 observers = this.$observers[name] = [false];
@@ -322,6 +340,7 @@ var puremvc;
                     index = i;
                 }
             }
+            suncore.Mutex.create(name, caller);
             var observer = new Observer();
             observer.name = name;
             observer.caller = caller;
@@ -343,7 +362,6 @@ var puremvc;
             if (method === void 0) {
                 throw Error("Remove Invalid Observer Method");
             }
-            suncore.Mutex.release(name, caller);
             var observers = this.$observers[name];
             if (observers === void 0) {
                 return;
@@ -356,12 +374,32 @@ var puremvc;
                 var observer = observers[i];
                 if (observer.method === method && observer.caller === caller) {
                     observers.splice(i, 1);
+                    suncore.Mutex.release(name, caller);
                     break;
                 }
             }
             if (observers.length === 1) {
                 delete this.$observers[name];
             }
+        };
+        View.prototype.hasObserver = function (name, method, caller) {
+            if (name === void 0) {
+                throw Error("Remove Invalid Observer");
+            }
+            if (method === void 0) {
+                throw Error("Remove Invalid Observer Method");
+            }
+            var observers = this.$observers[name];
+            if (observers === void 0) {
+                return false;
+            }
+            for (var i = 1; i < observers.length; i++) {
+                var observer = observers[i];
+                if (observer.method === method && observer.caller === caller) {
+                    return true;
+                }
+            }
+            return false;
         };
         View.prototype.notifyCancel = function () {
             this.$isCanceled = true;
@@ -484,9 +522,6 @@ var puremvc;
             if (name === void 0) {
                 throw Error("Invalid Mediator Name");
             }
-            if (viewComponent === void 0) {
-                throw Error("Invalid View Component");
-            }
             _this.$mediatorName = name;
             if (viewComponent !== void 0) {
                 _this.viewComponent = viewComponent;
@@ -504,11 +539,11 @@ var puremvc;
         Mediator.prototype.removeNotificationInterests = function () {
             for (var i = 0; i < this.$notificationInterests.length; i++) {
                 var observer = this.$notificationInterests[i];
-                View.inst.removeObserver(observer.name, observer.method, observer.caller);
+                this.facade.removeObserver(observer.name, observer.method, observer.caller);
             }
         };
         Mediator.prototype.handleNotification = function (name, method) {
-            var observer = View.inst.registerObserver(name, method, this);
+            var observer = this.facade.registerObserver(name, method, this);
             observer && this.$notificationInterests.push(observer);
         };
         Mediator.prototype.onRegister = function () {

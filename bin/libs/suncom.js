@@ -266,6 +266,20 @@ var suncom;
                 return this.$method.apply(this.$caller, this.$args.concat(args));
             }
         };
+        Object.defineProperty(Handler.prototype, "caller", {
+            get: function () {
+                return this.$caller;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Handler.prototype, "method", {
+            get: function () {
+                return this.$method;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Handler.create = function (caller, method, args, once) {
             return new Handler(caller, method, args, once);
         };
@@ -731,6 +745,10 @@ var suncom;
             $table[name] = data;
         }
         DBService.put = put;
+        function exist(name) {
+            return $table[name] !== void 0;
+        }
+        DBService.exist = exist;
         function drop(name) {
             delete $table[name];
         }

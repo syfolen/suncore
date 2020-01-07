@@ -96,30 +96,44 @@ declare module suncore {
         /**
          * 网络层消息枚举
          */
-        NET_MSG_ID_BEGIN = 1,
+        NSL_MSG_ID_BEGIN = 1,
 
-        NET_MSG_ID_END = 10,
+        NSL_MSG_ID_END = 10,
+
+        /**
+         * KAL消息枚举
+         */
+        KAL_MSG_ID_BEGIN = NSL_MSG_ID_END,
+
+        KAL_MSG_ID_END = 100,
+
+        /**
+         * MMI消息枚举
+         */
+        MMI_MSG_ID_BEGIN = KAL_MSG_ID_END,
+
+        MMI_MSG_ID_END = MMI_MSG_ID_BEGIN + 100,
 
         /**
          * CUI消息枚举
          */
-        CUI_MSG_ID_BEGIN = NET_MSG_ID_END,
+        CUI_MSG_ID_BEGIN = MMI_MSG_ID_END,
 
-        CUI_MSG_ID_END = 100,
+        CUI_MSG_ID_END = CUI_MSG_ID_BEGIN + 100,
 
         /**
          * GUI消息枚举
          */
         GUI_MSG_ID_BEGIN = CUI_MSG_ID_END,
 
-        GUI_MSG_ID_END = 200,
+        GUI_MSG_ID_END = GUI_MSG_ID_BEGIN + 200,
 
         /**
          * 逻辑层消息枚举
          */
-        OSL_MSG_ID_BEGIN = GUI_MSG_ID_END,
+        L4C_MSG_ID_BEGIN = GUI_MSG_ID_END,
 
-        OSL_MSG_ID_END = 300
+        L4C_MSG_ID_END = L4C_MSG_ID_BEGIN + 300
     }
 
     /**
@@ -127,24 +141,24 @@ declare module suncore {
      */
     enum MsgQModEnum {
         /**
-         * 表现层
+         * 系统层
          * 说明：
          * 1. 此为保留值，仅用于支持puremvc框架中对通用指令的传递合法性校验
          * 2. 请勿修改此值，否则可能会引起MsgQ消息传递合法性校验失效
          */
-        MMI = 9527,
+        KAL = 0,
 
         /**
-         * 系统层
+         * 表现层
          * 说明：
          * 1. 同MMI
          */
-        OSL = 0,
+        MMI,
 
         /**
          * 通用界面
          */
-        CUI = 1,
+        CUI,
 
         /**
          * 游戏界面
@@ -159,7 +173,7 @@ declare module suncore {
         /**
          * 网络层
          */
-        NET
+        NSL
     }
 
     /**

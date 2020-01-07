@@ -72,7 +72,7 @@ module suncore {
          * MsgQ模块集
          * export
          */
-        export const msgQMap: { [prefix: string]: MsgQModEnum } = { "MMI": 9527 };
+        export const msgQMap: { [prefix: string]: MsgQModEnum } = { "MMI": MsgQModEnum.MMI };
 
         /**
          * MsgQ模块前缀集
@@ -111,8 +111,11 @@ module suncore {
         /**
          * 根据消息前缀校验可执行性
          */
-        function asserts(prefix: string): string {
+        function asserts(prefix: string, target: Object): string {
             if (prefix === SYSTEM_COMMAND_PREFIX) {
+                return prefix;
+            }
+            if (target instanceof puremvc.Notifier && target["msgQMod"] === msgQMap[prefix]) {
                 return prefix;
             }
             if (msgQMap[prefix] === void 0) {
@@ -199,7 +202,7 @@ module suncore {
             if (checkPrefix === false) {
                 return;
             }
-            const prefix: string = asserts(getCommandPrefix(name));
+            const prefix: string = asserts(getCommandPrefix(name), null);
             // 若当前锁定的消息模块为系统模块，且当前传递的消息为非系统消息，则对消息模块进行重新锁定
             if (actMsgQMod === suncore.MsgQModEnum.KAL && prefix !== SYSTEM_COMMAND_PREFIX) {
                 threshold = references;
@@ -253,7 +256,7 @@ module suncore {
                 return;
             }
 
-            const prefix: string = asserts(getCommandPrefix(name));
+            const prefix: string = asserts(getCommandPrefix(name), target);
             // 系统命令不产生互斥量
             if (prefix === SYSTEM_COMMAND_PREFIX) {
                 return;
@@ -315,7 +318,7 @@ module suncore {
                 return;
             }
 
-            const prefix: string = asserts(getCommandPrefix(name));
+            const prefix: string = asserts(getCommandPrefix(name), target);
             // 系统命令不会释放互斥量
             if (prefix === SYSTEM_COMMAND_PREFIX) {
                 return;

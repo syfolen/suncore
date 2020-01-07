@@ -79,13 +79,13 @@ module suncore {
         function check(mod: MsgQModEnum, id: MsgQIdEnum): boolean {
             // 校验id的范围
             let min: number, max: number;
-            if (mod === MsgQModEnum.NSL) {
-                min = MsgQIdEnum.NSL_MSG_ID_BEGIN;
-                max = MsgQIdEnum.NSL_MSG_ID_END;
-            }
-            else if (mod === MsgQModEnum.KAL) {
+            if (mod === MsgQModEnum.KAL) {
                 min = MsgQIdEnum.KAL_MSG_ID_BEGIN;
                 max = MsgQIdEnum.KAL_MSG_ID_END;
+            }
+            else if (mod === MsgQModEnum.MMI) {
+                min = MsgQIdEnum.MMI_MSG_ID_BEGIN;
+                max = MsgQIdEnum.MMI_MSG_ID_END;
             }
             else if (mod === MsgQModEnum.CUI) {
                 min = MsgQIdEnum.CUI_MSG_ID_BEGIN;
@@ -94,6 +94,14 @@ module suncore {
             else if (mod === MsgQModEnum.GUI) {
                 min = MsgQIdEnum.GUI_MSG_ID_BEGIN;
                 max = MsgQIdEnum.GUI_MSG_ID_END;
+            }
+            else if (mod === MsgQModEnum.L4C) {
+                min = MsgQIdEnum.L4C_MSG_ID_BEGIN;
+                max = MsgQIdEnum.L4C_MSG_ID_END;
+            }
+            else if (mod === MsgQModEnum.NSL) {
+                min = MsgQIdEnum.NSL_MSG_ID_BEGIN;
+                max = MsgQIdEnum.NSL_MSG_ID_END;
             }
             else {
                 throw Error(`未知的消息范围 mod:${mod}`);

@@ -35,23 +35,27 @@ var suncore;
     })(ModuleEnum = suncore.ModuleEnum || (suncore.ModuleEnum = {}));
     var MsgQIdEnum;
     (function (MsgQIdEnum) {
-        MsgQIdEnum[MsgQIdEnum["NET_MSG_ID_BEGIN"] = 1] = "NET_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["NET_MSG_ID_END"] = 10] = "NET_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_BEGIN"] = 10] = "CUI_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_END"] = 100] = "CUI_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_BEGIN"] = 100] = "GUI_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_END"] = 200] = "GUI_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["OSL_MSG_ID_BEGIN"] = 200] = "OSL_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["OSL_MSG_ID_END"] = 300] = "OSL_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["NSL_MSG_ID_BEGIN"] = 1] = "NSL_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["NSL_MSG_ID_END"] = 10] = "NSL_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["KAL_MSG_ID_BEGIN"] = 10] = "KAL_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["KAL_MSG_ID_END"] = 100] = "KAL_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["MMI_MSG_ID_BEGIN"] = 100] = "MMI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["MMI_MSG_ID_END"] = 200] = "MMI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_BEGIN"] = 200] = "CUI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_END"] = 300] = "CUI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_BEGIN"] = 300] = "GUI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_END"] = 500] = "GUI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["L4C_MSG_ID_BEGIN"] = 500] = "L4C_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["L4C_MSG_ID_END"] = 800] = "L4C_MSG_ID_END";
     })(MsgQIdEnum = suncore.MsgQIdEnum || (suncore.MsgQIdEnum = {}));
     var MsgQModEnum;
     (function (MsgQModEnum) {
-        MsgQModEnum[MsgQModEnum["MMI"] = 9527] = "MMI";
-        MsgQModEnum[MsgQModEnum["OSL"] = 0] = "OSL";
-        MsgQModEnum[MsgQModEnum["CUI"] = 1] = "CUI";
-        MsgQModEnum[MsgQModEnum["GUI"] = 2] = "GUI";
-        MsgQModEnum[MsgQModEnum["L4C"] = 3] = "L4C";
-        MsgQModEnum[MsgQModEnum["NET"] = 4] = "NET";
+        MsgQModEnum[MsgQModEnum["KAL"] = 0] = "KAL";
+        MsgQModEnum[MsgQModEnum["MMI"] = 1] = "MMI";
+        MsgQModEnum[MsgQModEnum["CUI"] = 2] = "CUI";
+        MsgQModEnum[MsgQModEnum["GUI"] = 3] = "GUI";
+        MsgQModEnum[MsgQModEnum["L4C"] = 4] = "L4C";
+        MsgQModEnum[MsgQModEnum["NSL"] = 5] = "NSL";
     })(MsgQModEnum = suncore.MsgQModEnum || (suncore.MsgQModEnum = {}));
     var AbstractTask = (function (_super) {
         __extends(AbstractTask, _super);
@@ -111,7 +115,7 @@ var suncore;
     var Engine = (function (_super) {
         __extends(Engine, _super);
         function Engine() {
-            var _this = _super.call(this, MsgQModEnum.KERNEL) || this;
+            var _this = _super.call(this, MsgQModEnum.KAL) || this;
             _this.$delta = 0;
             _this.$runTime = 0;
             _this.$localTime = new Date().valueOf();
@@ -137,7 +141,7 @@ var suncore;
             if (System.isModulePaused(ModuleEnum.CUSTOM) === false) {
                 M.timeStamp.lapse(delta);
             }
-            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NET);
+            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NSL);
             this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);
             this.facade.sendNotification(NotifyKey.PHYSICS_FRAME);
             this.facade.sendNotification(NotifyKey.ENTER_FRAME);
@@ -364,11 +368,11 @@ var suncore;
             var msg = null;
             if (mod === void 0 || mod === this.msgQMod) {
                 while (true) {
-                    if (mod === MsgQModEnum.NET) {
-                        msg = MsgQ.fetch(MsgQModEnum.NET, 2);
+                    if (mod === MsgQModEnum.NSL) {
+                        msg = MsgQ.fetch(MsgQModEnum.NSL, 2);
                     }
-                    else if (this.msgQMod === MsgQModEnum.NET) {
-                        msg = MsgQ.fetch(MsgQModEnum.NET, 1);
+                    else if (this.msgQMod === MsgQModEnum.NSL) {
+                        msg = MsgQ.fetch(MsgQModEnum.NSL, 1);
                     }
                     else {
                         msg = MsgQ.fetch(this.msgQMod);
@@ -731,7 +735,7 @@ var suncore;
             }
             for (var i = 0; i < queue.length; i++) {
                 var msg = queue[i];
-                if (mod === MsgQModEnum.NET || msg.seqId < MsgQ.seqId) {
+                if (mod === MsgQModEnum.NSL || msg.seqId < MsgQ.seqId) {
                     if (id === void 0 || msg.id === id) {
                         queue.splice(i, 1);
                         return msg;
@@ -743,13 +747,13 @@ var suncore;
         MsgQ.fetch = fetch;
         function check(mod, id) {
             var min, max;
-            if (mod === MsgQModEnum.NET) {
-                min = MsgQIdEnum.NET_MSG_ID_BEGIN;
-                max = MsgQIdEnum.NET_MSG_ID_END;
+            if (mod === MsgQModEnum.NSL) {
+                min = MsgQIdEnum.NSL_MSG_ID_BEGIN;
+                max = MsgQIdEnum.NSL_MSG_ID_END;
             }
-            else if (mod === MsgQModEnum.OSL) {
-                min = MsgQIdEnum.OSL_MSG_ID_BEGIN;
-                max = MsgQIdEnum.OSL_MSG_ID_END;
+            else if (mod === MsgQModEnum.KAL) {
+                min = MsgQIdEnum.KAL_MSG_ID_BEGIN;
+                max = MsgQIdEnum.KAL_MSG_ID_END;
             }
             else if (mod === MsgQModEnum.CUI) {
                 min = MsgQIdEnum.CUI_MSG_ID_BEGIN;
@@ -825,7 +829,7 @@ var suncore;
                     throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F src:" + MMI_COMMAND_PREFIX + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
                 }
             }
-            else if (Mutex.actMsgQMod !== 0) {
+            else if (Mutex.actMsgQMod !== suncore.MsgQModEnum.KAL) {
                 var cmd = Mutex.msgQCmd[Mutex.actMsgQMod] || null;
                 if (cmd === null) {
                     throw Error("\u610F\u5916\u7684MsgQMod " + Mutex.actMsgQMod);
@@ -843,7 +847,7 @@ var suncore;
             if (Mutex.checkPrefix === false) {
                 return true;
             }
-            if (Mutex.actMsgQMod === -1 || Mutex.actMsgQMod === MsgQModEnum.KERNEL) {
+            if (Mutex.actMsgQMod === -1 || Mutex.actMsgQMod === MsgQModEnum.KAL) {
                 return true;
             }
             if (Mutex.actMsgQMod === MsgQModEnum.MMI) {
@@ -875,7 +879,7 @@ var suncore;
                 return;
             }
             var prefix = asserts(getCommandPrefix(name));
-            if (Mutex.actMsgQMod === 0 && prefix !== SYSTEM_COMMAND_PREFIX) {
+            if (Mutex.actMsgQMod === suncore.MsgQModEnum.KAL && prefix !== SYSTEM_COMMAND_PREFIX) {
                 threshold = references;
                 Mutex.actMsgQMod = Mutex.msgQMap[prefix];
             }
@@ -903,7 +907,7 @@ var suncore;
             }
             if (threshold === references && mutexes === 0) {
                 threshold = 0;
-                Mutex.actMsgQMod = MsgQModEnum.KERNEL;
+                Mutex.actMsgQMod = MsgQModEnum.KAL;
             }
         }
         Mutex.unlock = unlock;
@@ -1098,4 +1102,3 @@ var suncore;
         System.removeTimer = removeTimer;
     })(System = suncore.System || (suncore.System = {}));
 })(suncore || (suncore = {}));
-//# sourceMappingURL=suncore.js.map
