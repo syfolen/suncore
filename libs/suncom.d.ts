@@ -61,52 +61,6 @@ declare module suncom {
     }
 
     /**
-     * 字典接口，通常用于作为一个大量数据的集合，用于快速获取数据集中的某条数据
-     */
-    interface IDictionary<T> {
-        /**
-         * 数据源（请勿直接操作其中的数据）
-         */
-        source: Array<T>;
-
-        /**
-         * 添加数据
-         */
-        put(data: T): T;
-
-        /**
-         * 移除数据
-         */
-        remove(data: T): T;
-
-        /**
-         * 根据键值返回数据
-         */
-        getByValue(key: string, value: any): T;
-
-        /**
-         * 根据主键值快速返回数据
-         */
-        getByPrimaryValue(value: number | string): T;
-
-        /**
-         * 根据键值移除数据
-         */
-        removeByValue(key: string, value: any): T;
-
-        /**
-         * 根据主键值移除数据
-         */
-        removeByPrimaryValue(value: number | string): T;
-
-        /**
-         * 为每个数据执行方法（谨慎在此方法中新增或移除数据）
-         * 若method的返回值为true，则会中断遍历
-         */
-        forEach(method: (data: T) => any): void;
-    }
-
-    /**
      * 自定义事件接口
      */
     interface IEventSystem {
@@ -163,54 +117,49 @@ declare module suncom {
     }
 
     /**
-     * 字典接口，通常用于作为一个大量数据的集合，用于快速获取数据集中的某条数据
+     * 哈希表接口，通常用于作为一个大量数据的集合，用于快速获取数据集中的某条数据
      */
-    class Dictionary<T> implements IDictionary<T> {
+    interface IHashMap<T> {
         /**
          * 数据源（请勿直接操作其中的数据）
          */
         source: Array<T>;
 
         /**
-         * @primaryKey: 指定主键字段名，字典会使用主键值来作为数据索引，所以请确保主键值是恒值
-         */
-        constructor(primaryKey:number | string);
-
-        /**
          * 添加数据
          */
-        put(data:T): T;
+        put(data: T): T;
 
         /**
          * 移除数据
          */
-        remove(data:T): T;
+        remove(data: T): T;
 
         /**
          * 根据键值返回数据
          */
-        getByValue(key:string, value:any): T;
+        getByValue(key: string, value: any): T;
 
         /**
          * 根据主键值快速返回数据
          */
-        getByPrimaryValue(value:number | string): T;
+        getByPrimaryValue(value: number | string): T;
 
         /**
          * 根据键值移除数据
          */
-        removeByValue(key:string, value:any): T;
+        removeByValue(key: string, value: any): T;
 
         /**
          * 根据主键值移除数据
          */
-        removeByPrimaryValue(value:number | string): T;
+        removeByPrimaryValue(value: number | string): T;
 
         /**
          * 为每个数据执行方法（谨慎在此方法中新增或移除数据）
-         * 若method返回true，则会中断遍历
+         * 若method的返回值为true，则会中断遍历
          */
-        forEach(method:(data: T) => any): void;
+        forEach(method: (data: T) => any): void;
     }
 
     /**
@@ -274,6 +223,57 @@ declare module suncom {
          * @once: 己弃用
          */
         static create(caller:Object, method:Function, args?:Array<any>, once?:boolean): IHandler;
+    }
+
+    /**
+     * 哈希表接口，通常用于作为一个大量数据的集合，用于快速获取数据集中的某条数据
+     */
+    class HashMap<T> implements IHashMap<T> {
+        /**
+         * 数据源（请勿直接操作其中的数据）
+         */
+        source: Array<T>;
+
+        /**
+         * @primaryKey: 指定主键字段名，哈希表会使用主键值来作为数据索引，所以请确保主键值是恒值
+         */
+        constructor(primaryKey:number | string);
+
+        /**
+         * 添加数据
+         */
+        put(data:T): T;
+
+        /**
+         * 移除数据
+         */
+        remove(data:T): T;
+
+        /**
+         * 根据键值返回数据
+         */
+        getByValue(key:string, value:any): T;
+
+        /**
+         * 根据主键值快速返回数据
+         */
+        getByPrimaryValue(value:number | string): T;
+
+        /**
+         * 根据键值移除数据
+         */
+        removeByValue(key:string, value:any): T;
+
+        /**
+         * 根据主键值移除数据
+         */
+        removeByPrimaryValue(value:number | string): T;
+
+        /**
+         * 为每个数据执行方法（谨慎在此方法中新增或移除数据）
+         * 若method返回true，则会中断遍历
+         */
+        forEach(method:(data: T) => any): void;
     }
 
     /**
@@ -498,6 +498,11 @@ declare module suncom {
          * 错误日志
          */
         function error(...args: Array<any>): void;
+
+        /**
+         * 文件日志
+         */
+        function log2f(name: number | string, sign: number | string, text: string): void;
     }
 
     /**
