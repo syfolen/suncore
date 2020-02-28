@@ -3,7 +3,7 @@ module suncore {
     /**
      * 定时器管理器
      */
-    export class TimerManager implements ITimerManager {
+    export class TimerManager {
         /**
          * 定时器种子
          */
@@ -12,12 +12,12 @@ module suncore {
         /**
          * 定时器列表
          */
-        private $timers: Array<Array<Timer>> = [];
+        private $timers: Array<Array<ITimer>> = [];
 
         /**
          * 定时器集合
          */
-        private $timerMap: { [id: number]: Timer } = {};
+        private $timerMap: { [id: number]: ITimer } = {};
 
         constructor() {
             for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
@@ -42,12 +42,12 @@ module suncore {
                 // 当前模块未暂停
                 if (System.isModulePaused(mod) === false) {
                     // 获取模块中的所有定时器
-                    const timers: Array<Timer> = this.$timers[mod];
+                    const timers: Array<ITimer> = this.$timers[mod];
                     // 获取当前时间戳
                     const timestamp: number = System.getModuleTimestamp(mod);
                     // 对模块中的所有定时器进行遍历
                     while (timers.length) {
-                        const timer: Timer = timers[0];
+                        const timer: ITimer = timers[0];
 
                         // 若定时器有效
                         if (timer.active === true) {
@@ -57,25 +57,25 @@ module suncore {
                             }
                             // 若 real 为 true ，则对执行次数进行真实递增
                             if (timer.real === true) {
-                                timer.repeat++;
+                                timer.count++;
                             }
                             // 否则计算当前理论上的响应次数
                             else {
-                                timer.repeat = Math.floor((timestamp - timer.timestamp) / timer.delay);
+                                timer.count = Math.floor((timestamp - timer.timestamp) / timer.delay);
                             }
                         }
 
                         // 移除无效定时器
-                        if (timer.active === false || (timer.loops > 0 && timer.repeat >= timer.loops)) {
+                        if (timer.active === false || (timer.loops > 0 && timer.count >= timer.loops)) {
                             delete this.$timerMap[timer.timerId];
                         }
                         else {
-                            this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.repeat);
+                            this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.count);
                         }
                         timers.shift();
 
                         if (timer.active === true) {
-                            timer.method.call(timer.caller, timer.repeat, timer.loops);
+                            timer.method.call(timer.caller, timer.count, timer.loops);
                         }
                     }
                 }
@@ -93,10 +93,9 @@ module suncore {
          * @timerId: 定时器编号，请勿擅自传入此参数，防止定时器工作出错
          * @timestamp: 定时器的创建时间，请勿擅自传入此参数，防止定时器工作出错
          * @timeout: 定时器上次响应时间，请勿擅自传入此参数，防止定时器工作出错
-         * @repeat: 当前重复次数
+         * @count: 当前重复次数
          */
-        addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops: number = 1, real: boolean = false, timerId: number = 0, timestamp: number = -1, timeout: number = -1, repeat: number = 0): number {
-            const timer: Timer = new Timer();
+        addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops: number = 1, real: boolean = false, timerId: number = 0, timestamp: number = -1, timeout: number = -1, count: number = 0): number {
             const currentTimestamp: number = System.getModuleTimestamp(mod);
 
             // 若编号未指定，则生成新的定时器
@@ -143,20 +142,22 @@ module suncore {
             timeout = currentTimestamp + delay - dev;
 
             // 对定时器进行实例化
-            timer.mod = mod;
-            timer.active = true;
-            timer.delay = delay;
-            timer.method = method;
-            timer.caller = caller;
-            timer.real = real;
-            timer.loops = loops;
-            timer.repeat = repeat;
-            timer.timerId = timerId;
-            timer.timestamp = timestamp;
-            timer.timeout = timeout;
+            const timer: ITimer = {
+                mod: mod,
+                active: true,
+                delay: delay,
+                method: method,
+                caller: caller,
+                real: real,
+                count: count,
+                loops: loops,
+                timerId: timerId,
+                timestamp: timestamp,
+                timeout: timeout
+            };
 
             // 获取对应模块的定时器列表
-            const timers: Array<Timer> = this.$timers[mod];
+            const timers: Array<ITimer> = this.$timers[mod];
 
             let index: number = -1;
 
@@ -210,9 +211,9 @@ module suncore {
          * 清除指定模块下的所有定时器
          */
         clearTimer(mod: ModuleEnum): void {
-            const timers: Array<Timer> = this.$timers[mod];
+            const timers: Array<ITimer> = this.$timers[mod];
             while (timers.length > 0) {
-                const timer: Timer = timers.pop();
+                const timer: ITimer = timers.pop();
                 delete this.$timerMap[timer.timerId];
             }
         }

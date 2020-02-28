@@ -1,7 +1,7 @@
 
 module suncore {
     /**
-     * MsgQ接口类
+     * MsgQ机制
      * 设计说明：
      * 1. 设计MsgQ的主要目的是为了对不同的模块进行彻底的解耦
      * 2. 考虑到在实际环境中，网络可能存在波动，而UI层可能会涉及到资源的动态加载与释放管理，故MsgQ中的消息是以异步的形式进行派发的
@@ -28,22 +28,21 @@ module suncore {
          * 发送消息（异步）
          * export
          */
-        export function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data?: any): void {
-            if (isModuleActive(dest) === false) {
-                console.warn(`消息发送失败，模块己暂停 mod:${MsgQModEnum[dest]}`);
+        export function send(dst: MsgQModEnum, id: number, data?: any): void {
+            if (isModuleActive(dst) === false) {
+                console.warn(`消息发送失败，模块己暂停 mod:${MsgQModEnum[dst]}`);
                 return;
             }
-            if (check(dest, id) === false) {
-                console.warn(`消息发送失败，消息ID非法 mod:${dest}, id:${id}`);
+            if (check(dst, id) === false) {
+                console.warn(`消息发送失败，消息ID非法 mod:${dst}, id:${id}`);
                 return;
             }
-            let array: IMsgQMsg[] = $queues[dest] || null;
+            let array: IMsgQMsg[] = $queues[dst] || null;
             if (array === null) {
-                array = $queues[dest] = [];
+                array = $queues[dst] = [];
             }
             const msg: IMsgQMsg = {
-                src: src,
-                dest: dest,
+                dst: dst,
                 seqId: seqId,
                 id: id,
                 data: data
@@ -53,7 +52,7 @@ module suncore {
 
         /**
          * 获取消息
-         * @id: 只获取指定ID消息，若为void 0则不校验
+         * @id: 只获取指定ID的消息，若为void 0则不校验
          */
         export function fetch(mod: MsgQModEnum, id?: number): IMsgQMsg {
             const queue: IMsgQMsg[] = $queues[mod] || null;
@@ -121,14 +120,9 @@ module suncore {
          */
         export function setModuleActive(mod: MsgQModEnum, active: boolean): void {
             $modStats[mod] = active;
-            if (active === true) {
-                return;
+            if (active === false) {
+                delete $queues[mod];
             }
-            const queue: IMsgQMsg[] = $queues[mod] || null;
-            if (queue === null) {
-                return;
-            }
-            queue.length = 0;
         }
     }
 }

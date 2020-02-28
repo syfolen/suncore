@@ -8,27 +8,22 @@ module suncore {
 
         /**
          * @mod: 时间轴模块
-         * @stop: 是否停止时间轴，默认为true
-         * 1. 时间轴停止时，对应的模块无法被添加任务
-         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
+         * @stop: 若为true，时间轴将被停止而非暂停，默认为：true
          * export
          */
         execute(mod: ModuleEnum, stop: boolean = true): void {
-            if (stop === void 0) {
-                throw Error(`暂停时间轴时应当指定参数 stop 的值`);
-            }
             if (stop === true) {
                 if (System.isModuleStopped(mod) === true) {
-                    console.error(`Module ${ModuleEnum[mod]} Is Already Stopped!!!`);
+                    console.error(`模块 ${ModuleEnum[mod]} 己经停止！！！`);
                     return;
                 }
             }
             else if (System.isModulePaused(mod) === true) {
-                console.error(`Module ${ModuleEnum[mod]} Is Already Paused!!!`);
+                console.error(`模块 ${ModuleEnum[mod]} 己经暂停！！！`);
                 return;
             }
             else if (mod === ModuleEnum.SYSTEM) {
-                console.error(`Module ${ModuleEnum[mod]} Cannot Be Paused!!!`);
+                console.error(`无法暂停 ${ModuleEnum[mod]} 模块！！！`);
                 return;
             }
 

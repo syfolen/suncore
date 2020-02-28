@@ -9,7 +9,7 @@ module suncore {
      * 3. 自定义定时器调度
      * 4. 不同类型游戏消息的派发
      */
-    export class Engine extends puremvc.Notifier implements IEngine {
+    export class Engine extends puremvc.Notifier {
         /**
          * 帧时间间隔（毫秒）
          */
@@ -63,13 +63,13 @@ module suncore {
          * 时间流逝逻辑
          */
         private $lapse(delta: number): void {
-            // 游戏时间轴未暂停
-            if (System.isModulePaused(ModuleEnum.TIMELINE) === false) {
-                M.timeline.lapse(delta);
-            }
             // 场景时间轴未暂停
             if (System.isModulePaused(ModuleEnum.CUSTOM) === false) {
                 M.timeStamp.lapse(delta);
+            }
+            // 游戏时间轴未暂停
+            if (System.isModulePaused(ModuleEnum.TIMELINE) === false) {
+                M.timeline.lapse(delta);
             }
 
             // 优先广播MsgQModEnum.NET的数据（谨慎修改）
@@ -79,11 +79,11 @@ module suncore {
             this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);
             this.facade.sendNotification(NotifyKey.PHYSICS_FRAME);
 
+            // 定时器不属于帧逻辑
+            M.timerManager.executeTimer();
+
             // 始终派发帧相关事件
             this.facade.sendNotification(NotifyKey.ENTER_FRAME);
-
-            // 响应定时器
-            M.timerManager.executeTimer();
 
             // 处理消息
             M.messageManager.dealMessage();
@@ -92,6 +92,7 @@ module suncore {
 
             // 始终派发帧相关事件
             this.facade.sendNotification(NotifyKey.LATER_FRAME);
+
             // 处理MsgQ业务
             this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS);
         }

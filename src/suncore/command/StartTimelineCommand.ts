@@ -9,20 +9,15 @@ module suncore {
         /**
          * @mod: 时间轴模块
          * @pause: 时间轴在开启时是否处于暂停状态
-         * 说明：
-         * 1. 参数pause并不会对SYSTEM模块的时间轴生效
          * export
          */
         execute(mod: ModuleEnum, pause: boolean = false): void {
-            if (pause === void 0) {
-                throw Error(`暂停时间轴时应当指定参数 pause 的值`);
-            }
             if (System.isModulePaused(mod) === false) {
-                console.error(`Module ${ModuleEnum[mod]} Is Already Started!!!`);
+                console.error(`模块 ${ModuleEnum[mod]} 己经启动！！！`);
                 return;
             }
-            
-            // 注册数据
+
+            // 初始化
             if (mod === ModuleEnum.SYSTEM && M.engine === null) {
                 M.timerManager = new TimerManager();
                 M.messageManager = new MessageManager();

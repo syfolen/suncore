@@ -3,7 +3,7 @@ module suncore {
     /**
      * 自定义定时器
      */
-    export class Timer {
+    export interface ITimer {
         /**
          * 模块
          */
@@ -39,14 +39,14 @@ module suncore {
         real: boolean;
 
         /**
+         * 当前重复次数
+         */
+        count: number;
+
+        /**
          * 循环设定次数
          */
         loops: number;
-
-        /**
-         * 当前重复次数
-         */
-        repeat: number;
 
         /**
          * 定时器编号

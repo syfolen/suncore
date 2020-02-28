@@ -4,10 +4,10 @@ module suncore {
      * 服务（主要用于逻辑层架构）
      * 说明：
      * 1. 每个服务均有独立的生命周期。
-     * 2. 服务被设计用来处理与表现层无关的有状态的业务。
+     * 2. 服务被设计用来处理与表现层无关的有状态业务。
      * export
      */
-    export abstract class BaseService extends puremvc.Notifier {
+    export abstract class BaseService extends puremvc.Notifier implements IService {
         /**
          * 服务是否己启动
          */

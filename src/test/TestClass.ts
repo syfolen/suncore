@@ -51,12 +51,12 @@ module test {
             return true;
         }
 
-        private $onTimerHandler(repeat: number, loops: number): void {
-            console.log(`测试场景定时器, repeat:${repeat}, loops:${loops}`);
+        private $onTimerHandler(count: number, loops: number): void {
+            console.log(`测试场景定时器, count:${count}, loops:${loops}`);
         }
 
-        private $gotoQuadtreeScene(repeat: number, loops: number): void {
-            if (repeat === loops) {
+        private $gotoQuadtreeScene(count: number, loops: number): void {
+            if (count === loops) {
                 console.log("测试完毕");
                 this.facade.sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
                 this.facade.sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.TIMELINE, true]);

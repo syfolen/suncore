@@ -36,6 +36,7 @@
 	<!--suncom-->
 	<script type="text/javascript" src="libs/suncom.js"></script>
 	<!--jsfile--Custom-->
+	<script src="js/suncore/msgq/MsgQModEnum.js"></script>
 
 	<!--自定义的js(src文件夹下)文件自动添加到下面jsfile模块标签里面里-->
 	<!--删除标签，ide不会自动添加js文件，请谨慎操作-->
@@ -43,31 +44,27 @@
 	<script src="js/suncore/utils/System.js"></script>
 	<script src="js/suncore/utils/NotifyKey.js"></script>
 	<script src="js/suncore/utils/Mutex.js"></script>
-	<script src="js/suncore/timeline/Timer.js"></script>
+	<script src="js/suncore/timeline/TimerManager.js"></script>
+	<script src="js/suncore/timeline/Timeline.js"></script>
+	<script src="js/suncore/timeline/ITimer.js"></script>
 	<script src="js/suncore/msgq/MsgQModEnum.js"></script>
 	<script src="js/suncore/msgq/MsgQIdEnum.js"></script>
 	<script src="js/suncore/msgq/MsgQ.js"></script>
 	<script src="js/suncore/message/ModuleEnum.js"></script>
+	<script src="js/suncore/message/MessageQueue.js"></script>
 	<script src="js/suncore/message/MessagePriorityEnum.js"></script>
+	<script src="js/suncore/message/MessageManager.js"></script>
 	<script src="js/suncore/message/Message.js"></script>
-	<script src="js/suncore/interfaces/timeline/ITimerManager.js"></script>
-	<script src="js/suncore/interfaces/timeline/ITimeline.js"></script>
-	<script src="js/suncore/interfaces/task/ITask.js"></script>
-	<script src="js/suncore/interfaces/msgq/IMsgQMsg.js"></script>
-	<script src="js/suncore/interfaces/message/IMessageQueue.js"></script>
-	<script src="js/suncore/interfaces/message/IMessageManager.js"></script>
+	<script src="js/suncore/interfaces/ITask.js"></script>
+	<script src="js/suncore/interfaces/IService.js"></script>
+	<script src="js/suncore/interfaces/IMsgQMsg.js"></script>
 	<script src="js/suncore/command/PauseTimelineCommand.js"></script>
 	<script src="js/suncore/command/StartTimelineCommand.js"></script>
-	<script src="js/suncore/interfaces/IEngine.js"></script>
 	<script src="js/suncore/Engine.js"></script>
-	<script src="js/suncore/message/MessageManager.js"></script>
-	<script src="js/suncore/message/MessageQueue.js"></script>
 	<script src="js/suncore/service/BaseService.js"></script>
 	<script src="js/suncore/service/MsgQService.js"></script>
 	<script src="js/suncore/task/AbstractTask.js"></script>
 	<script src="js/suncore/task/SimpleTask.js"></script>
-	<script src="js/suncore/timeline/Timeline.js"></script>
-	<script src="js/suncore/timeline/TimerManager.js"></script>
 	<script src="js/test/StartupCommand.js"></script>
 	<script src="js/test/TestClass.js"></script>
 	<script src="js/test/TestTask.js"></script>

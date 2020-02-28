@@ -3,11 +3,11 @@ module suncore {
     /**
      * 消息管理器
      */
-    export class MessageManager implements IMessageManager {
+    export class MessageManager {
         /**
          * 消息队列列表
          */
-        private $queues: Array<IMessageQueue> = [];
+        private $queues: Array<MessageQueue> = [];
 
         constructor() {
             for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
@@ -18,7 +18,7 @@ module suncore {
         /**
          * 添加消息
          */
-        putMessage(message: Message): void {
+        putMessage(message: IMessage): void {
             this.$queues[message.mod].putMessage(message);
         }
 

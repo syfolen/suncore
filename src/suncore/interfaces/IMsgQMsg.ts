@@ -1,21 +1,15 @@
 
 module suncore {
     /**
-     * MsgQ的消息对象
+     * MsgQ消息体接口
      * export
      */
     export interface IMsgQMsg {
         /**
-         * 发送消息的模块
+         * 响应消息的模块
          * export
          */
-        src: MsgQModEnum;
-
-        /**
-         * 接收消息的模块
-         * export
-         */
-        dest: MsgQModEnum;
+        dst: MsgQModEnum;
 
         /**
          * 消息序号

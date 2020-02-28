@@ -3,7 +3,7 @@ module suncore {
     /**
      * 消息队列
      */
-    export class MessageQueue implements IMessageQueue {
+    export class MessageQueue {
         /**
          * 所属模块
          */
@@ -12,14 +12,14 @@ module suncore {
         /**
          * 队列节点列表
          */
-        private $queues: Array<Array<Message>> = [];
+        private $queues: Array<Array<IMessage>> = [];
 
         /**
          * 临时消息队列
          * 说明：
          * 1. 因为消息可能产生消息，所以当前帧中所有新消息都会被放置在临时队列中，在帧结束之前统一整理至消息队列
          */
-        private $messages0: Array<Message> = [];
+        private $messages0: Array<IMessage> = [];
 
         constructor(mod: ModuleEnum) {
             // 所属模块
@@ -33,28 +33,26 @@ module suncore {
         /**
          * 添加消息
          */
-        putMessage(message: Message): void {
+        putMessage(message: IMessage): void {
             this.$messages0.push(message);
         }
 
         /**
          * 处理消息
          */
-        dealMessage(): number {
+        dealMessage(): void {
             // 总处理条数统计
             let dealCount: number = 0;
             // 剩余消息条数
             let remainCount: number = 0;
 
             for (let priority: MessagePriorityEnum = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
-                const queue: Array<Message> = this.$queues[priority];
+                const queue: Array<IMessage> = this.$queues[priority];
 
                 // 跳过惰性消息
                 if (priority === MessagePriorityEnum.PRIORITY_LAZY) {
                     continue;
                 }
-                // 剩余消息条数累计
-                remainCount += queue.length;
 
                 // 任务消息
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
@@ -70,12 +68,16 @@ module suncore {
                 }
                 // 触发器消息
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
+                    // 触发器执行结果寄存器
+                    const out: { canceled: boolean } = { canceled: false };
                     // 任务消息在返回 true 表示任务己完成
-                    while (queue.length && this.$dealTriggerMessage(queue[0]) === true) {
+                    while (queue.length && this.$dealTriggerMessage(queue[0], out) === true) {
                         // 此时应当移除任务
                         queue.shift();
                         // 总处理条数累加
-                        dealCount++;
+                        if (out.canceled === false) {
+                            dealCount++;
+                        }
                     }
                 }
                 // 其它类型消息
@@ -95,29 +97,30 @@ module suncore {
                     // 总处理条数累加
                     dealCount += okCount;
                 }
+
+                // 剩余消息条数累计
+                remainCount += queue.length;
             }
 
             // 若只剩下惰性消息，则处理惰性消息
-            if (remainCount === 0 && this.$messages0.length === 0) {
-                const queue: Array<Message> = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
+            if (remainCount === 0 && dealCount === 0 && this.$messages0.length === 0) {
+                const queue: Array<IMessage> = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
                 if (queue.length > 0) {
                     this.$dealCustomMessage(queue.shift());
                     dealCount++;
                 }
             }
-
-            return dealCount;
         }
 
         /**
          * 任务消息处理逻辑
          */
-        private $dealTaskMessage(message: Message): boolean {
-            const task: ITask = message.task;
+        private $dealTaskMessage(message: IMessage): boolean {
+            const task: AbstractTask = message.task as AbstractTask;
 
             // 若任务没有被开启，则开启任务
-            if (message.active === false) {
-                message.active = true;
+            if (task.running === false && task.destroyed === false) {
+                task.running = true;
                 if (task.run() === true) {
                     task.done = true;
                 }
@@ -128,14 +131,16 @@ module suncore {
 
         /**
          * 触发器消息处理逻辑
+         * @out: 执行结果寄存器（输出值）
+         * 说明：
+         * 1. 若触发器执行结果返回false，则应当将寄存器中的canceled的值置为true，否则置为false
          */
-        private $dealTriggerMessage(message: Message): boolean {
+        private $dealTriggerMessage(message: IMessage, out: { canceled: boolean }): boolean {
             // 触发条件未达成
             if (message.timeout > System.getModuleTimestamp(this.$mod)) {
                 return false;
             }
-            message.handler.run();
-
+            out.canceled = message.handler.run() === false;
             return true;
         }
 
@@ -143,12 +148,8 @@ module suncore {
          * 其它类型消息处理逻辑
          * 执行器的返回值意义请参考 MessagePriorityEnum 的 PRIORITY_LAZY 注释
          */
-        private $dealCustomMessage(message: Message): boolean {
-            const res: boolean = message.handler.run();
-            if (res === false) {
-                return false;
-            }
-            return true;
+        private $dealCustomMessage(message: IMessage): boolean {
+            return message.handler.run() !== false;
         }
 
         /**
@@ -175,7 +176,7 @@ module suncore {
          */
         classifyMessages0(): void {
             while (this.$messages0.length) {
-                const message: Message = this.$messages0.shift();
+                const message: IMessage = this.$messages0.shift();
                 if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
@@ -188,8 +189,8 @@ module suncore {
         /**
          * 添加触发器消息
          */
-        private $addTriggerMessage(message: Message): void {
-            const queue: Array<Message> = this.$queues[MessagePriorityEnum.PRIORITY_TRIGGER];
+        private $addTriggerMessage(message: IMessage): void {
+            const queue: Array<IMessage> = this.$queues[MessagePriorityEnum.PRIORITY_TRIGGER];
 
             let min: number = 0;
             let mid: number = 0;
@@ -233,7 +234,7 @@ module suncore {
                 this.$cancelMessage(this.$messages0.pop());
             }
             for (let priority: MessagePriorityEnum = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
-                const queue: Message[] = this.$queues[priority];
+                const queue: IMessage[] = this.$queues[priority];
                 while (queue.length > 0) {
                     this.$cancelMessage(queue.pop());
                 }
@@ -244,9 +245,11 @@ module suncore {
          * 取消任务
          * @message: 目前只有task才需要被取消
          */
-        private $cancelMessage(message: Message): void {
+        private $cancelMessage(message: IMessage): void {
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
-                message.task.cancel();
+                if (message.task.destroyed === false) {
+                    message.task.cancel();
+                }
             }
         }
     }

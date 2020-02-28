@@ -259,12 +259,6 @@ var puremvc;
         return Notifier;
     }());
     puremvc.Notifier = Notifier;
-    var Observer = (function () {
-        function Observer() {
-        }
-        return Observer;
-    }());
-    puremvc.Observer = Observer;
     var Proxy = (function (_super) {
         __extends(Proxy, _super);
         function Proxy(name, data) {
@@ -274,7 +268,7 @@ var puremvc;
             }
             _this.$proxyName = name;
             if (data !== void 0) {
-                _this.data = data;
+                _this.$data = data;
             }
             return _this;
         }
@@ -284,12 +278,6 @@ var puremvc;
         Proxy.prototype.onRegister = function () {
         };
         Proxy.prototype.onRemove = function () {
-        };
-        Proxy.prototype.setData = function (data) {
-            this.data = data;
-        };
-        Proxy.prototype.getData = function () {
-            return this.data;
         };
         return Proxy;
     }(Notifier));
@@ -341,12 +329,13 @@ var puremvc;
                 }
             }
             suncore.Mutex.create(name, caller);
-            var observer = new Observer();
-            observer.name = name;
-            observer.caller = caller;
-            observer.method = method;
-            observer.priority = priority;
-            observer.receiveOnce = receiveOnce;
+            var observer = {
+                name: name,
+                caller: caller,
+                method: method,
+                priority: priority,
+                receiveOnce: receiveOnce
+            };
             if (index < 0) {
                 observers.push(observer);
             }
@@ -524,15 +513,19 @@ var puremvc;
             }
             _this.$mediatorName = name;
             if (viewComponent !== void 0) {
-                _this.viewComponent = viewComponent;
+                _this.$viewComponent = viewComponent;
             }
             return _this;
         }
+        Mediator.prototype.onRegister = function () {
+        };
+        Mediator.prototype.onRemove = function () {
+        };
         Mediator.prototype.getMediatorName = function () {
             return this.$mediatorName || null;
         };
         Mediator.prototype.getViewComponent = function () {
-            return this.viewComponent;
+            return this.$viewComponent || null;
         };
         Mediator.prototype.listNotificationInterests = function () {
         };
@@ -545,10 +538,6 @@ var puremvc;
         Mediator.prototype.handleNotification = function (name, method) {
             var observer = this.facade.registerObserver(name, method, this);
             observer && this.$notificationInterests.push(observer);
-        };
-        Mediator.prototype.onRegister = function () {
-        };
-        Mediator.prototype.onRemove = function () {
         };
         return Mediator;
     }(Notifier));
