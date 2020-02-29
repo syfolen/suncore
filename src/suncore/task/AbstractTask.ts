@@ -12,13 +12,13 @@ module suncore {
         protected $done: boolean = false;
 
         /**
-         * 是否正在运行（内置变量，请勿操作）
+         * 是否正在运行（内置属性，请勿操作）
          * export
          */
         protected $running: boolean = false;
 
         /**
-         * 是否己销毁
+         * 是否己销毁（内置属性，请勿操作）
          * export
          */
         protected $destroyed: boolean = false;

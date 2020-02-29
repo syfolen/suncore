@@ -56,10 +56,9 @@ module suncore {
 
                 // 任务消息
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
-                    // 任务消息在返回 true 表示任务己完成
                     if (queue.length > 0) {
+                        // 返回true时应当移除任务
                         if (this.$dealTaskMessage(queue[0]) === true) {
-                            // 此时应当移除任务
                             queue.shift();
                         }
                         // 总处理条数累加
@@ -70,9 +69,8 @@ module suncore {
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     // 触发器执行结果寄存器
                     const out: { canceled: boolean } = { canceled: false };
-                    // 任务消息在返回 true 表示任务己完成
-                    while (queue.length && this.$dealTriggerMessage(queue[0], out) === true) {
-                        // 此时应当移除任务
+                    // 返回true时应当移除触发器
+                    while (queue.length > 0 && this.$dealTriggerMessage(queue[0], out) === true) {
                         queue.shift();
                         // 总处理条数累加
                         if (out.canceled === false) {
@@ -126,7 +124,8 @@ module suncore {
                 }
             }
 
-            return task.done === true;
+            // 己处理或己销毁的任务均应当移除
+            return task.done === true || task.destroyed === true;
         }
 
         /**

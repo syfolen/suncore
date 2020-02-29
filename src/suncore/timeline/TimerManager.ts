@@ -46,7 +46,7 @@ module suncore {
                     // 获取当前时间戳
                     const timestamp: number = System.getModuleTimestamp(mod);
                     // 对模块中的所有定时器进行遍历
-                    while (timers.length) {
+                    while (timers.length > 0) {
                         const timer: ITimer = timers[0];
 
                         // 若定时器有效
