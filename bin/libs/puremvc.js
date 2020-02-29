@@ -272,12 +272,12 @@ var puremvc;
             }
             return _this;
         }
-        Proxy.prototype.getProxyName = function () {
-            return this.$proxyName || null;
-        };
         Proxy.prototype.onRegister = function () {
         };
         Proxy.prototype.onRemove = function () {
+        };
+        Proxy.prototype.getProxyName = function () {
+            return this.$proxyName || null;
         };
         return Proxy;
     }(Notifier));
@@ -535,7 +535,7 @@ var puremvc;
                 this.facade.removeObserver(observer.name, observer.method, observer.caller);
             }
         };
-        Mediator.prototype.handleNotification = function (name, method) {
+        Mediator.prototype.$handleNotification = function (name, method) {
             var observer = this.facade.registerObserver(name, method, this);
             observer && this.$notificationInterests.push(observer);
         };

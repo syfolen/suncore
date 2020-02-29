@@ -159,11 +159,6 @@ declare module puremvc {
     interface IMediator extends INotifier {
 
         /**
-         * 获取视图对象
-         */
-        getViewComponent(): any;
-
-        /**
          * 注册回调（此时己注册）
          */
         onRegister(): void;
@@ -174,14 +169,14 @@ declare module puremvc {
         onRemove(): void;
 
         /**
+         * 获取视图对象
+         */
+        getViewComponent(): any;
+
+        /**
          * 注册感兴趣的事件列表
          */
         listNotificationInterests(): void;
-
-        /**
-         * 注册事件回调
-         */
-        handleNotification(name: string, method: Function): void;
     }
 
     /**
@@ -431,6 +426,6 @@ declare module puremvc {
         /**
          * 注册事件回调
          */
-        handleNotification(name:string, method:Function): void;
+        protected $handleNotification(name:string, method:Function): void;
     }
 }
