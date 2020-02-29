@@ -8,28 +8,37 @@ declare module suncore {
     /**
      * 消息优先级
      * 设计说明：
-     * 1. 使用消息机制的意义主要在于解决游戏表现层的流畅性问题
-     * 2. 由于消息机制中并没有提供由使用者主动取消消息的功能，所以消息机制并不适用于作线性逻辑方面的构建
-     * 3. 消息机制被用于实现场景跳转只是一个意外，因为场景跳转的逻辑是不可回滚的
+     * 1. 所有的Message消息都是异步执行的
+     * 2. 使用消息机制的意义主要在于解决游戏表现层的流畅性问题
+     * 3. 由于消息机制中并没有提供由使用者主动取消消息的功能，所以消息机制并不适用于作线性逻辑方面的构建
+     * 4. 消息机制被用于实现场景跳转只是一个意外，因为场景跳转的逻辑是不可回滚的
      */
     enum MessagePriorityEnum {
         /**
          * 始终立即响应
+         * 说明：
+         * 1. 请谨慎定义此消息的回调执行器的返回值，详见 LAZY 消息说明
          */
         PRIORITY_0,
 
         /**
          * 每帧至多响应十次消息
+         * 说明：
+         * 1. 请谨慎定义此消息的回调执行器的返回值，详见 LAZY 消息说明
          */
         PRIORITY_HIGH,
 
         /**
-         * 每帧至多响应三次的消息
+         * 每帧至多响应三次消息
+         * 说明：
+         * 1. 请谨慎定义此消息的回调执行器的返回值，详见 LAZY 消息说明
          */
         PRIORITY_NOR,
 
         /**
-         * 每帧至多响应一次的消息
+         * 每帧至多响应一次消息
+         * 说明：
+         * 1. 请谨慎定义此消息的回调执行器的返回值，详见 LAZY 消息说明
          */
         PRIORITY_LOW,
 
@@ -46,7 +55,8 @@ declare module suncore {
          * 说明：
          * 1. 触发器在指定时刻必定会被触发
          * 2. 为了简化系统，同一个触发器只能被触发一次
-         * 3. 此类型的消息存在的唯一原因是消息机制不能感知定时器的存在
+         * 3. 请谨慎定义此消息的回调执行器的返回值，详见 LAZY 消息说明
+         * 4. 此类型的消息存在的唯一原因是惰性消息的机制无法感知定时器的存在
          */
         PRIORITY_TRIGGER,
 
@@ -141,17 +151,16 @@ declare module suncore {
      */
     enum MsgQModEnum {
         /**
-         * 系统层
+         * 内核层
          * 说明：
-         * 1. 此为保留值，仅用于支持puremvc框架中对通用指令的传递合法性校验
-         * 2. 请勿修改此值，否则可能会引起MsgQ消息传递合法性校验失效
+         * 1. 请勿修改此值，否则可能会引起MsgQ消息传递合法性校验失效
          */
-        KAL = 0,
+        KAL = 1,
 
         /**
          * 表现层
          * 说明：
-         * 1. 同MMI
+         * 1. 表现层的消息允许往CUI或GUI模块传递
          */
         MMI,
 
@@ -173,22 +182,17 @@ declare module suncore {
         /**
          * 网络层
          */
-        NSL
+        NSL,
     }
 
     /**
-     * MsgQ的消息对象
+     * MsgQ消息体接口
      */
     interface IMsgQMsg {
         /**
-         * 发送消息的模块
+         * 响应消息的模块
          */
-        src: MsgQModEnum;
-
-        /**
-         * 接收消息的模块
-         */
-        dest: MsgQModEnum;
+        dst: MsgQModEnum;
 
         /**
          * 消息编号
@@ -202,13 +206,38 @@ declare module suncore {
     }
 
     /**
+     * 服务接口（主要用于逻辑层架构）
+     * 说明：
+     * 1. 每个服务均有独立的生命周期。
+     * 2. 服务被设计用来处理与表现层无关的有状态业务。
+     */
+    interface IService {
+        /**
+         * 服务是否正在运行
+         */
+        readonly running: boolean;
+
+        /**
+         * 服务启动入口
+         */
+        run(): void;
+
+        /**
+         * 服务停止接口
+         */
+        stop(): void;
+    }
+
+    /**
      * 任务接口
+     * 说明：
+     * 1. Task支持
      */
     interface ITask {
         /**
-         * 任务是否己经完成
+         * 是否正在运行
          */
-        done: boolean;
+        readonly running: boolean;
 
         /**
          * 执行函数
@@ -217,7 +246,9 @@ declare module suncore {
         run(): boolean;
 
         /**
-         * 取消任务
+         * 取消任务（内置接口，请勿调用）
+         * 说明：
+         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行
          */
         cancel(): void;
     }
@@ -232,9 +263,19 @@ declare module suncore {
         protected $done: boolean;
 
         /**
-         * 任务是否己经完成
+         * 是否正在运行（内置变量，请勿操作）
          */
-        done: boolean;
+        protected $running: boolean;
+
+        /**
+         * 是否己销毁
+         */
+        protected $destroyed: boolean;
+
+        /**
+         * 是否正在运行
+         */
+        running: boolean;
 
         /**
          * 执行函数
@@ -243,7 +284,7 @@ declare module suncore {
         abstract run(): boolean;
 
         /**
-         * 任务取消
+         * 任务取消（内置接口，请勿调用）
          * 说明：
          * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行
          */
@@ -254,9 +295,9 @@ declare module suncore {
      * 服务（主要用于逻辑层架构）
      * 说明：
      * 1. 每个服务均有独立的生命周期。
-     * 2. 服务被设计用来处理与表现层无关的有状态的业务。
+     * 2. 服务被设计用来处理与表现层无关的有状态业务。
      */
-    abstract class BaseService extends puremvc.Notifier {
+    abstract class BaseService extends puremvc.Notifier implements IService {
 
         /**
          * 服务启动入口
@@ -311,21 +352,66 @@ declare module suncore {
      * 命令枚举
      */
     abstract class NotifyKey {
-
+        /**
+         * 启动命令
+         */
         static readonly STARTUP: string;
 
+        /**
+         * 停止命令
+         */
         static readonly SHUTDOWN: string;
 
+        /**
+         * 启用时间轴 { mod: ModuleEnum, pause: boolean = false }
+         * @mod: 时间轴模块
+         * @pause: 若为true，时间轴开始后将处于暂停模式
+         * 说明：
+         * 1. 参数pause并不会对SYSTEM模块的时间轴生效
+         */
         static readonly START_TIMELINE: string;
 
+        /**
+         * 暂停时间轴 { mod: ModuleEnum, stop: boolean = true }
+         * @mod: 时间轴模块
+         * @stop: 若为true，时间轴将被停止而非暂停
+         * 说明：
+         * 1. 时间轴停止后，对应的模块无法被添加任务
+         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
+         */
         static readonly PAUSE_TIMELINE: string;
 
+        /**
+         * 物理帧事件（后于物理预处理事件执行）
+         * 说明：
+         * 1. 此事件在物理计算之后派发，故物理世界中的数据应当在此事件中被读取
+         * 2. 物理计算优先于定时器事件
+         * 比如：
+         * 1. 你应当在此事件中获取对象的物理数据来计算，以确保你的所使用的都是物理计算完成之后的数据
+         */
         static readonly PHYSICS_FRAME: string;
 
+        /**
+         * 物理预处理事件（先于物理帧事件执行）
+         * 说明：
+         * 1. 此事件在物理计算之前派发，故外部的数据应当在此事件中传入物理引擎
+         * 比如：
+         * 1. 你可以在此事件中直接更改物理对象的位置，引擎会使用你传入的位置来参与碰撞
+         */
         static readonly PHYSICS_PREPARE: string;
 
+        /**
+         * 帧事件（进入事件）
+         * 说明：
+         * 1. 该事件优先于Message消息机制执行
+         */
         static readonly ENTER_FRAME: string;
 
+        /**
+         * 帧事件（晚于事件）
+         * 说明：
+         * 1. 该事件次后于Message消息机制执行
+         */
         static readonly LATER_FRAME: string;
     }
 
@@ -336,9 +422,7 @@ declare module suncore {
 
         /**
          * @mod: 时间轴模块
-         * @stop: 是否停止时间轴，默认为true
-         * 1. 时间轴停止时，对应的模块无法被添加任务
-         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
+         * @stop: 若为true，时间轴将被停止而非暂停，默认为：true
          */
         execute(mod:ModuleEnum, stop?:boolean): void;
     }
@@ -364,14 +448,12 @@ declare module suncore {
         /**
          * @mod: 时间轴模块
          * @pause: 时间轴在开启时是否处于暂停状态
-         * 说明：
-         * 1. 参数pause并不会对SYSTEM模块的时间轴生效
          */
         execute(mod:ModuleEnum, pause?:boolean): void;
     }
 
     /**
-     * MsgQ接口类
+     * MsgQ机制
      * 设计说明：
      * 1. 设计MsgQ的主要目的是为了对不同的模块进行彻底的解耦
      * 2. 考虑到在实际环境中，网络可能存在波动，而UI层可能会涉及到资源的动态加载与释放管理，故MsgQ中的消息是以异步的形式进行派发的
@@ -382,24 +464,13 @@ declare module suncore {
         /**
          * 发送消息（异步）
          */
-        function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data?: any): void;
+        function send(dst: MsgQModEnum, id: number, data?: any): void;
     }
 
     /**
      * 互斥体，用于实现模块之间的消息互斥
      */
     namespace Mutex {
-        /**
-         * 激活互斥体的MsgQ模块
-         * 说明：
-         * 1. 当此变量的值为-1时，允许激活互斥体
-         * 2. 首次引用互斥体视为激活互斥体
-         * 3. 激活互斥体的模块将被记录在此变量中
-         * 4. 若激活消息的模块为MMI通用模块，则此记录值允许被替换成任意的其它MMI模块，仅第一次生效
-         * 5. 此变量会在互斥引用为0时重新置为-1
-         */
-        let actMsgQMod: MsgQModEnum;
-
         /**
          * 是否校验消息前缀，默认为false
          */

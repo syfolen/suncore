@@ -6,14 +6,19 @@ module suncore {
      */
     export enum MsgQModEnum {
         /**
+         * 空模块
+         */
+        NIL = -1,
+
+        /**
          * 系统层
-         * 说明：
-         * 1. 请勿修改此值，否则可能会引起MsgQ消息传递合法性校验失效
          */
         SYS = 0,
 
         /**
          * 内核层
+         * 说明：
+         * 1. 请勿修改此值，否则可能会引起MsgQ消息传递合法性校验失效
          * export
          */
         KAL = 1,
@@ -21,7 +26,7 @@ module suncore {
         /**
          * 表现层
          * 说明：
-         * 1. 表现层的消息层许往CUI或GUI模块传递
+         * 1. 表现层的消息允许往CUI或GUI模块传递
          * export
          */
         MMI,
@@ -48,6 +53,11 @@ module suncore {
          * 网络层
          * export
          */
-        NSL
+        NSL,
+
+        /**
+         * 任意层
+         */
+        ANY
     }
 }

@@ -50,21 +50,30 @@ var suncore;
     })(MsgQIdEnum = suncore.MsgQIdEnum || (suncore.MsgQIdEnum = {}));
     var MsgQModEnum;
     (function (MsgQModEnum) {
-        MsgQModEnum[MsgQModEnum["KAL"] = 0] = "KAL";
-        MsgQModEnum[MsgQModEnum["MMI"] = 1] = "MMI";
-        MsgQModEnum[MsgQModEnum["CUI"] = 2] = "CUI";
-        MsgQModEnum[MsgQModEnum["GUI"] = 3] = "GUI";
-        MsgQModEnum[MsgQModEnum["L4C"] = 4] = "L4C";
-        MsgQModEnum[MsgQModEnum["NSL"] = 5] = "NSL";
+        MsgQModEnum[MsgQModEnum["NIL"] = -1] = "NIL";
+        MsgQModEnum[MsgQModEnum["SYS"] = 0] = "SYS";
+        MsgQModEnum[MsgQModEnum["KAL"] = 1] = "KAL";
+        MsgQModEnum[MsgQModEnum["MMI"] = 2] = "MMI";
+        MsgQModEnum[MsgQModEnum["CUI"] = 3] = "CUI";
+        MsgQModEnum[MsgQModEnum["GUI"] = 4] = "GUI";
+        MsgQModEnum[MsgQModEnum["L4C"] = 5] = "L4C";
+        MsgQModEnum[MsgQModEnum["NSL"] = 6] = "NSL";
+        MsgQModEnum[MsgQModEnum["ANY"] = 7] = "ANY";
     })(MsgQModEnum = suncore.MsgQModEnum || (suncore.MsgQModEnum = {}));
     var AbstractTask = (function (_super) {
         __extends(AbstractTask, _super);
         function AbstractTask() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.$done = false;
+            _this.$running = false;
+            _this.$destroyed = false;
             return _this;
         }
         AbstractTask.prototype.cancel = function () {
+        };
+        AbstractTask.prototype.destroy = function () {
+            this.$running = false;
+            this.$destroyed = true;
         };
         Object.defineProperty(AbstractTask.prototype, "done", {
             get: function () {
@@ -72,6 +81,23 @@ var suncore;
             },
             set: function (yes) {
                 this.$done = yes;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AbstractTask.prototype, "running", {
+            get: function () {
+                return this.$running;
+            },
+            set: function (yes) {
+                this.$running = yes;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AbstractTask.prototype, "destroyed", {
+            get: function () {
+                return this.$destroyed;
             },
             enumerable: true,
             configurable: true
@@ -115,7 +141,7 @@ var suncore;
     var Engine = (function (_super) {
         __extends(Engine, _super);
         function Engine() {
-            var _this = _super.call(this, MsgQModEnum.KAL) || this;
+            var _this = _super.call(this, MsgQModEnum.SYS) || this;
             _this.$delta = 0;
             _this.$runTime = 0;
             _this.$localTime = new Date().valueOf();
@@ -135,17 +161,17 @@ var suncore;
             }
         };
         Engine.prototype.$lapse = function (delta) {
-            if (System.isModulePaused(ModuleEnum.TIMELINE) === false) {
-                M.timeline.lapse(delta);
-            }
             if (System.isModulePaused(ModuleEnum.CUSTOM) === false) {
                 M.timeStamp.lapse(delta);
+            }
+            if (System.isModulePaused(ModuleEnum.TIMELINE) === false) {
+                M.timeline.lapse(delta);
             }
             this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NSL);
             this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);
             this.facade.sendNotification(NotifyKey.PHYSICS_FRAME);
-            this.facade.sendNotification(NotifyKey.ENTER_FRAME);
             M.timerManager.executeTimer();
+            this.facade.sendNotification(NotifyKey.ENTER_FRAME);
             M.messageManager.dealMessage();
             M.messageManager.classifyMessages0();
             this.facade.sendNotification(NotifyKey.LATER_FRAME);
@@ -160,12 +186,6 @@ var suncore;
         return Engine;
     }(puremvc.Notifier));
     suncore.Engine = Engine;
-    var Message = (function () {
-        function Message() {
-        }
-        return Message;
-    }());
-    suncore.Message = Message;
     var MessageManager = (function () {
         function MessageManager() {
             this.$queues = [];
@@ -216,7 +236,6 @@ var suncore;
                 if (priority === MessagePriorityEnum.PRIORITY_LAZY) {
                     continue;
                 }
-                remainCount += queue.length;
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
                     if (queue.length > 0) {
                         if (this.$dealTaskMessage(queue[0]) === true) {
@@ -226,9 +245,12 @@ var suncore;
                     }
                 }
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
-                    while (queue.length && this.$dealTriggerMessage(queue[0]) === true) {
+                    var out = { canceled: false };
+                    while (queue.length && this.$dealTriggerMessage(queue[0], out) === true) {
                         queue.shift();
-                        dealCount++;
+                        if (out.canceled === false) {
+                            dealCount++;
+                        }
                     }
                 }
                 else if (queue.length > 0) {
@@ -241,39 +263,35 @@ var suncore;
                     }
                     dealCount += okCount;
                 }
+                remainCount += queue.length;
             }
-            if (remainCount === 0 && this.$messages0.length === 0) {
+            if (remainCount === 0 && dealCount === 0 && this.$messages0.length === 0) {
                 var queue = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
                 if (queue.length > 0) {
                     this.$dealCustomMessage(queue.shift());
                     dealCount++;
                 }
             }
-            return dealCount;
         };
         MessageQueue.prototype.$dealTaskMessage = function (message) {
             var task = message.task;
-            if (message.active === false) {
-                message.active = true;
+            if (task.running === false && task.destroyed === false) {
+                task.running = true;
                 if (task.run() === true) {
                     task.done = true;
                 }
             }
             return task.done === true;
         };
-        MessageQueue.prototype.$dealTriggerMessage = function (message) {
+        MessageQueue.prototype.$dealTriggerMessage = function (message, out) {
             if (message.timeout > System.getModuleTimestamp(this.$mod)) {
                 return false;
             }
-            message.handler.run();
+            out.canceled = message.handler.run() === false;
             return true;
         };
         MessageQueue.prototype.$dealCustomMessage = function (message) {
-            var res = message.handler.run();
-            if (res === false) {
-                return false;
-            }
-            return true;
+            return message.handler.run() !== false;
         };
         MessageQueue.prototype.$getDealCountByPriority = function (priority) {
             if (priority === MessagePriorityEnum.PRIORITY_0) {
@@ -345,7 +363,9 @@ var suncore;
         };
         MessageQueue.prototype.$cancelMessage = function (message) {
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
-                message.task.cancel();
+                if (message.task.destroyed === false) {
+                    message.task.cancel();
+                }
             }
         };
         return MessageQueue;
@@ -388,6 +408,154 @@ var suncore;
         return MsgQService;
     }(BaseService));
     suncore.MsgQService = MsgQService;
+    var MutexLocker = (function () {
+        function MutexLocker() {
+            this.$actMsgQMod = MsgQModEnum.NIL;
+            this.$curMsgQMod = MsgQModEnum.NIL;
+            this.$target = {};
+        }
+        MutexLocker.prototype.asserts = function (msgQMod, target) {
+            if (msgQMod === MsgQModEnum.SYS) {
+                return;
+            }
+            if (this.$curMsgQMod === MsgQModEnum.NIL || this.$curMsgQMod === MsgQModEnum.SYS) {
+                return;
+            }
+            if (this.$curMsgQMod === MsgQModEnum.MMI) {
+                if (msgQMod === MsgQModEnum.MMI || Mutex.mmiMsgQMap[msgQMod] === true) {
+                    return;
+                }
+            }
+            else if (this.$curMsgQMod === msgQMod) {
+                return;
+            }
+            else if (msgQMod === MsgQModEnum.MMI && Mutex.mmiMsgQMap[this.$curMsgQMod] === true) {
+                return;
+            }
+            if (target === null) {
+                throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[this.$curMsgQMod] + ", dest:" + suncore.MsgQModEnum[msgQMod]);
+            }
+            else {
+                throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[this.$curMsgQMod] + ", dest:" + suncore.MsgQModEnum[msgQMod]);
+            }
+        };
+        MutexLocker.prototype.update = function (target) {
+            this.$target = target;
+            if (target instanceof puremvc.Notifier) {
+                this.$actMsgQMod = target.msgQMod;
+            }
+            else {
+                this.$actMsgQMod = MsgQModEnum.MMI;
+            }
+            var prefix = target[MutexLocker.MUTEX_PREFIX_KEY] || null;
+            if (prefix === null) {
+                this.$curMsgQMod = this.$actMsgQMod;
+            }
+            else {
+                this.$curMsgQMod = Mutex.msgQMap[prefix];
+            }
+        };
+        MutexLocker.prototype.lock = function (msgQMod) {
+            var a = this.$target[MutexLocker.MUTEX_REFERENCE_SYS] || 0;
+            var b = this.$target[MutexLocker.MUTEX_REFERENCE_MMI] || 0;
+            var c = this.$target[MutexLocker.MUTEX_REFERENCE_ANY] || 0;
+            if (msgQMod === MsgQModEnum.SYS) {
+                a++;
+            }
+            else if (msgQMod === MsgQModEnum.MMI) {
+                b++;
+            }
+            else {
+                c++;
+            }
+            if (this.$curMsgQMod === MsgQModEnum.NIL || this.$curMsgQMod === MsgQModEnum.SYS) {
+                this.$curMsgQMod = msgQMod;
+            }
+            else if (this.$curMsgQMod === MsgQModEnum.MMI && msgQMod !== MsgQModEnum.SYS) {
+                this.$curMsgQMod = msgQMod;
+            }
+            this.$cache(a, b, c, false);
+        };
+        MutexLocker.prototype.unlock = function (msgQMod) {
+            var a = this.$target[MutexLocker.MUTEX_REFERENCE_SYS] || 0;
+            var b = this.$target[MutexLocker.MUTEX_REFERENCE_MMI] || 0;
+            var c = this.$target[MutexLocker.MUTEX_REFERENCE_ANY] || 0;
+            if (msgQMod === MsgQModEnum.SYS) {
+                a--;
+            }
+            else if (msgQMod === MsgQModEnum.MMI) {
+                b--;
+            }
+            else {
+                c--;
+            }
+            if (a < 0 || b < 0 || c < 0) {
+                throw Error("\u4E92\u65A5\u4F53\u91CA\u653E\u9519\u8BEF\uFF1ASYS[" + a + "], MMI[" + b + "], ANY[" + c + "]");
+            }
+            if (this.$curMsgQMod === this.$actMsgQMod) {
+            }
+            else if (c > 0) {
+            }
+            else if (b > 0) {
+                this.$curMsgQMod = MsgQModEnum.MMI;
+            }
+            else if (a > 0) {
+                this.$curMsgQMod = MsgQModEnum.SYS;
+            }
+            else {
+                this.$curMsgQMod = this.$actMsgQMod;
+            }
+            this.$cache(a, b, c, true);
+        };
+        MutexLocker.prototype.active = function (msgQMod) {
+            if (this.$actMsgQMod === MsgQModEnum.NIL) {
+                this.$actMsgQMod = this.$curMsgQMod = msgQMod;
+            }
+        };
+        MutexLocker.prototype.deactive = function () {
+            var a = this.$target[MutexLocker.MUTEX_REFERENCE_SYS] || 0;
+            var b = this.$target[MutexLocker.MUTEX_REFERENCE_MMI] || 0;
+            var c = this.$target[MutexLocker.MUTEX_REFERENCE_ANY] || 0;
+            if (a === 0 && b === 0 && c === 0) {
+                this.$actMsgQMod = this.$curMsgQMod = MsgQModEnum.NIL;
+            }
+        };
+        MutexLocker.prototype.$cache = function (a, b, c, d) {
+            if (a > 0) {
+                this.$target[MutexLocker.MUTEX_REFERENCE_SYS] = a;
+            }
+            else if (d === true) {
+                delete this.$target[MutexLocker.MUTEX_REFERENCE_SYS];
+            }
+            if (b > 0) {
+                this.$target[MutexLocker.MUTEX_REFERENCE_MMI] = b;
+            }
+            else if (d === true) {
+                delete this.$target[MutexLocker.MUTEX_REFERENCE_MMI];
+            }
+            if (c > 0) {
+                this.$target[MutexLocker.MUTEX_PREFIX_KEY] = Mutex.msgQCmd[this.$curMsgQMod];
+                this.$target[MutexLocker.MUTEX_REFERENCE_ANY] = c;
+            }
+            else if (d === true) {
+                delete this.$target[MutexLocker.MUTEX_PREFIX_KEY];
+                delete this.$target[MutexLocker.MUTEX_REFERENCE_ANY];
+            }
+        };
+        Object.defineProperty(MutexLocker.prototype, "curMsgQMod", {
+            get: function () {
+                return this.$curMsgQMod;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MutexLocker.MUTEX_PREFIX_KEY = "suncore$mutex$prefix";
+        MutexLocker.MUTEX_REFERENCE_SYS = "suncore$mutex$reference$sys";
+        MutexLocker.MUTEX_REFERENCE_MMI = "suncore$mutex$reference$mmi";
+        MutexLocker.MUTEX_REFERENCE_ANY = "suncore$mutex$reference$any";
+        return MutexLocker;
+    }());
+    suncore.MutexLocker = MutexLocker;
     var NotifyKey = (function () {
         function NotifyKey() {
         }
@@ -410,21 +578,18 @@ var suncore;
         }
         PauseTimelineCommand.prototype.execute = function (mod, stop) {
             if (stop === void 0) { stop = true; }
-            if (stop === void 0) {
-                throw Error("\u6682\u505C\u65F6\u95F4\u8F74\u65F6\u5E94\u5F53\u6307\u5B9A\u53C2\u6570 stop \u7684\u503C");
-            }
             if (stop === true) {
                 if (System.isModuleStopped(mod) === true) {
-                    console.error("Module " + ModuleEnum[mod] + " Is Already Stopped!!!");
+                    console.error("\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u505C\u6B62\uFF01\uFF01\uFF01");
                     return;
                 }
             }
             else if (System.isModulePaused(mod) === true) {
-                console.error("Module " + ModuleEnum[mod] + " Is Already Paused!!!");
+                console.error("\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u6682\u505C\uFF01\uFF01\uFF01");
                 return;
             }
             else if (mod === ModuleEnum.SYSTEM) {
-                console.error("Module " + ModuleEnum[mod] + " Cannot Be Paused!!!");
+                console.error("\u65E0\u6CD5\u6682\u505C " + ModuleEnum[mod] + " \u6A21\u5757\uFF01\uFF01\uFF01");
                 return;
             }
             if (mod === ModuleEnum.TIMELINE) {
@@ -482,11 +647,8 @@ var suncore;
         }
         StartTimelineCommand.prototype.execute = function (mod, pause) {
             if (pause === void 0) { pause = false; }
-            if (pause === void 0) {
-                throw Error("\u6682\u505C\u65F6\u95F4\u8F74\u65F6\u5E94\u5F53\u6307\u5B9A\u53C2\u6570 pause \u7684\u503C");
-            }
             if (System.isModulePaused(mod) === false) {
-                console.error("Module " + ModuleEnum[mod] + " Is Already Started!!!");
+                console.error("\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u542F\u52A8\uFF01\uFF01\uFF01");
                 return;
             }
             if (mod === ModuleEnum.SYSTEM && M.engine === null) {
@@ -524,12 +686,10 @@ var suncore;
             this.$runTime += delta;
         };
         Timeline.prototype.pause = function (stop) {
-            if (stop === void 0) { stop = false; }
             this.$paused = true;
             this.$stopped = stop;
         };
         Timeline.prototype.resume = function (paused) {
-            if (paused === void 0) { paused = false; }
             this.$paused = paused;
             this.$stopped = false;
         };
@@ -553,12 +713,6 @@ var suncore;
         return Timeline;
     }());
     suncore.Timeline = Timeline;
-    var Timer = (function () {
-        function Timer() {
-        }
-        return Timer;
-    }());
-    suncore.Timer = Timer;
     var TimerManager = (function () {
         function TimerManager() {
             this.$seedId = 0;
@@ -584,34 +738,33 @@ var suncore;
                                 break;
                             }
                             if (timer.real === true) {
-                                timer.repeat++;
+                                timer.count++;
                             }
                             else {
-                                timer.repeat = Math.floor((timestamp - timer.timestamp) / timer.delay);
+                                timer.count = Math.floor((timestamp - timer.timestamp) / timer.delay);
                             }
                         }
-                        if (timer.active === false || (timer.loops > 0 && timer.repeat >= timer.loops)) {
+                        if (timer.active === false || (timer.loops > 0 && timer.count >= timer.loops)) {
                             delete this.$timerMap[timer.timerId];
                         }
                         else {
-                            this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.repeat);
+                            this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.count);
                         }
                         timers.shift();
                         if (timer.active === true) {
-                            timer.method.call(timer.caller, timer.repeat, timer.loops);
+                            timer.method.call(timer.caller, timer.count, timer.loops);
                         }
                     }
                 }
             }
         };
-        TimerManager.prototype.addTimer = function (mod, delay, method, caller, loops, real, timerId, timestamp, timeout, repeat) {
+        TimerManager.prototype.addTimer = function (mod, delay, method, caller, loops, real, timerId, timestamp, timeout, count) {
             if (loops === void 0) { loops = 1; }
             if (real === void 0) { real = false; }
             if (timerId === void 0) { timerId = 0; }
             if (timestamp === void 0) { timestamp = -1; }
             if (timeout === void 0) { timeout = -1; }
-            if (repeat === void 0) { repeat = 0; }
-            var timer = new Timer();
+            if (count === void 0) { count = 0; }
             var currentTimestamp = System.getModuleTimestamp(mod);
             if (timerId === 0) {
                 timerId = this.$createNewTimerId();
@@ -633,17 +786,19 @@ var suncore;
                 dev = (currentTimestamp - timestamp) % delay;
             }
             timeout = currentTimestamp + delay - dev;
-            timer.mod = mod;
-            timer.active = true;
-            timer.delay = delay;
-            timer.method = method;
-            timer.caller = caller;
-            timer.real = real;
-            timer.loops = loops;
-            timer.repeat = repeat;
-            timer.timerId = timerId;
-            timer.timestamp = timestamp;
-            timer.timeout = timeout;
+            var timer = {
+                mod: mod,
+                active: true,
+                delay: delay,
+                method: method,
+                caller: caller,
+                real: real,
+                count: count,
+                loops: loops,
+                timerId: timerId,
+                timestamp: timestamp,
+                timeout: timeout
+            };
             var timers = this.$timers[mod];
             var index = -1;
             var min = 0;
@@ -705,22 +860,21 @@ var suncore;
         var $queues = {};
         var $modStats = {};
         MsgQ.seqId = 1;
-        function send(src, dest, id, data) {
-            if (isModuleActive(dest) === false) {
-                console.warn("\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6A21\u5757\u5DF1\u6682\u505C mod:" + MsgQModEnum[dest]);
+        function send(dst, id, data) {
+            if (isModuleActive(dst) === false) {
+                console.warn("\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6A21\u5757\u5DF1\u6682\u505C mod:" + MsgQModEnum[dst]);
                 return;
             }
-            if (check(dest, id) === false) {
-                console.warn("\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6D88\u606FID\u975E\u6CD5 mod:" + dest + ", id:" + id);
+            if (check(dst, id) === false) {
+                console.warn("\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6D88\u606FID\u975E\u6CD5 mod:" + dst + ", id:" + id);
                 return;
             }
-            var array = $queues[dest] || null;
+            var array = $queues[dst] || null;
             if (array === null) {
-                array = $queues[dest] = [];
+                array = $queues[dst] = [];
             }
             var msg = {
-                src: src,
-                dest: dest,
+                dst: dst,
                 seqId: MsgQ.seqId,
                 id: id,
                 data: data
@@ -747,13 +901,13 @@ var suncore;
         MsgQ.fetch = fetch;
         function check(mod, id) {
             var min, max;
-            if (mod === MsgQModEnum.NSL) {
-                min = MsgQIdEnum.NSL_MSG_ID_BEGIN;
-                max = MsgQIdEnum.NSL_MSG_ID_END;
-            }
-            else if (mod === MsgQModEnum.KAL) {
+            if (mod === MsgQModEnum.KAL) {
                 min = MsgQIdEnum.KAL_MSG_ID_BEGIN;
                 max = MsgQIdEnum.KAL_MSG_ID_END;
+            }
+            else if (mod === MsgQModEnum.MMI) {
+                min = MsgQIdEnum.MMI_MSG_ID_BEGIN;
+                max = MsgQIdEnum.MMI_MSG_ID_END;
             }
             else if (mod === MsgQModEnum.CUI) {
                 min = MsgQIdEnum.CUI_MSG_ID_BEGIN;
@@ -762,6 +916,14 @@ var suncore;
             else if (mod === MsgQModEnum.GUI) {
                 min = MsgQIdEnum.GUI_MSG_ID_BEGIN;
                 max = MsgQIdEnum.GUI_MSG_ID_END;
+            }
+            else if (mod === MsgQModEnum.L4C) {
+                min = MsgQIdEnum.L4C_MSG_ID_BEGIN;
+                max = MsgQIdEnum.L4C_MSG_ID_END;
+            }
+            else if (mod === MsgQModEnum.NSL) {
+                min = MsgQIdEnum.NSL_MSG_ID_BEGIN;
+                max = MsgQIdEnum.NSL_MSG_ID_END;
             }
             else {
                 throw Error("\u672A\u77E5\u7684\u6D88\u606F\u8303\u56F4 mod:" + mod);
@@ -774,72 +936,33 @@ var suncore;
         MsgQ.isModuleActive = isModuleActive;
         function setModuleActive(mod, active) {
             $modStats[mod] = active;
-            if (active === true) {
-                return;
+            if (active === false) {
+                delete $queues[mod];
             }
-            var queue = $queues[mod] || null;
-            if (queue === null) {
-                return;
-            }
-            queue.length = 0;
         }
         MsgQ.setModuleActive = setModuleActive;
     })(MsgQ = suncore.MsgQ || (suncore.MsgQ = {}));
     var Mutex;
     (function (Mutex) {
-        var MMI_COMMAND_PREFIX = "MMI";
-        var SYSTEM_COMMAND_PREFIX = "sun";
-        var MUTEX_PREFIX_KEY = "suncore$mutex$prefix";
-        var MUTEX_MUTEXES_KEY = "suncore$mutex$mutexes";
-        var MUTEX_MMI_REFERENCES_KEY = "suncore$mutex$references";
-        var mutexes = 0;
-        var threshold = 0;
-        var references = 0;
-        Mutex.actMsgQMod = -1;
+        Mutex.MMI_COMMAND_PREFIX = "MMI";
+        Mutex.SYSTEM_COMMAND_PREFIX = "sun";
+        var data = new MutexLocker();
+        var locker = new MutexLocker();
         Mutex.checkPrefix = false;
-        Mutex.msgQMap = { "MMI": 9527 };
+        Mutex.msgQMap = { "sun": MsgQModEnum.SYS, "MMI": MsgQModEnum.MMI };
         Mutex.msgQCmd = {};
         Mutex.mmiMsgQMap = {};
         function getCommandPrefix(name) {
-            if (name.substr(0, 3) === SYSTEM_COMMAND_PREFIX) {
-                return SYSTEM_COMMAND_PREFIX;
+            if (name.substr(0, 3) === Mutex.SYSTEM_COMMAND_PREFIX) {
+                return Mutex.SYSTEM_COMMAND_PREFIX;
             }
             var index = name.indexOf("_");
             if (index < 1) {
                 throw Error("\u5FC5\u987B\u4E3A\u547D\u4EE4\u6307\u5B9A\u4E00\u4E2A\u6A21\u5757\u540D\uFF0C\u683C\u5F0F\u5982 MOD_" + name);
             }
-            return name.substr(0, index);
-        }
-        function isMMIPrefix(prefix) {
-            var msgQMod = Mutex.msgQMap[prefix] || -1;
-            return msgQMod !== -1 && Mutex.mmiMsgQMap[msgQMod] === true;
-        }
-        function asserts(prefix) {
-            if (prefix === SYSTEM_COMMAND_PREFIX) {
-                return prefix;
-            }
+            var prefix = name.substr(0, index);
             if (Mutex.msgQMap[prefix] === void 0) {
                 throw Error("\u672A\u6CE8\u518C\u7684MsgQ\u6D88\u606F\u524D\u7F00\uFF1A" + prefix);
-            }
-            if (Mutex.actMsgQMod === MsgQModEnum.MMI) {
-                if (isMMIPrefix(prefix) === true) {
-                    Mutex.actMsgQMod = Mutex.msgQMap[prefix];
-                }
-                else if (prefix !== MMI_COMMAND_PREFIX) {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F src:" + MMI_COMMAND_PREFIX + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
-                }
-            }
-            else if (Mutex.actMsgQMod !== suncore.MsgQModEnum.KAL) {
-                var cmd = Mutex.msgQCmd[Mutex.actMsgQMod] || null;
-                if (cmd === null) {
-                    throw Error("\u610F\u5916\u7684MsgQMod " + Mutex.actMsgQMod);
-                }
-                if (cmd !== prefix) {
-                    var yes = isMMIPrefix(cmd);
-                    if (yes === false || (yes === true && prefix !== MMI_COMMAND_PREFIX)) {
-                        throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F src:" + suncore.MsgQModEnum[Mutex.msgQMap[cmd]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
-                    }
-                }
             }
             return prefix;
         }
@@ -847,48 +970,34 @@ var suncore;
             if (Mutex.checkPrefix === false) {
                 return true;
             }
-            if (Mutex.actMsgQMod === -1 || Mutex.actMsgQMod === MsgQModEnum.KAL) {
+            if (data.curMsgQMod === MsgQModEnum.NIL || data.curMsgQMod === MsgQModEnum.SYS || data.curMsgQMod === MsgQModEnum.MMI) {
                 return true;
             }
-            if (Mutex.actMsgQMod === MsgQModEnum.MMI) {
-                return true;
-            }
-            return Mutex.mmiMsgQMap[Mutex.actMsgQMod] === true;
+            return Mutex.mmiMsgQMap[data.curMsgQMod] === true;
         }
         Mutex.enableMMIAction = enableMMIAction;
         function active(msgQMod) {
             if (Mutex.checkPrefix === false) {
                 return;
             }
-            if (Mutex.actMsgQMod === -1) {
-                Mutex.actMsgQMod = msgQMod;
-            }
+            data.active(msgQMod);
         }
         Mutex.active = active;
         function deactive() {
             if (Mutex.checkPrefix === false) {
                 return;
             }
-            if (references === 0 && mutexes === 0 && Mutex.actMsgQMod !== -1) {
-                Mutex.actMsgQMod = -1;
-            }
+            data.deactive();
         }
         Mutex.deactive = deactive;
         function lock(name) {
             if (Mutex.checkPrefix === false) {
                 return;
             }
-            var prefix = asserts(getCommandPrefix(name));
-            if (Mutex.actMsgQMod === suncore.MsgQModEnum.KAL && prefix !== SYSTEM_COMMAND_PREFIX) {
-                threshold = references;
-                Mutex.actMsgQMod = Mutex.msgQMap[prefix];
-            }
-            if (prefix === SYSTEM_COMMAND_PREFIX || prefix === MMI_COMMAND_PREFIX) {
-                references++;
-            }
-            else {
-                mutexes++;
-            }
+            var prefix = getCommandPrefix(name);
+            var msgQMod = Mutex.msgQMap[prefix];
+            data.asserts(msgQMod, null);
+            data.lock(msgQMod);
         }
         Mutex.lock = lock;
         function unlock(name) {
@@ -896,19 +1005,9 @@ var suncore;
                 return;
             }
             var prefix = getCommandPrefix(name);
-            if (prefix === SYSTEM_COMMAND_PREFIX || prefix === MMI_COMMAND_PREFIX) {
-                references--;
-            }
-            else {
-                mutexes--;
-                if (mutexes < 0) {
-                    throw Error("\u4E92\u65A5\u4F53\u91CA\u653E\u9519\u8BEF\uFF1A" + mutexes);
-                }
-            }
-            if (threshold === references && mutexes === 0) {
-                threshold = 0;
-                Mutex.actMsgQMod = MsgQModEnum.KAL;
-            }
+            var msgQMod = Mutex.msgQMap[prefix];
+            data.asserts(msgQMod, null);
+            data.unlock(msgQMod);
         }
         Mutex.unlock = unlock;
         function create(name, target) {
@@ -918,37 +1017,11 @@ var suncore;
             if (target === null || target === puremvc.Controller.inst || target === puremvc.View.inst) {
                 return;
             }
-            var prefix = asserts(getCommandPrefix(name));
-            if (prefix === SYSTEM_COMMAND_PREFIX) {
-                return;
-            }
-            var mutex = target[MUTEX_MUTEXES_KEY] || 0;
-            var references = target[MUTEX_MMI_REFERENCES_KEY] || 0;
-            var str = target[MUTEX_PREFIX_KEY] || MMI_COMMAND_PREFIX;
-            if (prefix === MMI_COMMAND_PREFIX) {
-                if (mutex > 0 && isMMIPrefix(str) === false) {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
-                }
-            }
-            else if (isMMIPrefix(prefix) === true) {
-                if (mutex > 0 && str !== prefix) {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
-                }
-            }
-            else {
-                if (references > 0 || (mutex > 0 && str !== prefix)) {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
-                }
-            }
-            if (prefix === MMI_COMMAND_PREFIX) {
-                target[MUTEX_MMI_REFERENCES_KEY] = references + 1;
-            }
-            else {
-                target[MUTEX_MUTEXES_KEY] = mutex + 1;
-                if (mutex === 0) {
-                    target[MUTEX_PREFIX_KEY] = prefix;
-                }
-            }
+            var prefix = getCommandPrefix(name);
+            var msgQMod = Mutex.msgQMap[prefix];
+            locker.update(target);
+            data.asserts(msgQMod, target);
+            locker.lock(msgQMod);
         }
         Mutex.create = create;
         function release(name, target) {
@@ -958,44 +1031,11 @@ var suncore;
             if (target === null || target === puremvc.Controller.inst || target === puremvc.View.inst) {
                 return;
             }
-            var prefix = asserts(getCommandPrefix(name));
-            if (prefix === SYSTEM_COMMAND_PREFIX) {
-                return;
-            }
-            var mutex = target[MUTEX_MUTEXES_KEY] || 0;
-            var references = target[MUTEX_MMI_REFERENCES_KEY] || 0;
-            if (mutex <= 0 && references <= 0) {
-                throw Error("\u4E92\u65A5\u91CF\u72B6\u6001\u6709\u8BEF");
-            }
-            var str = target[MUTEX_PREFIX_KEY] || MMI_COMMAND_PREFIX;
-            if (prefix === MMI_COMMAND_PREFIX) {
-                if (mutex > 0 && isMMIPrefix(str) === false) {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
-                }
-            }
-            else if (isMMIPrefix(prefix) === true) {
-                if (mutex > 0 && str !== prefix) {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
-                }
-            }
-            else {
-                if (references > 0 || str !== prefix) {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
-                }
-            }
-            if (prefix === MMI_COMMAND_PREFIX) {
-                target[MUTEX_MMI_REFERENCES_KEY] = references - 1;
-                if (references === 1) {
-                    delete target[MUTEX_MMI_REFERENCES_KEY];
-                }
-            }
-            else {
-                target[MUTEX_MUTEXES_KEY] = mutex - 1;
-                if (mutex === 1) {
-                    delete target[MUTEX_MUTEXES_KEY];
-                    delete target[MUTEX_PREFIX_KEY];
-                }
-            }
+            var prefix = getCommandPrefix(name);
+            var msgQMod = Mutex.msgQMap[prefix];
+            locker.update(target);
+            data.asserts(msgQMod, target);
+            locker.unlock(msgQMod);
         }
         Mutex.release = release;
     })(Mutex = suncore.Mutex || (suncore.Mutex = {}));
@@ -1032,57 +1072,61 @@ var suncore;
         }
         System.isModulePaused = isModulePaused;
         function getDelta() {
+            if (isModuleStopped(ModuleEnum.SYSTEM) === true) {
+                throw Error("\u5C1D\u8BD5\u83B7\u53D6\u5E27\u65F6\u95F4\u95F4\u9694\uFF0C\u4F46\u7CFB\u7EDF\u6A21\u5757\u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            }
             return M.engine.getDelta();
         }
         System.getDelta = getDelta;
         function getModuleTimestamp(mod) {
             if (isModuleStopped(mod) === true) {
-                console.error("\u5C1D\u8BD5\u83B7\u53D6\u65F6\u95F4\u6233\uFF0C\u4F46\u6A21\u5757\u5DF1\u505C\u6B62 mod:" + suncom.Common.convertEnumToString(mod, ModuleEnum));
+                throw Error("\u5C1D\u8BD5\u83B7\u53D6\u65F6\u95F4\u6233\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
-            if (mod === ModuleEnum.TIMELINE) {
-                return M.timeline.getTime();
+            else {
+                if (mod === ModuleEnum.TIMELINE) {
+                    return M.timeline.getTime();
+                }
+                else if (mod === ModuleEnum.CUSTOM) {
+                    return M.timeStamp.getTime();
+                }
+                return M.engine.getTime();
             }
-            else if (mod === ModuleEnum.CUSTOM) {
-                return M.timeStamp.getTime();
-            }
-            return M.engine.getTime();
         }
         System.getModuleTimestamp = getModuleTimestamp;
         function addTask(mod, task) {
             if (System.isModuleStopped(mod) === true) {
-                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u4EFB\u52A1\uFF0C\u4F46\u6A21\u5757\u5DF1\u505C\u6B62 mod:" + suncom.Common.convertEnumToString(mod, ModuleEnum));
-                return;
+                throw Error("\u5C1D\u8BD5\u6DFB\u52A0\u4EFB\u52A1\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
-            var message = new Message();
-            message.mod = mod;
-            message.task = task;
-            message.active = false;
-            message.priority = MessagePriorityEnum.PRIORITY_TASK;
+            var message = {
+                mod: mod,
+                task: task,
+                priority: MessagePriorityEnum.PRIORITY_TASK
+            };
             M.messageManager.putMessage(message);
         }
         System.addTask = addTask;
         function addTrigger(mod, delay, handler) {
             if (System.isModuleStopped(mod) === true) {
-                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u89E6\u53D1\u5668\uFF0C\u4F46\u6A21\u5757\u5DF1\u505C\u6B62 mod:" + suncom.Common.convertEnumToString(mod, ModuleEnum));
-                return;
+                throw Error("\u5C1D\u8BD5\u6DFB\u52A0\u89E6\u53D1\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
-            var message = new Message();
-            message.mod = mod;
-            message.handler = handler;
-            message.timeout = System.getModuleTimestamp(mod) + delay;
-            message.priority = MessagePriorityEnum.PRIORITY_TRIGGER;
+            var message = {
+                mod: mod,
+                handler: handler,
+                timeout: System.getModuleTimestamp(mod) + delay,
+                priority: MessagePriorityEnum.PRIORITY_TRIGGER
+            };
             M.messageManager.putMessage(message);
         }
         System.addTrigger = addTrigger;
         function addMessage(mod, priority, handler) {
             if (System.isModuleStopped(mod) === true) {
-                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u6D88\u606F\uFF0C\u4F46\u6A21\u5757\u5DF1\u505C\u6B62 mod:" + suncom.Common.convertEnumToString(mod, ModuleEnum));
-                return;
+                throw Error("\u5C1D\u8BD5\u6DFB\u52A0Message\u6D88\u606F\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
-            var message = new Message();
-            message.mod = mod;
-            message.handler = handler;
-            message.priority = priority;
+            var message = {
+                mod: mod,
+                handler: handler,
+                priority: priority
+            };
             M.messageManager.putMessage(message);
         }
         System.addMessage = addMessage;
@@ -1090,8 +1134,7 @@ var suncore;
             if (loops === void 0) { loops = 1; }
             if (real === void 0) { real = false; }
             if (System.isModuleStopped(mod) === true) {
-                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u5B9A\u65F6\u5668\uFF0C\u4F46\u6A21\u5757\u5DF1\u505C\u6B62 mod:" + suncom.Common.convertEnumToString(mod, ModuleEnum));
-                return;
+                throw Error("\u5C1D\u8BD5\u6DFB\u52A0\u5B9A\u65F6\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
             return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
         }

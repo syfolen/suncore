@@ -8,60 +8,22 @@ module suncore {
         /**
          * MMI通用消息前缀
          */
-        const MMI_COMMAND_PREFIX: string = "MMI";
+        export const MMI_COMMAND_PREFIX: string = "MMI";
 
         /**
          * 系统消息前缀（通用消息）
          */
-        const SYSTEM_COMMAND_PREFIX: string = "sun";
+        export const SYSTEM_COMMAND_PREFIX: string = "sun";
 
         /**
-         * 对象所监听的命令前缀标记（监听普通MsgQ消息时产生）
+         * MsgQ消息传递互斥信息
          */
-        const MUTEX_PREFIX_KEY: string = "suncore$mutex$prefix";
+        const data: MutexLocker = new MutexLocker();
 
         /**
-         * 对象的互斥计数标记（监听普通MsgQ消息时产生）
+         * MsgQ对象互斥锁
          */
-        const MUTEX_MUTEXES_KEY: string = "suncore$mutex$mutexes";
-
-        /**
-         * 对象的MMI通用模块引用计数标记（监听MMI通用消息时产生）
-         */
-        const MUTEX_MMI_REFERENCES_KEY: string = "suncore$mutex$references";
-
-        /**
-         * 互斥量（传递普通MsgQ消息时产生）
-         */
-        let mutexes: number = 0;
-
-        /**
-         * 互斥引用计数（传递MMI通用消息时产生）
-         */
-        let references: number = 0;
-
-        /**
-         * 互斥引用计数阈值（锁定的消息模块由MMI通用模块变化为MMI模块时产生）
-         */
-        let thresholds: number = 0;
-
-        /**
-         * 当前互斥数据
-         */
-        const $info: IMutexInfo = {
-        };
-
-        /**
-         * 激活互斥体的MsgQ模块
-         * export
-         */
-        export let actMsgQMod: MsgQModEnum = -1;
-
-        /**
-         * 当前互斥体锁定的MsgQ模块
-         * export
-         */
-        export let curMsgQMod: MsgQModEnum = -1;
+        const locker: MutexLocker = new MutexLocker();
 
         /**
          * 是否校验消息前缀，默认为false
@@ -73,7 +35,7 @@ module suncore {
          * MsgQ模块集
          * export
          */
-        export const msgQMap: { [prefix: string]: MsgQModEnum } = { "MMI": MsgQModEnum.MMI };
+        export const msgQMap: { [prefix: string]: MsgQModEnum } = { "sun": MsgQModEnum.SYS, "MMI": MsgQModEnum.MMI };
 
         /**
          * MsgQ模块前缀集
@@ -98,86 +60,10 @@ module suncore {
             if (index < 1) {
                 throw Error(`必须为命令指定一个模块名，格式如 MOD_${name}`);
             }
-            return name.substr(0, index);
-        }
-
-        /**
-         * 判断是否为MMI消息前缀
-         */
-        function isMMIPrefix(prefix: string): boolean {
-            const msgQMod: MsgQModEnum = msgQMap[prefix] || -1;
-            return msgQMod !== -1 && mmiMsgQMap[msgQMod] === true;
-        }
-
-        /**
-         * 合法性断言
-         */
-        function asserts(prefix: string, target: Object): string {
-            if (prefix === SYSTEM_COMMAND_PREFIX) {
-                return prefix;
-            }
-            // 使终允许对象监听模块内的消息
-            if (target instanceof puremvc.Notifier && target.msgQMod === msgQMap[prefix]) {
-                return prefix;
-            }
-
+            const prefix: string = name.substr(0, index);
             if (msgQMap[prefix] === void 0) {
                 throw Error(`未注册的MsgQ消息前缀：${prefix}`);
             }
-
-            // 禁止混合监听
-            if (target !== null) {
-                //     // 命令前缀标记
-                //     let str: string = target[MUTEX_PREFIX_KEY] || null;
-                //     // 为对象默认前缀标记
-                //     if (str === null) {
-
-                //     }
-                //     if (target instanceof puremvc.Notifier) {
-                //         str = msgQCmd[target.msgQMod];
-                //     }
-                //     else {
-
-                //     }
-                //     const str: string = target[MUTEX_PREFIX_KEY] || MMI_COMMAND_PREFIX;
-                //     // 互斥量
-                //     const mutex: number = target[MUTEX_MUTEXES_KEY] || 0;
-                //     // 互斥引用计数
-                //     const references: number = target[MUTEX_MMI_REFERENCES_KEY] || 0;
-            }
-
-            // /**
-            //  * 校验命令传递限制规则
-            //  */
-            // if (curMsgQMod === -1) {
-            //     return
-            // }
-            // // 己锁定MMI通用模块
-            // if (actMsgQMod === MsgQModEnum.MMI) {
-            //     // 锁定MMI模块
-            //     if (isMMIPrefix(prefix) === true) {
-            //         actMsgQMod = msgQMap[prefix];
-            //     }
-            //     // 非表现层消息不允许传递
-            //     else if (prefix !== MMI_COMMAND_PREFIX) {
-            //         throw Error(`禁止跨模块传递消息 src:${MMI_COMMAND_PREFIX}, dest:${suncore.MsgQModEnum[msgQMap[prefix]]}`);
-            //     }
-            // }
-            // // 己锁定MsgQ模块
-            // else if (actMsgQMod !== suncore.MsgQModEnum.KAL) {
-            //     const cmd: string = msgQCmd[actMsgQMod] || null;
-            //     if (cmd === null) {
-            //         throw Error(`意外的MsgQMod ${actMsgQMod}`);
-            //     }
-            //     // 若消息模块不一致，若当前锁定的不为MMI模块且传递的不为MMI通用消息，则抛出错误
-            //     if (cmd !== prefix) {
-            //         const yes: boolean = isMMIPrefix(cmd);
-            //         // 若当前不为MMI模块，或当前锁定的为MMI模块，但传递的不为MMI通用消息，则抛出错误
-            //         if (yes === false || (yes === true && prefix !== MMI_COMMAND_PREFIX)) {
-            //             throw Error(`禁止跨模块传递消息 src:${suncore.MsgQModEnum[msgQMap[cmd]]}, dest:${suncore.MsgQModEnum[msgQMap[prefix]]}`);
-            //         }
-            //     }
-            // }
             return prefix;
         }
 
@@ -189,14 +75,10 @@ module suncore {
             if (checkPrefix === false) {
                 return true;
             }
-            // 默认锁定MMI模块
-            if (actMsgQMod === -1 || actMsgQMod === MsgQModEnum.KAL) {
+            if (data.curMsgQMod === MsgQModEnum.NIL || data.curMsgQMod === MsgQModEnum.SYS || data.curMsgQMod === MsgQModEnum.MMI) {
                 return true;
             }
-            if (actMsgQMod === MsgQModEnum.MMI) {
-                return true;
-            }
-            return mmiMsgQMap[actMsgQMod] === true;
+            return mmiMsgQMap[data.curMsgQMod] === true;
         }
 
         /**
@@ -207,10 +89,7 @@ module suncore {
             if (checkPrefix === false) {
                 return;
             }
-            if (actMsgQMod === -1) {
-                actMsgQMod = msgQMod;
-                curMsgQMod = msgQMod;
-            }
+            data.active(msgQMod);
         }
 
         /**
@@ -221,9 +100,7 @@ module suncore {
             if (checkPrefix === false) {
                 return;
             }
-            if (references === 0 && mutexes === 0 && actMsgQMod !== -1) {
-                actMsgQMod = -1;
-            }
+            data.deactive();
         }
 
         /**
@@ -234,20 +111,12 @@ module suncore {
             if (checkPrefix === false) {
                 return;
             }
-            // const prefix: string = asserts(getCommandPrefix(name), null);
-            // // 若当前锁定的消息模块为系统模块，且当前传递的消息为非系统消息，则对消息模块进行重新锁定
-            // if (curMsgQMod === suncore.MsgQModEnum.SYS && prefix !== SYSTEM_COMMAND_PREFIX) {
-            //     threshold = references;
-            //     actMsgQMod = msgQMap[prefix];
-            // }
-            // // 锁定通用模块不会产生互斥量，但会产生引用计数
-            // if (prefix === SYSTEM_COMMAND_PREFIX || prefix === MMI_COMMAND_PREFIX) {
-            //     references++;
-            // }
-            // // 互斥量递增
-            // else {
-            //     mutexes++;
-            // }
+
+            const prefix: string = getCommandPrefix(name);
+            const msgQMod: MsgQModEnum = msgQMap[prefix];
+
+            data.asserts(msgQMod, null);
+            data.lock(msgQMod);
         }
 
         /**
@@ -259,21 +128,10 @@ module suncore {
                 return;
             }
             const prefix: string = getCommandPrefix(name);
-            // 锁定通用模块不会产生互斥量，但会产生引用计数
-            if (prefix === SYSTEM_COMMAND_PREFIX || prefix === MMI_COMMAND_PREFIX) {
-                references--;
-            }
-            else {
-                mutexes--;
-                if (mutexes < 0) {
-                    throw Error(`互斥体释放错误：${mutexes}`);
-                }
-            }
-            // 若当前互斥量为0，且互斥引用计数降低至等同于阈值，则将当前消息模块重新锁定至系统模块
-            if (threshold === references && mutexes === 0) {
-                threshold = 0;
-                actMsgQMod = MsgQModEnum.KAL;
-            }
+            const msgQMod: MsgQModEnum = msgQMap[prefix];
+
+            data.asserts(msgQMod, null);
+            data.unlock(msgQMod);
         }
 
         /**
@@ -288,54 +146,13 @@ module suncore {
                 return;
             }
 
-            const prefix: string = asserts(getCommandPrefix(name), target);
-            // 系统命令不产生互斥量
-            if (prefix === SYSTEM_COMMAND_PREFIX) {
-                return;
-            }
+            const prefix: string = getCommandPrefix(name);
+            const msgQMod: MsgQModEnum = msgQMap[prefix];
 
-            // 互斥量
-            const mutex: number = target[MUTEX_MUTEXES_KEY] || 0;
-            // MMI引用次数
-            const references: number = target[MUTEX_MMI_REFERENCES_KEY] || 0;
+            locker.update(target);
 
-            // 互斥前缀标记
-            const str: string = target[MUTEX_PREFIX_KEY] || MMI_COMMAND_PREFIX;
-
-            // 监听的消息为MMI通用消息
-            if (prefix === MMI_COMMAND_PREFIX) {
-                // 己监听非MMI消息
-                if (mutex > 0 && isMMIPrefix(str) === false) {
-                    throw Error(`禁止跨模块监听消息，src:${suncore.MsgQModEnum[msgQMap[str]]}, dest:${suncore.MsgQModEnum[msgQMap[prefix]]}`);
-                }
-            }
-            // 监听的消息为MMI消息
-            else if (isMMIPrefix(prefix) === true) {
-                // 消息模块不一致
-                if (mutex > 0 && str !== prefix) {
-                    throw Error(`禁止跨模块监听消息，src:${suncore.MsgQModEnum[msgQMap[str]]}, dest:${suncore.MsgQModEnum[msgQMap[prefix]]}`);
-                }
-            }
-            // 监听的消息为其它类型消息
-            else {
-                // 己监听MMI通用消息，或消息模块不一致
-                if (references > 0 || (mutex > 0 && str !== prefix)) {
-                    throw Error(`禁止跨模块监听消息，src:${suncore.MsgQModEnum[msgQMap[str]]}, dest:${suncore.MsgQModEnum[msgQMap[prefix]]}`);
-                }
-            }
-
-            // 若为MMI通用消息，则只产生MMI引用次数
-            if (prefix === MMI_COMMAND_PREFIX) {
-                target[MUTEX_MMI_REFERENCES_KEY] = references + 1;
-            }
-            // 否则会对互斥量进行递增
-            else {
-                target[MUTEX_MUTEXES_KEY] = mutex + 1;
-                // 强行限制允许监听的消息模块
-                if (mutex === 0) {
-                    target[MUTEX_PREFIX_KEY] = prefix;
-                }
-            }
+            data.asserts(msgQMod, target);
+            locker.lock(msgQMod);
         }
 
         /**
@@ -350,62 +167,13 @@ module suncore {
                 return;
             }
 
-            const prefix: string = asserts(getCommandPrefix(name), target);
-            // 系统命令不会释放互斥量
-            if (prefix === SYSTEM_COMMAND_PREFIX) {
-                return;
-            }
+            const prefix: string = getCommandPrefix(name);
+            const msgQMod: MsgQModEnum = msgQMap[prefix];
 
-            // 互斥量
-            const mutex: number = target[MUTEX_MUTEXES_KEY] || 0;
-            // MMI引用次数
-            const references: number = target[MUTEX_MMI_REFERENCES_KEY] || 0;
-            // 互斥量与MMI引用次数必须存在一个
-            if (mutex <= 0 && references <= 0) {
-                throw Error(`互斥量状态有误`);
-            }
+            locker.update(target);
 
-            // 互斥前缀标记
-            const str: string = target[MUTEX_PREFIX_KEY] || MMI_COMMAND_PREFIX;
-
-            // 监听的消息为MMI通用消息
-            if (prefix === MMI_COMMAND_PREFIX) {
-                // 己监听非MMI消息
-                if (mutex > 0 && isMMIPrefix(str) === false) {
-                    throw Error(`禁止跨模块监听消息，src:${suncore.MsgQModEnum[msgQMap[str]]}, dest:${suncore.MsgQModEnum[msgQMap[prefix]]}`);
-                }
-            }
-            // 监听的消息为MMI消息
-            else if (isMMIPrefix(prefix) === true) {
-                // 消息模块不一致
-                if (mutex > 0 && str !== prefix) {
-                    throw Error(`禁止跨模块监听消息，src:${suncore.MsgQModEnum[msgQMap[str]]}, dest:${suncore.MsgQModEnum[msgQMap[prefix]]}`);
-                }
-            }
-            // 监听的消息为其它类型消息
-            else {
-                // 己监听MMI通用消息，或消息模块不一致
-                if (references > 0 || str !== prefix) {
-                    throw Error(`禁止跨模块监听消息，src:${suncore.MsgQModEnum[msgQMap[str]]}, dest:${suncore.MsgQModEnum[msgQMap[prefix]]}`);
-                }
-            }
-
-            // 若为MMI通用消息，则只产生MMI引用次数
-            if (prefix === MMI_COMMAND_PREFIX) {
-                target[MUTEX_MMI_REFERENCES_KEY] = references - 1;
-                if (references === 1) {
-                    delete target[MUTEX_MMI_REFERENCES_KEY];
-                }
-            }
-            // 否则会对互斥量进行递增
-            else {
-                target[MUTEX_MUTEXES_KEY] = mutex - 1;
-                // 解除限制允许监听的消息模块
-                if (mutex === 1) {
-                    delete target[MUTEX_MUTEXES_KEY];
-                    delete target[MUTEX_PREFIX_KEY];
-                }
-            }
+            data.asserts(msgQMod, target);
+            locker.unlock(msgQMod);
         }
     }
 }
