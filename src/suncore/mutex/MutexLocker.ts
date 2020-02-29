@@ -196,14 +196,14 @@ module suncore {
             if (a > 0) {
                 this.$target[MutexLocker.MUTEX_REFERENCE_SYS] = a;
             }
-            else if (d === true) {
+            else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_SYS] > 0) {
                 delete this.$target[MutexLocker.MUTEX_REFERENCE_SYS];
             }
 
             if (b > 0) {
                 this.$target[MutexLocker.MUTEX_REFERENCE_MMI] = b;
             }
-            else if (d === true) {
+            else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_MMI] > 0) {
                 delete this.$target[MutexLocker.MUTEX_REFERENCE_MMI];
             }
 
@@ -211,7 +211,7 @@ module suncore {
                 this.$target[MutexLocker.MUTEX_PREFIX_KEY] = Mutex.msgQCmd[this.$curMsgQMod];
                 this.$target[MutexLocker.MUTEX_REFERENCE_ANY] = c;
             }
-            else if (d === true) {
+            else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_ANY] > 0) {
                 delete this.$target[MutexLocker.MUTEX_PREFIX_KEY];
                 delete this.$target[MutexLocker.MUTEX_REFERENCE_ANY];
             }
