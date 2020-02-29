@@ -150,8 +150,6 @@ module suncore {
             const msgQMod: MsgQModEnum = msgQMap[prefix];
 
             locker.update(target);
-
-            data.asserts(msgQMod, target);
             locker.lock(msgQMod);
         }
 
@@ -171,8 +169,6 @@ module suncore {
             const msgQMod: MsgQModEnum = msgQMap[prefix];
 
             locker.update(target);
-
-            data.asserts(msgQMod, target);
             locker.unlock(msgQMod);
         }
     }
