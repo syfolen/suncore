@@ -24,6 +24,13 @@ module suncore {
             }
             this.$running = true;
             this.$onRun();
+            // 禁止注册ENTER_FRAME事件，因为其回调可能会在stop执行后依然被响应
+            if (this.facade.hasObserver(NotifyKey.ENTER_FRAME, null, this) === true) {
+                throw Error(`请重写$frameLoop方法来替代ENTER_FRAME事件`);
+            }
+            if (this.$running === true && this.$frameLoop !== BaseService.prototype.$frameLoop) {
+                this.facade.registerObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
+            }
         }
 
         /**
@@ -37,6 +44,26 @@ module suncore {
             }
             this.$running = false;
             this.$onStop();
+            if (this.$running === false && this.$frameLoop !== BaseService.prototype.$frameLoop) {
+                this.facade.removeObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
+            }
+        }
+
+        /**
+         * 帧事件回调
+         */
+        private $onEnterFrame(): void {
+            if (this.$running === true) {
+                this.$frameLoop();
+            }
+        }
+
+        /**
+         * 帧循环事件
+         * export
+         */
+        protected $frameLoop(): void {
+
         }
 
         /**
