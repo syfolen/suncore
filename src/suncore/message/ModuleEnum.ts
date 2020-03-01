@@ -14,6 +14,7 @@ module suncore {
     export enum ModuleEnum {
         /**
          * 枚举开始
+         * export
          */
         MIN = 0,
 
@@ -40,6 +41,7 @@ module suncore {
 
         /**
          * 枚举结束
+         * export
          */
         MAX
     }

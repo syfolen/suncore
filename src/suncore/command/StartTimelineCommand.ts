@@ -11,7 +11,11 @@ module suncore {
          * @pause: 时间轴在开启时是否处于暂停状态
          * export
          */
-        execute(mod: ModuleEnum, pause: boolean = false): void {
+        execute(mod: ModuleEnum, pause: boolean): void {
+            // 由于此命令是公开的，所以不应当为参数指定默认值
+            if (pause === void 0) {
+                throw Error(`应当为参数 pause 指定有效值`);
+            }
             if (System.isModulePaused(mod) === false) {
                 console.error(`模块 ${ModuleEnum[mod]} 己经启动！！！`);
                 return;

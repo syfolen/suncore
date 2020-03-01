@@ -55,10 +55,12 @@ module suncore {
          * export
          */
         export function getDelta(): number {
-            if (isModuleStopped(ModuleEnum.SYSTEM) === true) {
-                throw Error(`尝试获取帧时间间隔，但系统模块己停止！！！`);
+            if (isModuleStopped(ModuleEnum.SYSTEM) === false) {
+                return M.engine.getDelta();
             }
-            return M.engine.getDelta();
+            else {
+                console.error(`尝试获取帧时间间隔，但系统模块己停止！！！`);
+            }
         }
 
         /**
@@ -66,10 +68,7 @@ module suncore {
          * export
          */
         export function getModuleTimestamp(mod: ModuleEnum): number {
-            if (isModuleStopped(mod) === true) {
-                throw Error(`尝试获取时间戳，但模块 ${ModuleEnum[mod]} 己停止！！！`);
-            }
-            else {
+            if (isModuleStopped(mod) === false) {
                 if (mod === ModuleEnum.TIMELINE) {
                     return M.timeline.getTime();
                 }
@@ -78,6 +77,9 @@ module suncore {
                 }
                 return M.engine.getTime();
             }
+            else {
+                console.error(`尝试获取时间戳，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            }
         }
 
         /**
@@ -85,15 +87,17 @@ module suncore {
          * export
          */
         export function addTask(mod: ModuleEnum, task: ITask): void {
-            if (System.isModuleStopped(mod) === true) {
-                throw Error(`尝试添加任务，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            if (System.isModuleStopped(mod) === false) {
+                const message: IMessage = {
+                    mod: mod,
+                    task: task,
+                    priority: MessagePriorityEnum.PRIORITY_TASK
+                };
+                M.messageManager.putMessage(message);
             }
-            const message: IMessage = {
-                mod: mod,
-                task: task,
-                priority: MessagePriorityEnum.PRIORITY_TASK
-            };
-            M.messageManager.putMessage(message);
+            else {
+                console.error(`尝试添加任务，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            }
         }
 
         /**
@@ -101,17 +105,18 @@ module suncore {
          * export
          */
         export function addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void {
-            if (System.isModuleStopped(mod) === true) {
-                throw Error(`尝试添加触发器，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            if (System.isModuleStopped(mod) === false) {
+                const message: IMessage = {
+                    mod: mod,
+                    handler: handler,
+                    timeout: System.getModuleTimestamp(mod) + delay,
+                    priority: MessagePriorityEnum.PRIORITY_TRIGGER
+                };
+                M.messageManager.putMessage(message);
             }
-            // 获取模块依赖的时间轴的时间戳
-            const message: IMessage = {
-                mod: mod,
-                handler: handler,
-                timeout: System.getModuleTimestamp(mod) + delay,
-                priority: MessagePriorityEnum.PRIORITY_TRIGGER
-            };
-            M.messageManager.putMessage(message);
+            else {
+                console.error(`尝试添加触发器，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            }
         }
 
         /**
@@ -119,15 +124,17 @@ module suncore {
          * export
          */
         export function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler): void {
-            if (System.isModuleStopped(mod) === true) {
-                throw Error(`尝试添加Message消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            if (System.isModuleStopped(mod) === false) {
+                const message: IMessage = {
+                    mod: mod,
+                    handler: handler,
+                    priority: priority
+                };
+                M.messageManager.putMessage(message);
             }
-            const message: IMessage = {
-                mod: mod,
-                handler: handler,
-                priority: priority
-            };
-            M.messageManager.putMessage(message);
+            else {
+                console.error(`尝试添加Message消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            }
         }
 
         /**
@@ -141,10 +148,12 @@ module suncore {
          * export
          */
         export function addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops: number = 1, real: boolean = false): number {
-            if (System.isModuleStopped(mod) === true) {
-                throw Error(`尝试添加定时器，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            if (System.isModuleStopped(mod) === false) {
+                return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
             }
-            return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
+            else {
+                console.error(`尝试添加定时器，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            }
         }
 
         /**

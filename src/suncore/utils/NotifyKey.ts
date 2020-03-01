@@ -18,7 +18,7 @@ module suncore {
         static readonly SHUTDOWN: string = "suncore.NotifyKey.SHUTDOWN";
 
         /**
-         * 启用时间轴 { mod: ModuleEnum, pause: boolean = false }
+         * 启用时间轴 { mod: ModuleEnum, pause: boolean }
          * @mod: 时间轴模块
          * @pause: 若为true，时间轴开始后将处于暂停模式
          * 说明：
@@ -28,7 +28,7 @@ module suncore {
         static readonly START_TIMELINE: string = "suncore.NotifyKey.START_TIMELINE";
 
         /**
-         * 暂停时间轴 { mod: ModuleEnum, stop: boolean = true }
+         * 暂停时间轴 { mod: ModuleEnum, stop: boolean }
          * @mod: 时间轴模块
          * @stop: 若为true，时间轴将被停止而非暂停
          * 说明：

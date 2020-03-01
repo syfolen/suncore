@@ -8,10 +8,14 @@ module suncore {
 
         /**
          * @mod: 时间轴模块
-         * @stop: 若为true，时间轴将被停止而非暂停，默认为：true
+         * @stop: 若为true，时间轴将被停止而非暂停
          * export
          */
-        execute(mod: ModuleEnum, stop: boolean = true): void {
+        execute(mod: ModuleEnum, stop: boolean): void {
+            // 由于此命令是公开的，所以不应当为参数指定默认值
+            if (stop === void 0) {
+                throw Error(`应当为参数 stop 指定有效值`);
+            }
             if (stop === true) {
                 if (System.isModuleStopped(mod) === true) {
                     console.error(`模块 ${ModuleEnum[mod]} 己经停止！！！`);
