@@ -2,26 +2,23 @@
 module suncore {
     /**
      * 任务抽象类
+     * 说明：
+     * 1. Task对象有自己的生命周期管理机制，故不建议在外部持有
      * export
      */
     export abstract class AbstractTask extends puremvc.Notifier implements ITask {
         /**
          * 外部会访问此变量来判断任务是否己经完成
-         * 说明：
-         * 1. 请直接使用$done属性，而不要为其扩展getter和setter方法，否则可能出现问题
-         * export
          */
         protected $done: boolean = false;
 
         /**
-         * 是否正在运行（内置属性，请勿操作）
-         * export
+         * 是否正在运行
          */
         protected $running: boolean = false;
 
         /**
-         * 任务是否己取消（内置属性，请勿操作）
-         * export
+         * 任务是否己取消
          */
         protected $canceled: boolean = false;
 
@@ -45,10 +42,16 @@ module suncore {
 
         /**
          * 是否己完成
+         * 说明：
+         * 1. 请勿重写此getter和setter函数，否则可能会出问题
+         * export
          */
         get done(): boolean {
             return this.$done;
         }
+        /**
+         * depends
+         */
         set done(yes: boolean) {
             if (this.$done !== yes) {
                 this.$done = yes;
