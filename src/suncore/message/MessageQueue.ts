@@ -117,15 +117,15 @@ module suncore {
             const task: AbstractTask = message.task as AbstractTask;
 
             // 若任务没有被开启，则开启任务
-            if (task.running === false && task.destroyed === false) {
+            if (task.running === false) {
                 task.running = true;
                 if (task.run() === true) {
                     task.done = true;
                 }
             }
 
-            // 己处理或己销毁的任务均应当移除
-            return task.done === true || task.destroyed === true;
+            // 己处理任务应当移除
+            return task.done === true;
         }
 
         /**
@@ -246,9 +246,7 @@ module suncore {
          */
         private $cancelMessage(message: IMessage): void {
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
-                if (message.task.destroyed === false) {
-                    message.task.cancel();
-                }
+                message.task.cancel();
             }
         }
     }

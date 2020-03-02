@@ -7,6 +7,8 @@ module suncore {
     export abstract class AbstractTask extends puremvc.Notifier implements ITask {
         /**
          * 外部会访问此变量来判断任务是否己经完成
+         * 说明：
+         * 1. 请直接使用$done属性，而不要为其扩展getter和setter方法，否则可能出现问题
          * export
          */
         protected $done: boolean = false;
@@ -18,10 +20,10 @@ module suncore {
         protected $running: boolean = false;
 
         /**
-         * 是否己销毁（内置属性，请勿操作）
+         * 任务是否己取消（内置属性，请勿操作）
          * export
          */
-        protected $destroyed: boolean = false;
+        protected $canceled: boolean = false;
 
         /**
          * 执行函数
@@ -31,24 +33,14 @@ module suncore {
         abstract run(): boolean;
 
         /**
-         * 任务取消（内置接口，请勿调用）
+         * 任务被取消
          * 说明：
-         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行
+         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行，用于清理Task内部的数据
+         * 2. 当done被设置为true时，此方法亦会被执行，请知悉
          * export
          */
         cancel(): void {
 
-        }
-
-        /**
-         * 销毁任务
-         * 说明：
-         * 1. 请调用此方法来销毁任务而非调用cancel接口
-         * 2. 重写此方法时请先调用此方法，否则可能会引起问题
-         */
-        destroy(): void {
-            this.$running = false;
-            this.$destroyed = true;
         }
 
         /**
@@ -58,7 +50,13 @@ module suncore {
             return this.$done;
         }
         set done(yes: boolean) {
-            this.$done = yes;
+            if (this.$done !== yes) {
+                this.$done = yes;
+                if (yes === true && this.$canceled === false) {
+                    this.$canceled = true;
+                    this.cancel();
+                }
+            }
         }
 
         /**
@@ -70,13 +68,6 @@ module suncore {
         }
         set running(yes: boolean) {
             this.$running = yes;
-        }
-
-        /**
-         * 是否己销毁
-         */
-        get destroyed(): boolean {
-            return this.$destroyed;
         }
     }
 }

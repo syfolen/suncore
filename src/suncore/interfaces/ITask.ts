@@ -15,30 +15,18 @@ module suncore {
         run(): boolean;
 
         /**
-         * 取消任务（内置接口，请勿调用）
+         * 任务被取消
          * 说明：
-         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行
+         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行，用于清理Task内部的数据
+         * 2. 当done被设置为true时，此方法亦会被执行，请知悉
          * export
          */
         cancel(): void;
-
-        /**
-         * 销毁任务
-         * 说明：
-         * 1. 请调用此方法来销毁任务而非调用cancel接口
-         * 2. 重写此方法时请先调用此方法，否则可能会引起问题
-         */
-        destroy(): void;
 
         /**
          * 是否正在运行
          * export
          */
         readonly running: boolean;
-
-        /**
-         * 是否己销毁
-         */
-        readonly destroyed: boolean;
     }
 }
