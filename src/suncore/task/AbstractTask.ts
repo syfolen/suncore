@@ -9,19 +9,16 @@ module suncore {
     export abstract class AbstractTask extends puremvc.Notifier implements ITask {
         /**
          * 任务是否己经完成（内置属性，请勿操作）
-         * export
          */
         protected $done: boolean = false;
 
         /**
          * 是否正在运行（内置属性，请勿操作）
-         * export
          */
         protected $running: boolean = false;
 
         /**
          * 任务是否己取消（内置属性，请勿操作）
-         * export
          */
         protected $canceled: boolean = false;
 
