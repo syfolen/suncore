@@ -23,7 +23,7 @@ module suncore {
          * 此模块为常驻模块，该模块下的消息永远不会被清理
          * export
          */
-        SYSTEM = 0,
+        SYSTEM = MIN,
 
         /**
          * 通用模块

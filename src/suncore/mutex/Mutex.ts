@@ -171,5 +171,25 @@ module suncore {
             locker.update(target);
             locker.unlock(msgQMod);
         }
+
+        /**
+         * 备份快照，并锁定target指定的模块
+         * export
+         */
+        export function backup(target: Object): void {
+            if (checkPrefix === true) {
+                data.backup(target);
+            }
+        }
+
+        /**
+         * 恢复快照中的数据（自动从上次备份的快照中获取）
+         * export
+         */
+        export function restore(): void {
+            if (checkPrefix === true) {
+                data.restore();
+            }
+        }
     }
 }

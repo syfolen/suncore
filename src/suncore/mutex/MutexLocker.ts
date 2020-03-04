@@ -35,9 +35,14 @@ module suncore {
         private $curMsgQMod: MsgQModEnum = MsgQModEnum.NIL;
 
         /**
-         * 规则限制对象（统计项包括：SYS, MMI, ANY）
+         * 互斥对象（统计项包括：SYS, MMI, ANY, PREFIX）
          */
         private $target: { [name: string]: any } = {};
+
+        /**
+         * 快照列表
+         */
+        private $snapshots: IMutexSnapshot[] = [];
 
         /**
          * 合法性断言
@@ -214,6 +219,48 @@ module suncore {
             else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_ANY] > 0) {
                 delete this.$target[MutexLocker.MUTEX_PREFIX_KEY];
                 delete this.$target[MutexLocker.MUTEX_REFERENCE_ANY];
+            }
+        }
+
+        /**
+         * 备份快照，并锁定一个全新的模块
+         */
+        backup(target: Object): void {
+            let msgQMod: MsgQModEnum = null;
+            if (target instanceof puremvc.Notifier) {
+                msgQMod = target.msgQMod;
+            }
+            else {
+                msgQMod = MsgQModEnum.MMI;
+            }
+
+            // 上下文环境不一致时，保存快照
+            if (msgQMod !== this.$curMsgQMod) {
+                const snapshot: IMutexSnapshot = {
+                    data: this.$target,
+                    actMsgQMod: this.$actMsgQMod,
+                    curMsgQMod: this.$curMsgQMod
+                };
+                this.$snapshots.push(snapshot);
+
+                this.$target = {};
+                this.$actMsgQMod = this.$curMsgQMod = msgQMod;
+            }
+            // 否则是保存一份空快照
+            else {
+                this.$snapshots.push(null);
+            }
+        }
+
+        /**
+         * 恢复快照中的数据（自动从上次备份的快照中获取）
+         */
+        restore(): void {
+            const snapshot: IMutexSnapshot = this.$snapshots.pop() || null;
+            if (snapshot !== null) {
+                this.$target = snapshot.data;
+                this.$actMsgQMod = snapshot.actMsgQMod;
+                this.$curMsgQMod = snapshot.curMsgQMod;
             }
         }
 
