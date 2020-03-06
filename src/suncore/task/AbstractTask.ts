@@ -3,24 +3,23 @@ module suncore {
     /**
      * 任务抽象类
      * 说明：
-     * 1. Task对象有自己的生命周期管理机制，故不建议在外部持有
+     * 1. Task必定为MMI层对象，这是不可更改的
+     * 2. Task一旦开始则不允许取消，可直接设置done为true来强制结束
+     * 3. Task对象有自己的生命周期管理机制，故不建议在外部持有
      * export
      */
     export abstract class AbstractTask extends puremvc.Notifier implements ITask {
         /**
          * 任务是否己经完成（内置属性，请勿操作）
+         * export
          */
-        protected $done: boolean = false;
+        private $done: boolean = false;
 
         /**
          * 是否正在运行（内置属性，请勿操作）
+         * export
          */
-        protected $running: boolean = false;
-
-        /**
-         * 任务是否己取消（内置属性，请勿操作）
-         */
-        protected $canceled: boolean = false;
+        private $running: boolean = false;
 
         /**
          * 执行函数
@@ -55,8 +54,7 @@ module suncore {
         set done(yes: boolean) {
             if (this.$done !== yes) {
                 this.$done = yes;
-                if (yes === true && this.$canceled === false) {
-                    this.$canceled = true;
+                if (yes === true) {
                     this.cancel();
                 }
             }

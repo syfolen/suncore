@@ -28,7 +28,7 @@ module suncore {
 
         /**
          * 响应MsgQ消息
-         * @mod: 若值为MsgQModEnum.NET，则只获取需要广播的网络数据（请参考Engine.ts）
+         * @mod: 若值为MsgQModEnum.NSL，则只获取需要广播的网络数据（请参考Engine.ts）
          * 说明：
          * 1. 这样做能提高网络消息响应的及时性
          */

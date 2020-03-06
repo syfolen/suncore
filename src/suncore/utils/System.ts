@@ -84,13 +84,15 @@ module suncore {
 
         /**
          * 添加任务
+         * @groupId: 不同编组并行执行
          * export
          */
-        export function addTask(mod: ModuleEnum, task: ITask): void {
+        export function addTask(mod: ModuleEnum, groupId: number, task: ITask): void {
             if (System.isModuleStopped(mod) === false) {
                 const message: IMessage = {
                     mod: mod,
                     task: task,
+                    groupId: groupId,
                     priority: MessagePriorityEnum.PRIORITY_TASK
                 };
                 M.messageManager.putMessage(message);
@@ -98,6 +100,13 @@ module suncore {
             else {
                 console.error(`尝试添加任务，但模块 ${ModuleEnum[mod]} 己停止！！！`);
             }
+        }
+
+        /**
+         * 取消任务
+         */
+        export function cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void {
+            M.messageManager.cancelTaskByGroupId(mod, groupId);
         }
 
         /**

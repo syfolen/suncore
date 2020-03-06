@@ -10,16 +10,21 @@ module suncore {
         private $mod: ModuleEnum;
 
         /**
-         * 队列节点列表
+         * 任务消息列表
          */
-        private $queues: Array<Array<IMessage>> = [];
+        private $tasks: IMessage[][] = [];
+
+        /**
+         * 其它消息队列
+         */
+        private $queues: IMessage[][] = [];
 
         /**
          * 临时消息队列
          * 说明：
          * 1. 因为消息可能产生消息，所以当前帧中所有新消息都会被放置在临时队列中，在帧结束之前统一整理至消息队列
          */
-        private $messages0: Array<IMessage> = [];
+        private $messages0: IMessage[] = [];
 
         constructor(mod: ModuleEnum) {
             // 所属模块
@@ -47,22 +52,35 @@ module suncore {
             let remainCount: number = 0;
 
             for (let priority: MessagePriorityEnum = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
-                const queue: Array<IMessage> = this.$queues[priority];
+                let queue: any[];
 
-                // 跳过惰性消息
-                if (priority === MessagePriorityEnum.PRIORITY_LAZY) {
+                if (priority === MessagePriorityEnum.PRIORITY_TASK) {
+                    queue = this.$tasks;
+                }
+                else {
+                    queue = this.$queues[priority];
+                }
+
+                // 跳过空队列和惰性消息
+                if (queue.length === 0 || priority === MessagePriorityEnum.PRIORITY_LAZY) {
                     continue;
                 }
 
                 // 任务消息
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
-                    if (queue.length > 0) {
-                        // 返回true时应当移除任务
-                        if (this.$dealTaskMessage(queue[0]) === true) {
-                            queue.shift();
+                    // 并行触发
+                    for (let id: number = this.$tasks.length - 1; id > -1; id--) {
+                        const tasks: IMessage[] = this.$tasks[id];
+                        if (tasks.length > 0 && this.$dealTaskMessage(tasks[0]) === true) {
+                            tasks.shift();
+                            dealCount++;
                         }
-                        // 总处理条数累加
-                        dealCount++;
+                        if (tasks.length > 1) {
+                            remainCount += tasks.length - 1;
+                        }
+                        else if (tasks.length === 0) {
+                            this.$tasks.splice(id, 1);
+                        }
                     }
                 }
                 // 触发器消息
@@ -72,14 +90,13 @@ module suncore {
                     // 返回true时应当移除触发器
                     while (queue.length > 0 && this.$dealTriggerMessage(queue[0], out) === true) {
                         queue.shift();
-                        // 总处理条数累加
                         if (out.canceled === false) {
                             dealCount++;
                         }
                     }
                 }
                 // 其它类型消息
-                else if (queue.length > 0) {
+                else {
                     // 处理统计
                     let okCount: number = 0;
                     // 消息总条数
@@ -176,7 +193,10 @@ module suncore {
         classifyMessages0(): void {
             while (this.$messages0.length) {
                 const message: IMessage = this.$messages0.shift();
-                if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
+                if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
+                    this.$addTaskMessage(message);
+                }
+                else if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
                 else {
@@ -226,27 +246,71 @@ module suncore {
         }
 
         /**
+         * 添加任务消息
+         */
+        private $addTaskMessage(message: IMessage): void {
+            let index: number = -1;
+
+            for (let i: number = 0; i < this.$tasks.length; i++) {
+                const tasks: IMessage[] = this.$tasks[i];
+                if (tasks.length > 0 && tasks[0].groupId === message.groupId) {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index === -1) {
+                this.$tasks.unshift([message]);
+            }
+            else {
+                this.$tasks[index].push(message);
+            }
+        }
+
+        /**
          * 清除指定模块下的所有消息
+         * 说明：
+         * 1. 考虑到执行干扰问题，所以正式消息队列中的消息不会立即移除
          */
         clearMessages(): void {
             while (this.$messages0.length > 0) {
-                this.$cancelMessage(this.$messages0.pop());
+                this.$cancelMessage(this.$messages0.shift());
+            }
+            for (let i: number = 0; i < this.$tasks.length; i++) {
+                const tasks: IMessage[] = this.$tasks[i];
+                while (tasks.length > 0) {
+                    this.$cancelMessage(tasks.shift());
+                }
             }
             for (let priority: MessagePriorityEnum = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
                 const queue: IMessage[] = this.$queues[priority];
                 while (queue.length > 0) {
-                    this.$cancelMessage(queue.pop());
+                    this.$cancelMessage(queue.shift());
                 }
             }
         }
 
         /**
-         * 取消任务
-         * @message: 目前只有task才需要被取消
+         * 取消消息（目前只有task才需要被取消）
          */
         private $cancelMessage(message: IMessage): void {
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
-                message.task.cancel();
+                message.task.done = true;
+            }
+        }
+
+        /**
+         * 取消任务
+         */
+        cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void {
+            for (let id: number = 0; id < this.$tasks.length; id++) {
+                const tasks: IMessage[] = this.$tasks[id];
+                if (tasks[0].groupId === groupId) {
+                    while (tasks.length > 0) {
+                        tasks.shift().task.done = true;
+                    }
+                    break;
+                }
             }
         }
     }

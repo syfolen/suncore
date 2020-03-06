@@ -20,6 +20,11 @@ module suncore {
         task?: ITask;
 
         /**
+         * 任务分组编号
+         */
+        groupId?: number;
+
+        /**
          * 回调执行器
          * 说明：
          * 1. 对于部分优先级的消息来说，返回值是有效的，详见 MessagePriorityEnum 的 PRIORITY_LAZY 说明

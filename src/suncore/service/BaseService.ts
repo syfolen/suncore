@@ -9,9 +9,10 @@ module suncore {
      */
     export abstract class BaseService extends puremvc.Notifier implements IService {
         /**
-         * 服务是否己启动
+         * 服务是否己启动（内置属性，请勿操作）
+         * export
          */
-        protected $running: boolean = false;
+        private $running: boolean = false;
 
         /**
          * 服务启动入口
@@ -59,7 +60,7 @@ module suncore {
         }
 
         /**
-         * 帧循环事件
+         * 帧循环事件（请重写此方法来替代ENTER_FRAME事件）
          * export
          */
         protected $frameLoop(): void {

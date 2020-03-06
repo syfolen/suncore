@@ -50,5 +50,12 @@ module suncore {
         clearMessages(mod: ModuleEnum): void {
             this.$queues[mod].clearMessages();
         }
+
+        /**
+         * 取消任务
+         */
+        cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void {
+            this.$queues[mod].cancelTaskByGroupId(mod, groupId);
+        }
     }
 }

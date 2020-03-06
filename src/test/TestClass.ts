@@ -44,7 +44,13 @@ module test {
                 }, [i]));
             }
             for (let i: number = 0; i < 5; i++) {
-                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, new TestTask(i));
+                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 0, new TestTask(i));
+            }
+            for (let i: number = 0; i < 5; i++) {
+                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 1, new TestTask(i));
+            }
+            for (let i: number = 0; i < 5; i++) {
+                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 2, new TestTask(i));
             }
             suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, this.$gotoQuadtreeScene));
 
