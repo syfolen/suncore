@@ -66,7 +66,7 @@ declare module suncore {
          * 1. 任务消息在执行时，会阻塞整个消息队列，直至任务完成
          * 2. 新的任务只会在下一帧被开始执行
          */
-        PRIORITY_TASK,
+        PRIORITY_TASK
     }
 
     /**
@@ -81,10 +81,15 @@ declare module suncore {
      */
     enum ModuleEnum {
         /**
+         * 枚举开始
+         */
+        MIN = 0,
+
+        /**
          * 系统模块
          * 此模块为常驻模块，该模块下的消息永远不会被清理
          */
-        SYSTEM = 0,
+        SYSTEM = MIN,
 
         /**
          * 通用模块
@@ -97,6 +102,11 @@ declare module suncore {
          * 此模块下的消息会在时间轴被销毁的同时被清理
          */
         TIMELINE,
+
+        /**
+         * 枚举结束
+         */
+        MAX
     }
 
     /**
@@ -182,7 +192,7 @@ declare module suncore {
         /**
          * 网络层
          */
-        NSL,
+        NSL
     }
 
     /**
@@ -231,9 +241,18 @@ declare module suncore {
     /**
      * 任务接口
      * 说明：
-     * 1. Task支持
+     * 1. Task必定为MMI层对象，这是不可更改的
+     * 2. Task一旦开始则不允许取消，可直接设置done为true来强制结束
+     * 3. Task对象有自己的生命周期管理机制，故不建议在外部持有
      */
     interface ITask {
+        /**
+         * 是否己完成
+         * 说明：
+         * 1. 请勿重写此getter和setter函数，否则可能会出问题
+         */
+        done: boolean;
+
         /**
          * 是否正在运行
          */
@@ -246,36 +265,43 @@ declare module suncore {
         run(): boolean;
 
         /**
-         * 取消任务（内置接口，请勿调用）
+         * 任务被取消
          * 说明：
-         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行
+         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行，用于清理Task内部的数据
+         * 2. 当done被设置为true时，此方法亦会被执行，请知悉
          */
         cancel(): void;
     }
 
     /**
      * 任务抽象类
+     * 说明：
+     * 1. Task必定为MMI层对象，这是不可更改的
+     * 2. Task一旦开始则不允许取消，可直接设置done为true来强制结束
+     * 3. Task对象有自己的生命周期管理机制，故不建议在外部持有
      */
     abstract class AbstractTask extends puremvc.Notifier implements ITask {
         /**
-         * 外部会访问此变量来判断任务是否己经完成
+         * 任务是否己经完成（内置属性，请勿操作）
          */
-        protected $done: boolean;
+        private $done: boolean;
 
         /**
-         * 是否正在运行（内置变量，请勿操作）
+         * 是否正在运行（内置属性，请勿操作）
          */
-        protected $running: boolean;
-
-        /**
-         * 是否己销毁
-         */
-        protected $destroyed: boolean;
+        private $running: boolean;
 
         /**
          * 是否正在运行
          */
         running: boolean;
+
+        /**
+         * 是否己完成
+         * 说明：
+         * 1. 请勿重写此getter和setter函数，否则可能会出问题
+         */
+        done: boolean;
 
         /**
          * 执行函数
@@ -284,9 +310,10 @@ declare module suncore {
         abstract run(): boolean;
 
         /**
-         * 任务取消（内置接口，请勿调用）
+         * 任务被取消
          * 说明：
-         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行
+         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行，用于清理Task内部的数据
+         * 2. 当done被设置为true时，此方法亦会被执行，请知悉
          */
         cancel(): void;
     }
@@ -298,6 +325,10 @@ declare module suncore {
      * 2. 服务被设计用来处理与表现层无关的有状态业务。
      */
     abstract class BaseService extends puremvc.Notifier implements IService {
+        /**
+         * 服务是否己启动（内置属性，请勿操作）
+         */
+        private $running: boolean;
 
         /**
          * 服务启动入口
@@ -308,6 +339,11 @@ declare module suncore {
          * 服务停止接口
          */
         stop(): void;
+
+        /**
+         * 帧循环事件（请重写此方法来替代ENTER_FRAME事件）
+         */
+        protected $frameLoop(): void;
 
         /**
          * 启动回调
@@ -345,7 +381,7 @@ declare module suncore {
         /**
          * 处理MsgQ消息
          */
-        protected abstract $dealMsgQMsg(msg:IMsgQMsg): void;
+        protected abstract $dealMsgQMsg(msg: IMsgQMsg): void;
     }
 
     /**
@@ -363,7 +399,7 @@ declare module suncore {
         static readonly SHUTDOWN: string;
 
         /**
-         * 启用时间轴 { mod: ModuleEnum, pause: boolean = false }
+         * 启用时间轴 { mod: ModuleEnum, pause: boolean }
          * @mod: 时间轴模块
          * @pause: 若为true，时间轴开始后将处于暂停模式
          * 说明：
@@ -372,7 +408,7 @@ declare module suncore {
         static readonly START_TIMELINE: string;
 
         /**
-         * 暂停时间轴 { mod: ModuleEnum, stop: boolean = true }
+         * 暂停时间轴 { mod: ModuleEnum, stop: boolean }
          * @mod: 时间轴模块
          * @stop: 若为true，时间轴将被停止而非暂停
          * 说明：
@@ -422,9 +458,9 @@ declare module suncore {
 
         /**
          * @mod: 时间轴模块
-         * @stop: 若为true，时间轴将被停止而非暂停，默认为：true
+         * @stop: 若为true，时间轴将被停止而非暂停
          */
-        execute(mod:ModuleEnum, stop?:boolean): void;
+        execute(mod: ModuleEnum, stop: boolean): void;
     }
 
     /**
@@ -432,7 +468,7 @@ declare module suncore {
      */
     class SimpleTask extends AbstractTask {
 
-        constructor(handler:suncom.IHandler);
+        constructor(handler: suncom.IHandler);
 
         /**
          * 执行函数
@@ -449,7 +485,7 @@ declare module suncore {
          * @mod: 时间轴模块
          * @pause: 时间轴在开启时是否处于暂停状态
          */
-        execute(mod:ModuleEnum, pause?:boolean): void;
+        execute(mod: ModuleEnum, pause: boolean): void;
     }
 
     /**
@@ -525,6 +561,16 @@ declare module suncore {
          * 释放互斥量
          */
         function release(name: string, target: Object): void;
+
+        /**
+         * 备份快照，并锁定target指定的模块
+         */
+        function backup(target: Object): void;
+
+        /**
+         * 恢复快照中的数据（自动从上次备份的快照中获取）
+         */
+        function restore(): void;
     }
 
     /**
@@ -554,8 +600,9 @@ declare module suncore {
 
         /**
          * 添加任务
+         * @groupId: 不同编组并行执行
          */
-        function addTask(mod: ModuleEnum, task: ITask): void;
+        function addTask(mod: ModuleEnum, groupId: number, task: ITask): void;
 
         /**
          * 添加触发器

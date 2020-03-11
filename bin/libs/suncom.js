@@ -16,12 +16,6 @@ var suncom;
         EnvMode[EnvMode["DEBUG"] = 1] = "DEBUG";
         EnvMode[EnvMode["WEB"] = 2] = "WEB";
     })(EnvMode = suncom.EnvMode || (suncom.EnvMode = {}));
-    var EventInfo = (function () {
-        function EventInfo() {
-        }
-        return EventInfo;
-    }());
-    suncom.EventInfo = EventInfo;
     var EventSystem = (function () {
         function EventSystem() {
             this.$events = {};
@@ -95,12 +89,13 @@ var suncom;
                     index = i;
                 }
             }
-            var event = new EventInfo();
-            event.type = type;
-            event.method = method;
-            event.caller = caller;
-            event.priority = priority;
-            event.receiveOnce = receiveOnce;
+            var event = {
+                type: type,
+                method: method,
+                caller: caller,
+                priority: priority,
+                receiveOnce: receiveOnce
+            };
             if (index < 0) {
                 list.push(event);
             }
@@ -138,7 +133,7 @@ var suncom;
     }());
     suncom.EventSystem = EventSystem;
     var Handler = (function () {
-        function Handler(caller, method, args, once) {
+        function Handler(caller, method, args) {
             this.$args = args;
             this.$caller = caller;
             this.$method = method;
@@ -178,8 +173,8 @@ var suncom;
             enumerable: true,
             configurable: true
         });
-        Handler.create = function (caller, method, args, once) {
-            return new Handler(caller, method, args, once);
+        Handler.create = function (caller, method, args) {
+            return new Handler(caller, method, args);
         };
         return Handler;
     }());
@@ -312,6 +307,19 @@ var suncom;
             return Common.getClassName(prototype.constructor);
         }
         Common.getQualifiedClassName = getQualifiedClassName;
+        function getMethodName(method, caller) {
+            if (caller === void 0) { caller = null; }
+            if (caller === null) {
+                return Common.getClassName(method);
+            }
+            for (var key in caller) {
+                if (caller[key] === method) {
+                    return key;
+                }
+            }
+            return null;
+        }
+        Common.getMethodName = getMethodName;
         function convertEnumToString(value, oEnum) {
             var keys = Object.keys(oEnum);
             for (var i = 0; i < keys.length; i++) {
@@ -323,26 +331,6 @@ var suncom;
             return null;
         }
         Common.convertEnumToString = convertEnumToString;
-        function addEnumString(key, oEnum, concat) {
-            if (concat === void 0) { concat = true; }
-            if (oEnum.NAME === void 0) {
-                throw Error("Common=> Invalid Enum Object");
-            }
-            else {
-                if (oEnum[key] === void 0) {
-                    if (concat === false) {
-                        oEnum[key] = key;
-                    }
-                    else {
-                        oEnum[key] = oEnum.NAME + "." + oEnum.MODULE + "." + key;
-                    }
-                }
-                else {
-                    throw Error("Common=> Duplicate Enum String " + oEnum.NAME + "[" + key + "]");
-                }
-            }
-        }
-        Common.addEnumString = addEnumString;
         function isNumber(str) {
             if (typeof str === "number") {
                 return true;
@@ -632,7 +620,7 @@ var suncom;
         }
         Common.formatDate = formatDate;
         function md5(str) {
-            throw Error("Not supported!!!");
+            throw Error("未实现的接口！！！");
         }
         Common.md5 = md5;
         function createHttpSign(params) {

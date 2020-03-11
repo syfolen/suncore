@@ -66,21 +66,21 @@ var suncore;
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.$done = false;
             _this.$running = false;
-            _this.$destroyed = false;
             return _this;
         }
         AbstractTask.prototype.cancel = function () {
-        };
-        AbstractTask.prototype.destroy = function () {
-            this.$running = false;
-            this.$destroyed = true;
         };
         Object.defineProperty(AbstractTask.prototype, "done", {
             get: function () {
                 return this.$done;
             },
             set: function (yes) {
-                this.$done = yes;
+                if (this.$done !== yes) {
+                    this.$done = yes;
+                    if (yes === true) {
+                        this.cancel();
+                    }
+                }
             },
             enumerable: true,
             configurable: true
@@ -91,13 +91,6 @@ var suncore;
             },
             set: function (yes) {
                 this.$running = yes;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(AbstractTask.prototype, "destroyed", {
-            get: function () {
-                return this.$destroyed;
             },
             enumerable: true,
             configurable: true
@@ -119,6 +112,12 @@ var suncore;
             }
             this.$running = true;
             this.$onRun();
+            if (this.facade.hasObserver(NotifyKey.ENTER_FRAME, null, this) === true) {
+                throw Error("\u8BF7\u91CD\u5199$frameLoop\u65B9\u6CD5\u6765\u66FF\u4EE3ENTER_FRAME\u4E8B\u4EF6");
+            }
+            if (this.$running === true && this.$frameLoop !== BaseService.prototype.$frameLoop) {
+                this.facade.registerObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
+            }
         };
         BaseService.prototype.stop = function () {
             if (this.$running === false) {
@@ -127,6 +126,16 @@ var suncore;
             }
             this.$running = false;
             this.$onStop();
+            if (this.$running === false && this.$frameLoop !== BaseService.prototype.$frameLoop) {
+                this.facade.removeObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
+            }
+        };
+        BaseService.prototype.$onEnterFrame = function () {
+            if (this.$running === true) {
+                this.$frameLoop();
+            }
+        };
+        BaseService.prototype.$frameLoop = function () {
         };
         Object.defineProperty(BaseService.prototype, "running", {
             get: function () {
@@ -213,11 +222,15 @@ var suncore;
         MessageManager.prototype.clearMessages = function (mod) {
             this.$queues[mod].clearMessages();
         };
+        MessageManager.prototype.cancelTaskByGroupId = function (mod, groupId) {
+            this.$queues[mod].cancelTaskByGroupId(mod, groupId);
+        };
         return MessageManager;
     }());
     suncore.MessageManager = MessageManager;
     var MessageQueue = (function () {
         function MessageQueue(mod) {
+            this.$tasks = [];
             this.$queues = [];
             this.$messages0 = [];
             this.$mod = mod;
@@ -232,28 +245,41 @@ var suncore;
             var dealCount = 0;
             var remainCount = 0;
             for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
-                var queue = this.$queues[priority];
-                if (priority === MessagePriorityEnum.PRIORITY_LAZY) {
+                var queue = void 0;
+                if (priority === MessagePriorityEnum.PRIORITY_TASK) {
+                    queue = this.$tasks;
+                }
+                else {
+                    queue = this.$queues[priority];
+                }
+                if (queue.length === 0 || priority === MessagePriorityEnum.PRIORITY_LAZY) {
                     continue;
                 }
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
-                    if (queue.length > 0) {
-                        if (this.$dealTaskMessage(queue[0]) === true) {
-                            queue.shift();
+                    for (var id = this.$tasks.length - 1; id > -1; id--) {
+                        var tasks = this.$tasks[id];
+                        if (tasks.length > 0 && this.$dealTaskMessage(tasks[0]) === true) {
+                            tasks.shift();
+                            dealCount++;
                         }
-                        dealCount++;
+                        if (tasks.length > 1) {
+                            remainCount += tasks.length - 1;
+                        }
+                        else if (tasks.length === 0) {
+                            this.$tasks.splice(id, 1);
+                        }
                     }
                 }
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     var out = { canceled: false };
-                    while (queue.length && this.$dealTriggerMessage(queue[0], out) === true) {
+                    while (queue.length > 0 && this.$dealTriggerMessage(queue[0], out) === true) {
                         queue.shift();
                         if (out.canceled === false) {
                             dealCount++;
                         }
                     }
                 }
-                else if (queue.length > 0) {
+                else {
                     var okCount = 0;
                     var totalCount = this.$getDealCountByPriority(priority);
                     for (; queue.length > 0 && (totalCount === 0 || okCount < totalCount); okCount++) {
@@ -275,7 +301,7 @@ var suncore;
         };
         MessageQueue.prototype.$dealTaskMessage = function (message) {
             var task = message.task;
-            if (task.running === false && task.destroyed === false) {
+            if (task.running === false) {
                 task.running = true;
                 if (task.run() === true) {
                     task.done = true;
@@ -311,7 +337,10 @@ var suncore;
         MessageQueue.prototype.classifyMessages0 = function () {
             while (this.$messages0.length) {
                 var message = this.$messages0.shift();
-                if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
+                if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
+                    this.$addTaskMessage(message);
+                }
+                else if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
                 else {
@@ -350,21 +379,52 @@ var suncore;
                 queue.splice(index, 0, message);
             }
         };
+        MessageQueue.prototype.$addTaskMessage = function (message) {
+            var index = -1;
+            for (var i = 0; i < this.$tasks.length; i++) {
+                var tasks = this.$tasks[i];
+                if (tasks.length > 0 && tasks[0].groupId === message.groupId) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index === -1) {
+                this.$tasks.unshift([message]);
+            }
+            else {
+                this.$tasks[index].push(message);
+            }
+        };
         MessageQueue.prototype.clearMessages = function () {
             while (this.$messages0.length > 0) {
-                this.$cancelMessage(this.$messages0.pop());
+                this.$cancelMessage(this.$messages0.shift());
+            }
+            for (var i = 0; i < this.$tasks.length; i++) {
+                var tasks = this.$tasks[i];
+                while (tasks.length > 0) {
+                    this.$cancelMessage(tasks.shift());
+                }
             }
             for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
                 var queue = this.$queues[priority];
                 while (queue.length > 0) {
-                    this.$cancelMessage(queue.pop());
+                    this.$cancelMessage(queue.shift());
                 }
             }
         };
         MessageQueue.prototype.$cancelMessage = function (message) {
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
-                if (message.task.destroyed === false) {
-                    message.task.cancel();
+                message.task.done = true;
+            }
+        };
+        MessageQueue.prototype.cancelTaskByGroupId = function (mod, groupId) {
+            for (var id = 0; id < this.$tasks.length; id++) {
+                var tasks = this.$tasks[id];
+                if (tasks[0].groupId === groupId) {
+                    while (tasks.length > 0) {
+                        tasks.shift().task.done = true;
+                    }
+                    break;
                 }
             }
         };
@@ -413,6 +473,7 @@ var suncore;
             this.$actMsgQMod = MsgQModEnum.NIL;
             this.$curMsgQMod = MsgQModEnum.NIL;
             this.$target = {};
+            this.$snapshots = [];
         }
         MutexLocker.prototype.asserts = function (msgQMod, target) {
             if (msgQMod === MsgQModEnum.SYS) {
@@ -524,22 +585,52 @@ var suncore;
             if (a > 0) {
                 this.$target[MutexLocker.MUTEX_REFERENCE_SYS] = a;
             }
-            else if (d === true) {
+            else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_SYS] > 0) {
                 delete this.$target[MutexLocker.MUTEX_REFERENCE_SYS];
             }
             if (b > 0) {
                 this.$target[MutexLocker.MUTEX_REFERENCE_MMI] = b;
             }
-            else if (d === true) {
+            else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_MMI] > 0) {
                 delete this.$target[MutexLocker.MUTEX_REFERENCE_MMI];
             }
             if (c > 0) {
                 this.$target[MutexLocker.MUTEX_PREFIX_KEY] = Mutex.msgQCmd[this.$curMsgQMod];
                 this.$target[MutexLocker.MUTEX_REFERENCE_ANY] = c;
             }
-            else if (d === true) {
+            else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_ANY] > 0) {
                 delete this.$target[MutexLocker.MUTEX_PREFIX_KEY];
                 delete this.$target[MutexLocker.MUTEX_REFERENCE_ANY];
+            }
+        };
+        MutexLocker.prototype.backup = function (target) {
+            var msgQMod = null;
+            if (target instanceof puremvc.Notifier) {
+                msgQMod = target.msgQMod;
+            }
+            else {
+                msgQMod = MsgQModEnum.MMI;
+            }
+            if (msgQMod !== this.$curMsgQMod) {
+                var snapshot = {
+                    data: this.$target,
+                    actMsgQMod: this.$actMsgQMod,
+                    curMsgQMod: this.$curMsgQMod
+                };
+                this.$snapshots.push(snapshot);
+                this.$target = {};
+                this.$actMsgQMod = this.$curMsgQMod = msgQMod;
+            }
+            else {
+                this.$snapshots.push(null);
+            }
+        };
+        MutexLocker.prototype.restore = function () {
+            var snapshot = this.$snapshots.pop() || null;
+            if (snapshot !== null) {
+                this.$target = snapshot.data;
+                this.$actMsgQMod = snapshot.actMsgQMod;
+                this.$curMsgQMod = snapshot.curMsgQMod;
             }
         };
         Object.defineProperty(MutexLocker.prototype, "curMsgQMod", {
@@ -577,7 +668,9 @@ var suncore;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         PauseTimelineCommand.prototype.execute = function (mod, stop) {
-            if (stop === void 0) { stop = true; }
+            if (stop === void 0) {
+                throw Error("\u5E94\u5F53\u4E3A\u53C2\u6570 stop \u6307\u5B9A\u6709\u6548\u503C");
+            }
             if (stop === true) {
                 if (System.isModuleStopped(mod) === true) {
                     console.error("\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u505C\u6B62\uFF01\uFF01\uFF01");
@@ -646,7 +739,9 @@ var suncore;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         StartTimelineCommand.prototype.execute = function (mod, pause) {
-            if (pause === void 0) { pause = false; }
+            if (pause === void 0) {
+                throw Error("\u5E94\u5F53\u4E3A\u53C2\u6570 pause \u6307\u5B9A\u6709\u6548\u503C");
+            }
             if (System.isModulePaused(mod) === false) {
                 console.error("\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u542F\u52A8\uFF01\uFF01\uFF01");
                 return;
@@ -731,7 +826,7 @@ var suncore;
                 if (System.isModulePaused(mod) === false) {
                     var timers = this.$timers[mod];
                     var timestamp = System.getModuleTimestamp(mod);
-                    while (timers.length) {
+                    while (timers.length > 0) {
                         var timer = timers[0];
                         if (timer.active === true) {
                             if (timer.timeout > timestamp) {
@@ -1020,7 +1115,6 @@ var suncore;
             var prefix = getCommandPrefix(name);
             var msgQMod = Mutex.msgQMap[prefix];
             locker.update(target);
-            data.asserts(msgQMod, target);
             locker.lock(msgQMod);
         }
         Mutex.create = create;
@@ -1034,10 +1128,21 @@ var suncore;
             var prefix = getCommandPrefix(name);
             var msgQMod = Mutex.msgQMap[prefix];
             locker.update(target);
-            data.asserts(msgQMod, target);
             locker.unlock(msgQMod);
         }
         Mutex.release = release;
+        function backup(target) {
+            if (Mutex.checkPrefix === true) {
+                data.backup(target);
+            }
+        }
+        Mutex.backup = backup;
+        function restore() {
+            if (Mutex.checkPrefix === true) {
+                data.restore();
+            }
+        }
+        Mutex.restore = restore;
     })(Mutex = suncore.Mutex || (suncore.Mutex = {}));
     var System;
     (function (System) {
@@ -1072,17 +1177,16 @@ var suncore;
         }
         System.isModulePaused = isModulePaused;
         function getDelta() {
-            if (isModuleStopped(ModuleEnum.SYSTEM) === true) {
-                throw Error("\u5C1D\u8BD5\u83B7\u53D6\u5E27\u65F6\u95F4\u95F4\u9694\uFF0C\u4F46\u7CFB\u7EDF\u6A21\u5757\u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            if (isModuleStopped(ModuleEnum.SYSTEM) === false) {
+                return M.engine.getDelta();
             }
-            return M.engine.getDelta();
+            else {
+                console.error("\u5C1D\u8BD5\u83B7\u53D6\u5E27\u65F6\u95F4\u95F4\u9694\uFF0C\u4F46\u7CFB\u7EDF\u6A21\u5757\u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            }
         }
         System.getDelta = getDelta;
         function getModuleTimestamp(mod) {
-            if (isModuleStopped(mod) === true) {
-                throw Error("\u5C1D\u8BD5\u83B7\u53D6\u65F6\u95F4\u6233\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
-            }
-            else {
+            if (isModuleStopped(mod) === false) {
                 if (mod === ModuleEnum.TIMELINE) {
                     return M.timeline.getTime();
                 }
@@ -1091,52 +1195,68 @@ var suncore;
                 }
                 return M.engine.getTime();
             }
+            else {
+                console.error("\u5C1D\u8BD5\u83B7\u53D6\u65F6\u95F4\u6233\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            }
         }
         System.getModuleTimestamp = getModuleTimestamp;
-        function addTask(mod, task) {
-            if (System.isModuleStopped(mod) === true) {
-                throw Error("\u5C1D\u8BD5\u6DFB\u52A0\u4EFB\u52A1\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+        function addTask(mod, groupId, task) {
+            if (System.isModuleStopped(mod) === false) {
+                var message = {
+                    mod: mod,
+                    task: task,
+                    groupId: groupId,
+                    priority: MessagePriorityEnum.PRIORITY_TASK
+                };
+                M.messageManager.putMessage(message);
             }
-            var message = {
-                mod: mod,
-                task: task,
-                priority: MessagePriorityEnum.PRIORITY_TASK
-            };
-            M.messageManager.putMessage(message);
+            else {
+                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u4EFB\u52A1\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            }
         }
         System.addTask = addTask;
+        function cancelTaskByGroupId(mod, groupId) {
+            M.messageManager.cancelTaskByGroupId(mod, groupId);
+        }
+        System.cancelTaskByGroupId = cancelTaskByGroupId;
         function addTrigger(mod, delay, handler) {
-            if (System.isModuleStopped(mod) === true) {
-                throw Error("\u5C1D\u8BD5\u6DFB\u52A0\u89E6\u53D1\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            if (System.isModuleStopped(mod) === false) {
+                var message = {
+                    mod: mod,
+                    handler: handler,
+                    timeout: System.getModuleTimestamp(mod) + delay,
+                    priority: MessagePriorityEnum.PRIORITY_TRIGGER
+                };
+                M.messageManager.putMessage(message);
             }
-            var message = {
-                mod: mod,
-                handler: handler,
-                timeout: System.getModuleTimestamp(mod) + delay,
-                priority: MessagePriorityEnum.PRIORITY_TRIGGER
-            };
-            M.messageManager.putMessage(message);
+            else {
+                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u89E6\u53D1\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            }
         }
         System.addTrigger = addTrigger;
         function addMessage(mod, priority, handler) {
-            if (System.isModuleStopped(mod) === true) {
-                throw Error("\u5C1D\u8BD5\u6DFB\u52A0Message\u6D88\u606F\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            if (System.isModuleStopped(mod) === false) {
+                var message = {
+                    mod: mod,
+                    handler: handler,
+                    priority: priority
+                };
+                M.messageManager.putMessage(message);
             }
-            var message = {
-                mod: mod,
-                handler: handler,
-                priority: priority
-            };
-            M.messageManager.putMessage(message);
+            else {
+                console.error("\u5C1D\u8BD5\u6DFB\u52A0Message\u6D88\u606F\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            }
         }
         System.addMessage = addMessage;
         function addTimer(mod, delay, method, caller, loops, real) {
             if (loops === void 0) { loops = 1; }
             if (real === void 0) { real = false; }
-            if (System.isModuleStopped(mod) === true) {
-                throw Error("\u5C1D\u8BD5\u6DFB\u52A0\u5B9A\u65F6\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            if (System.isModuleStopped(mod) === false) {
+                return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
             }
-            return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
+            else {
+                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u5B9A\u65F6\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            }
         }
         System.addTimer = addTimer;
         function removeTimer(timerId) {

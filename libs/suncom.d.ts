@@ -61,6 +61,12 @@ declare module suncom {
     }
 
     /**
+     * 自定义事件系统中的事件信息
+     */
+    interface IEventInfo {
+    }
+
+    /**
      * 自定义事件接口
      */
     interface IEventSystem {
@@ -166,6 +172,23 @@ declare module suncom {
      * EventSystem 自定义事件系统
      */
     class EventSystem implements IEventSystem {
+        /**
+         * 事件对象集合（内置属性，请勿操作）
+         * 为避免注册与注销对正在派发的事件列表产生干扰：
+         * NOTE: 每个列表首个元素为布尔类型，默认为 false
+         * NOTE: 若该列表的事件类型正在派发，则其值为 true
+         */
+        private $events: { [type: string]: Array<boolean | IEventInfo> };
+
+        /**
+         * 己执行的一次性事件对象列表（内置属性，请勿操作）
+         */
+        private $onceList: Array<IEventInfo>;
+
+        /**
+         * 事件是否己取消（内置属性，请勿操作）
+         */
+        private $isCanceled: boolean;
 
         /**
          * 取消当前正在派发的事件
@@ -177,19 +200,19 @@ declare module suncom {
          * @args[]: 参数列表，允许为任意类型的数据
          * @cancelable: 事件是否允许被中断，默认为false
          */
-        dispatchEvent(type:string, args?:any, cancelable?:boolean): void;
+        dispatchEvent(type: string, args?: any, cancelable?: boolean): void;
 
         /**
          * 事件注册
          * @receiveOnce: 是否只响应一次，默认为false
          * @priority: 事件优先级，优先级高的先被执行，默认为 1
          */
-        addEventListener(type:string, method:Function, caller:Object, receiveOnce?:boolean, priority?:number): void;
+        addEventListener(type: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: number): void;
 
         /**
          * 移除事件
          */
-        removeEventListener(type:string, method:Function, caller:Object): void;
+        removeEventListener(type: string, method: Function, caller: Object): void;
     }
 
     /**
@@ -206,7 +229,7 @@ declare module suncom {
          * 执行处理器，携带额外的参数
          * @args 参数列表，允许为任意类型的数据
          */
-        runWith(args:any): any;
+        runWith(args: any): any;
 
         /**
          * 回调对象
@@ -220,9 +243,8 @@ declare module suncom {
 
         /**
          * 创建Handler的简单工厂方法
-         * @once: 己弃用
          */
-        static create(caller:Object, method:Function, args?:Array<any>, once?:boolean): IHandler;
+        static create(caller: Object, method: Function, args?: Array<any>): IHandler;
     }
 
     /**
@@ -237,43 +259,43 @@ declare module suncom {
         /**
          * @primaryKey: 指定主键字段名，哈希表会使用主键值来作为数据索引，所以请确保主键值是恒值
          */
-        constructor(primaryKey:number | string);
+        constructor(primaryKey: number | string);
 
         /**
          * 添加数据
          */
-        put(data:T): T;
+        put(data: T): T;
 
         /**
          * 移除数据
          */
-        remove(data:T): T;
+        remove(data: T): T;
 
         /**
          * 根据键值返回数据
          */
-        getByValue(key:string, value:any): T;
+        getByValue(key: string, value: any): T;
 
         /**
          * 根据主键值快速返回数据
          */
-        getByPrimaryValue(value:number | string): T;
+        getByPrimaryValue(value: number | string): T;
 
         /**
          * 根据键值移除数据
          */
-        removeByValue(key:string, value:any): T;
+        removeByValue(key: string, value: any): T;
 
         /**
          * 根据主键值移除数据
          */
-        removeByPrimaryValue(value:number | string): T;
+        removeByPrimaryValue(value: number | string): T;
 
         /**
          * 为每个数据执行方法（谨慎在此方法中新增或移除数据）
          * 若method返回true，则会中断遍历
          */
-        forEach(method:(data: T) => any): void;
+        forEach(method: (data: T) => any): void;
     }
 
     /**
@@ -298,14 +320,15 @@ declare module suncom {
         function getQualifiedClassName(obj: any): string;
 
         /**
-         * 将枚举转化成字符串
+         * 返回某对象上的方法名
+         * @caller: 默认为：null
          */
-        function convertEnumToString(value: number, oEnum: any): string;
+        function getMethodName(method: Function, caller?: Object): string;
 
         /**
          * 将枚举转化成字符串
          */
-        function addEnumString(key: string, oEnum: { NAME, MODULE }, concat?: boolean): void;
+        function convertEnumToString(value: number, oEnum: any): string;
 
         /**
          * 判断是否为数字
