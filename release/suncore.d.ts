@@ -623,7 +623,7 @@ declare module suncore {
          * @loops: 响应次数，默认为1
          * @real: 是否计算真实次数，默认为false
          */
-        function addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops?: number, real?: boolean): number;
+        function addTimer(mod: ModuleEnum, delay: number, method: (count: number, loops: number) => void, caller: Object, loops?: number, real?: boolean): number;
 
         /**
          * 移除定时器
