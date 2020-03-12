@@ -22,7 +22,7 @@ module suncore {
         /**
          * 回调函数
          */
-        method: Function;
+        method: (count: number, loops: number) => void;
 
         /**
          * 回调对象

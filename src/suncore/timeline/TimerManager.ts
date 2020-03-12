@@ -95,7 +95,7 @@ module suncore {
          * @timeout: 定时器上次响应时间，请勿擅自传入此参数，防止定时器工作出错
          * @count: 当前重复次数
          */
-        addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops: number = 1, real: boolean = false, timerId: number = 0, timestamp: number = -1, timeout: number = -1, count: number = 0): number {
+        addTimer(mod: ModuleEnum, delay: number, method: (count: number, loops: number) => void, caller: Object, loops: number = 1, real: boolean = false, timerId: number = 0, timestamp: number = -1, timeout: number = -1, count: number = 0): number {
             const currentTimestamp: number = System.getModuleTimestamp(mod);
 
             // 若编号未指定，则生成新的定时器

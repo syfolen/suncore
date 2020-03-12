@@ -156,7 +156,7 @@ module suncore {
          * @real: 是否计算真实次数，默认为false
          * export
          */
-        export function addTimer(mod: ModuleEnum, delay: number, method: Function, caller: Object, loops: number = 1, real: boolean = false): number {
+        export function addTimer(mod: ModuleEnum, delay: number, method: (count: number, loops: number) => void, caller: Object, loops: number = 1, real: boolean = false): number {
             if (System.isModuleStopped(mod) === false) {
                 return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
             }

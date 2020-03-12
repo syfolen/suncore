@@ -35,15 +35,18 @@ var puremvc;
             }
         };
         Controller.prototype.registerCommand = function (name, cls) {
+            if (name === void 0) {
+                throw Error("注册无效的命令");
+            }
             if (this.hasCommand(name) === true) {
-                throw Error("Register Duplicate Command " + name);
+                throw Error("重复注册命令：" + name);
             }
             this.$commands[name] = cls;
             View.inst.registerObserver(name, this.executeCommand, this);
         };
         Controller.prototype.removeCommand = function (name) {
             if (this.hasCommand(name) === false) {
-                throw Error("Remove Non-Existent Command " + name);
+                throw Error("移除不存在的命令：" + name);
             }
             delete this.$commands[name];
             View.inst.removeObserver(name, this.executeCommand, this);
@@ -191,10 +194,10 @@ var puremvc;
         Model.prototype.registerProxy = function (proxy) {
             var name = proxy.getProxyName();
             if (name === null) {
-                throw Error("Register Invalid Proxy");
+                throw Error("注册无效的Proxy");
             }
             if (this.hasProxy(name) === true) {
-                throw Error("Register Duplicate Proxy " + name);
+                throw Error("重复注册Proxy：" + name);
             }
             if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
@@ -204,11 +207,11 @@ var puremvc;
         };
         Model.prototype.removeProxy = function (name) {
             if (name === void 0) {
-                throw Error("Remove Invalid Proxy");
+                throw Error("移除无效的Proxy");
             }
             var proxy = this.retrieveProxy(name);
             if (proxy === null) {
-                throw Error("Remove Non-Existent Proxy " + name);
+                throw Error("重复移除Proxy：" + name);
             }
             if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
@@ -264,7 +267,7 @@ var puremvc;
         function Proxy(name, data) {
             var _this = _super.call(this) || this;
             if (name === void 0) {
-                throw Error("Invalid Proxy Name");
+                throw Error("无效的Proxy名字");
             }
             _this.$proxyName = name;
             if (data !== void 0) {
@@ -302,13 +305,14 @@ var puremvc;
             View.inst = this;
         }
         View.prototype.registerObserver = function (name, method, caller, receiveOnce, priority) {
+            if (caller === void 0) { caller = null; }
             if (receiveOnce === void 0) { receiveOnce = false; }
             if (priority === void 0) { priority = 1; }
             if (name === void 0) {
-                throw Error("Register Invalid Observer");
+                throw Error("注册无效的监听");
             }
             if (method === void 0) {
-                throw Error("Register Invalid Observer Method");
+                throw Error("注册无效的监听回调");
             }
             var observers = this.$observers[name];
             if (observers === void 0) {
@@ -345,11 +349,12 @@ var puremvc;
             return observer;
         };
         View.prototype.removeObserver = function (name, method, caller) {
+            if (caller === void 0) { caller = null; }
             if (name === void 0) {
-                throw Error("Remove Invalid Observer");
+                throw Error("移除无效的监听");
             }
             if (method === void 0) {
-                throw Error("Remove Invalid Observer Method");
+                throw Error("移除无效的监听回调");
             }
             var observers = this.$observers[name];
             if (observers === void 0) {
@@ -372,11 +377,15 @@ var puremvc;
             }
         };
         View.prototype.hasObserver = function (name, method, caller) {
+            if (caller === void 0) { caller = null; }
             if (name === void 0) {
-                throw Error("Remove Invalid Observer");
+                throw Error("查询无效的监听");
             }
             if (method === void 0) {
-                throw Error("Remove Invalid Observer Method");
+                throw Error("查询无效的监听回调");
+            }
+            if (method === null && caller === null) {
+                throw Error("method\u548Ccaller\u4E0D\u5141\u8BB8\u540C\u65F6\u4E3A\u7A7A");
             }
             var observers = this.$observers[name];
             if (observers === void 0) {
@@ -384,8 +393,10 @@ var puremvc;
             }
             for (var i = 1; i < observers.length; i++) {
                 var observer = observers[i];
-                if (observer.method === method && observer.caller === caller) {
-                    return true;
+                if (observer.caller === caller) {
+                    if (method === null || observer.method === method) {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -396,7 +407,7 @@ var puremvc;
         View.prototype.notifyObservers = function (name, args, cancelable) {
             if (cancelable === void 0) { cancelable = false; }
             if (name === void 0) {
-                throw Error("Notify Invalid Command");
+                throw Error("派发无效的通知");
             }
             var observers = this.$observers[name];
             if (observers === void 0) {
@@ -438,10 +449,10 @@ var puremvc;
         View.prototype.registerMediator = function (mediator) {
             var name = mediator.getMediatorName();
             if (name === null) {
-                throw Error("Register Invalid Mediator");
+                throw Error("注册无效的Mediator");
             }
             if (this.hasMediator(name) === true) {
-                throw Error("Register Duplicate Mediator " + name);
+                throw Error("重复注册Mediator " + name);
             }
             if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
@@ -452,11 +463,11 @@ var puremvc;
         };
         View.prototype.removeMediator = function (name) {
             if (name === void 0) {
-                throw Error("Remove Invalid Mediator");
+                throw Error("移除无效的Mediator");
             }
             var mediator = this.retrieveMediator(name);
             if (mediator === null) {
-                throw Error("Remove Non-Existent Mediator " + name);
+                throw Error("移除不存在的Mediator " + name);
             }
             if (suncore.Mutex.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
@@ -509,7 +520,7 @@ var puremvc;
             var _this = _super.call(this) || this;
             _this.$notificationInterests = [];
             if (name === void 0) {
-                throw Error("Invalid Mediator Name");
+                throw Error("无效的Mediator名字");
             }
             _this.$mediatorName = name;
             if (viewComponent !== void 0) {

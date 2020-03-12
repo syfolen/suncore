@@ -221,90 +221,90 @@ declare module puremvc {
          * 说明：
          * 1. 只有通过此方法注册过的MsgQ模块才允许使用模型或视图接口
          */
-        protected $regMMICmd(msgQMod:suncore.MsgQModEnum, prefix:string): void;
+        protected $regMMICmd(msgQMod: suncore.MsgQModEnum, prefix: string): void;
 
         /**
          * 注册MsgQ模块的命令前缀
          */
-        protected $regMsgQCmd(msgQMod:suncore.MsgQModEnum, prefix:string): void;
+        protected $regMsgQCmd(msgQMod: suncore.MsgQModEnum, prefix: string): void;
 
         /**
          * 注册观察者
          * @receiveOnce: 是否只响应一次，默认为：false
          * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：1
          */
-        registerObserver(name:string, method:Function, caller:Object, receiveOnce?:boolean, priority?:number): IObserver;
+        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: number): IObserver;
 
         /**
          * 移除观察者
          */
-        removeObserver(name:string, method:Function, caller:Object): void;
+        removeObserver(name: string, method: Function, caller: Object): void;
 
         /**
          * 查询是否存在观察者
          */
-        hasObserver(name:string, method:Function, caller:Object): boolean;
+        hasObserver(name: string, method: Function, caller: Object): boolean;
 
         /**
          * 注册命令
          */
-        registerCommand(name:string, cls:new () => ICommand): void;
+        registerCommand(name: string, cls: new () => ICommand): void;
 
         /**
          * 移除命令
          */
-        removeCommand(name:string): void;
+        removeCommand(name: string): void;
 
         /**
          * 查询是否存在指定命令
          */
-        hasCommand(name:string): boolean;
+        hasCommand(name: string): boolean;
 
         /**
          * 注册模型代理
          */
-        registerProxy(proxy:IProxy): void;
+        registerProxy(proxy: IProxy): void;
 
         /**
          * 移除模型代理
          */
-        removeProxy(name:string): void;
+        removeProxy(name: string): void;
 
         /**
          * 获取模型代理
          */
-        retrieveProxy(name:string): IProxy;
+        retrieveProxy(name: string): IProxy;
 
         /**
          * 查询是否存在指定模型代理
          */
-        hasProxy(name:string): boolean;
+        hasProxy(name: string): boolean;
 
         /**
          * 注册视图中介者对象
          */
-        registerMediator(mediator:IMediator): void;
+        registerMediator(mediator: IMediator): void;
 
         /**
          * 移除视图中介者对象
          */
-        removeMediator(name:string): void;
+        removeMediator(name: string): void;
 
         /**
          * 获取视图中介者对象
          */
-        retrieveMediator(name:string): IMediator;
+        retrieveMediator(name: string): IMediator;
 
         /**
          * 查询是否存在指定视图中介者对象
          */
-        hasMediator(name:string): boolean;
+        hasMediator(name: string): boolean;
 
         /**
          * 派发命令通知
          * @cancelable: 事件是否允许取消，默认为：false
          */
-        sendNotification(name:string, args?:any, cancelable?:boolean): void;
+        sendNotification(name: string, args?: any, cancelable?: boolean): void;
 
         /**
          * 取消当前命令的派发
@@ -317,7 +317,7 @@ declare module puremvc {
      */
     class Notifier implements INotifier {
 
-        constructor(msgQMod?:suncore.MsgQModEnum);
+        constructor(msgQMod?: suncore.MsgQModEnum);
 
         /**
          * 获取PureMVC外观引用
@@ -339,7 +339,7 @@ declare module puremvc {
          */
         protected $data: any;
 
-        constructor(name:string, data?:any);
+        constructor(name: string, data?: any);
 
         /**
          * 注册回调（此时己注册）
@@ -360,7 +360,7 @@ declare module puremvc {
         /**
          * 执行接口
          */
-        abstract execute(...args:Array<any>): void;
+        abstract execute(...args: Array<any>): void;
     }
 
     /**
@@ -384,7 +384,7 @@ declare module puremvc {
         /**
          * 添加子命令
          */
-        addSubCommand(cls:new () => ICommand): void;
+        addSubCommand(cls: new () => ICommand): void;
 
         /**
          * 执行复合命令
@@ -401,7 +401,7 @@ declare module puremvc {
          */
         protected $viewComponent: any;
 
-        constructor(name:string, viewComponent?:any);
+        constructor(name: string, viewComponent?: any);
 
         /**
          * 注册回调（此时己注册）
@@ -426,6 +426,6 @@ declare module puremvc {
         /**
          * 注册事件回调
          */
-        protected $handleNotification(name:string, method:Function): void;
+        protected $handleNotification(name: string, method: Function): void;
     }
 }
