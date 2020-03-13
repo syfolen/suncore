@@ -37,28 +37,25 @@ var suncore;
     (function (MsgQIdEnum) {
         MsgQIdEnum[MsgQIdEnum["NSL_MSG_ID_BEGIN"] = 1] = "NSL_MSG_ID_BEGIN";
         MsgQIdEnum[MsgQIdEnum["NSL_MSG_ID_END"] = 10] = "NSL_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["KAL_MSG_ID_BEGIN"] = 10] = "KAL_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["KAL_MSG_ID_END"] = 100] = "KAL_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["MMI_MSG_ID_BEGIN"] = 100] = "MMI_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["MMI_MSG_ID_END"] = 200] = "MMI_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_BEGIN"] = 200] = "CUI_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_END"] = 300] = "CUI_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_BEGIN"] = 300] = "GUI_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_END"] = 500] = "GUI_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["L4C_MSG_ID_BEGIN"] = 500] = "L4C_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["L4C_MSG_ID_END"] = 800] = "L4C_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["MMI_MSG_ID_BEGIN"] = 10] = "MMI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["MMI_MSG_ID_END"] = 100] = "MMI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_BEGIN"] = 100] = "CUI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_END"] = 200] = "CUI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_BEGIN"] = 200] = "GUI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_END"] = 400] = "GUI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["L4C_MSG_ID_BEGIN"] = 400] = "L4C_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["L4C_MSG_ID_END"] = 700] = "L4C_MSG_ID_END";
     })(MsgQIdEnum = suncore.MsgQIdEnum || (suncore.MsgQIdEnum = {}));
     var MsgQModEnum;
     (function (MsgQModEnum) {
         MsgQModEnum[MsgQModEnum["NIL"] = -1] = "NIL";
-        MsgQModEnum[MsgQModEnum["SYS"] = 0] = "SYS";
-        MsgQModEnum[MsgQModEnum["KAL"] = 1] = "KAL";
-        MsgQModEnum[MsgQModEnum["MMI"] = 2] = "MMI";
-        MsgQModEnum[MsgQModEnum["CUI"] = 3] = "CUI";
-        MsgQModEnum[MsgQModEnum["GUI"] = 4] = "GUI";
-        MsgQModEnum[MsgQModEnum["L4C"] = 5] = "L4C";
-        MsgQModEnum[MsgQModEnum["NSL"] = 6] = "NSL";
-        MsgQModEnum[MsgQModEnum["ANY"] = 7] = "ANY";
+        MsgQModEnum[MsgQModEnum["KAL"] = 0] = "KAL";
+        MsgQModEnum[MsgQModEnum["MMI"] = 1] = "MMI";
+        MsgQModEnum[MsgQModEnum["CUI"] = 2] = "CUI";
+        MsgQModEnum[MsgQModEnum["GUI"] = 3] = "GUI";
+        MsgQModEnum[MsgQModEnum["L4C"] = 4] = "L4C";
+        MsgQModEnum[MsgQModEnum["NSL"] = 5] = "NSL";
+        MsgQModEnum[MsgQModEnum["ANY"] = 6] = "ANY";
     })(MsgQModEnum = suncore.MsgQModEnum || (suncore.MsgQModEnum = {}));
     var AbstractTask = (function (_super) {
         __extends(AbstractTask, _super);
@@ -150,7 +147,7 @@ var suncore;
     var Engine = (function (_super) {
         __extends(Engine, _super);
         function Engine() {
-            var _this = _super.call(this, MsgQModEnum.SYS) || this;
+            var _this = _super.call(this, MsgQModEnum.KAL) || this;
             _this.$delta = 0;
             _this.$runTime = 0;
             _this.$localTime = new Date().valueOf();
@@ -476,10 +473,10 @@ var suncore;
             this.$snapshots = [];
         }
         MutexLocker.prototype.asserts = function (msgQMod, target) {
-            if (msgQMod === MsgQModEnum.SYS) {
+            if (msgQMod === MsgQModEnum.KAL) {
                 return;
             }
-            if (this.$curMsgQMod === MsgQModEnum.NIL || this.$curMsgQMod === MsgQModEnum.SYS) {
+            if (this.$curMsgQMod === MsgQModEnum.NIL || this.$curMsgQMod === MsgQModEnum.KAL) {
                 return;
             }
             if (this.$curMsgQMod === MsgQModEnum.MMI) {
@@ -517,10 +514,10 @@ var suncore;
             }
         };
         MutexLocker.prototype.lock = function (msgQMod) {
-            var a = this.$target[MutexLocker.MUTEX_REFERENCE_SYS] || 0;
+            var a = this.$target[MutexLocker.MUTEX_REFERENCE_KAL] || 0;
             var b = this.$target[MutexLocker.MUTEX_REFERENCE_MMI] || 0;
             var c = this.$target[MutexLocker.MUTEX_REFERENCE_ANY] || 0;
-            if (msgQMod === MsgQModEnum.SYS) {
+            if (msgQMod === MsgQModEnum.KAL) {
                 a++;
             }
             else if (msgQMod === MsgQModEnum.MMI) {
@@ -529,19 +526,19 @@ var suncore;
             else {
                 c++;
             }
-            if (this.$curMsgQMod === MsgQModEnum.NIL || this.$curMsgQMod === MsgQModEnum.SYS) {
+            if (this.$curMsgQMod === MsgQModEnum.NIL || this.$curMsgQMod === MsgQModEnum.KAL) {
                 this.$curMsgQMod = msgQMod;
             }
-            else if (this.$curMsgQMod === MsgQModEnum.MMI && msgQMod !== MsgQModEnum.SYS) {
+            else if (this.$curMsgQMod === MsgQModEnum.MMI && msgQMod !== MsgQModEnum.KAL) {
                 this.$curMsgQMod = msgQMod;
             }
             this.$cache(a, b, c, false);
         };
         MutexLocker.prototype.unlock = function (msgQMod) {
-            var a = this.$target[MutexLocker.MUTEX_REFERENCE_SYS] || 0;
+            var a = this.$target[MutexLocker.MUTEX_REFERENCE_KAL] || 0;
             var b = this.$target[MutexLocker.MUTEX_REFERENCE_MMI] || 0;
             var c = this.$target[MutexLocker.MUTEX_REFERENCE_ANY] || 0;
-            if (msgQMod === MsgQModEnum.SYS) {
+            if (msgQMod === MsgQModEnum.KAL) {
                 a--;
             }
             else if (msgQMod === MsgQModEnum.MMI) {
@@ -551,7 +548,7 @@ var suncore;
                 c--;
             }
             if (a < 0 || b < 0 || c < 0) {
-                throw Error("\u4E92\u65A5\u4F53\u91CA\u653E\u9519\u8BEF\uFF1ASYS[" + a + "], MMI[" + b + "], ANY[" + c + "]");
+                throw Error("\u4E92\u65A5\u4F53\u91CA\u653E\u9519\u8BEF\uFF1AKAL[" + a + "], MMI[" + b + "], ANY[" + c + "]");
             }
             if (this.$curMsgQMod === this.$actMsgQMod) {
             }
@@ -561,7 +558,7 @@ var suncore;
                 this.$curMsgQMod = MsgQModEnum.MMI;
             }
             else if (a > 0) {
-                this.$curMsgQMod = MsgQModEnum.SYS;
+                this.$curMsgQMod = MsgQModEnum.KAL;
             }
             else {
                 this.$curMsgQMod = this.$actMsgQMod;
@@ -574,7 +571,7 @@ var suncore;
             }
         };
         MutexLocker.prototype.deactive = function () {
-            var a = this.$target[MutexLocker.MUTEX_REFERENCE_SYS] || 0;
+            var a = this.$target[MutexLocker.MUTEX_REFERENCE_KAL] || 0;
             var b = this.$target[MutexLocker.MUTEX_REFERENCE_MMI] || 0;
             var c = this.$target[MutexLocker.MUTEX_REFERENCE_ANY] || 0;
             if (a === 0 && b === 0 && c === 0) {
@@ -583,10 +580,10 @@ var suncore;
         };
         MutexLocker.prototype.$cache = function (a, b, c, d) {
             if (a > 0) {
-                this.$target[MutexLocker.MUTEX_REFERENCE_SYS] = a;
+                this.$target[MutexLocker.MUTEX_REFERENCE_KAL] = a;
             }
-            else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_SYS] > 0) {
-                delete this.$target[MutexLocker.MUTEX_REFERENCE_SYS];
+            else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_KAL] > 0) {
+                delete this.$target[MutexLocker.MUTEX_REFERENCE_KAL];
             }
             if (b > 0) {
                 this.$target[MutexLocker.MUTEX_REFERENCE_MMI] = b;
@@ -641,7 +638,7 @@ var suncore;
             configurable: true
         });
         MutexLocker.MUTEX_PREFIX_KEY = "suncore$mutex$prefix";
-        MutexLocker.MUTEX_REFERENCE_SYS = "suncore$mutex$reference$sys";
+        MutexLocker.MUTEX_REFERENCE_KAL = "suncore$mutex$reference$kal";
         MutexLocker.MUTEX_REFERENCE_MMI = "suncore$mutex$reference$mmi";
         MutexLocker.MUTEX_REFERENCE_ANY = "suncore$mutex$reference$any";
         return MutexLocker;
@@ -996,11 +993,7 @@ var suncore;
         MsgQ.fetch = fetch;
         function check(mod, id) {
             var min, max;
-            if (mod === MsgQModEnum.KAL) {
-                min = MsgQIdEnum.KAL_MSG_ID_BEGIN;
-                max = MsgQIdEnum.KAL_MSG_ID_END;
-            }
-            else if (mod === MsgQModEnum.MMI) {
+            if (mod === MsgQModEnum.MMI) {
                 min = MsgQIdEnum.MMI_MSG_ID_BEGIN;
                 max = MsgQIdEnum.MMI_MSG_ID_END;
             }
@@ -1040,16 +1033,16 @@ var suncore;
     var Mutex;
     (function (Mutex) {
         Mutex.MMI_COMMAND_PREFIX = "MMI";
-        Mutex.SYSTEM_COMMAND_PREFIX = "sun";
+        Mutex.KERNEL_COMMAND_PREFIX = "sun";
         var data = new MutexLocker();
         var locker = new MutexLocker();
         Mutex.checkPrefix = false;
-        Mutex.msgQMap = { "sun": MsgQModEnum.SYS, "MMI": MsgQModEnum.MMI };
+        Mutex.msgQMap = { "sun": MsgQModEnum.KAL, "MMI": MsgQModEnum.MMI };
         Mutex.msgQCmd = {};
         Mutex.mmiMsgQMap = {};
         function getCommandPrefix(name) {
-            if (name.substr(0, 3) === Mutex.SYSTEM_COMMAND_PREFIX) {
-                return Mutex.SYSTEM_COMMAND_PREFIX;
+            if (name.substr(0, 3) === Mutex.KERNEL_COMMAND_PREFIX) {
+                return Mutex.KERNEL_COMMAND_PREFIX;
             }
             var index = name.indexOf("_");
             if (index < 1) {
@@ -1065,7 +1058,7 @@ var suncore;
             if (Mutex.checkPrefix === false) {
                 return true;
             }
-            if (data.curMsgQMod === MsgQModEnum.NIL || data.curMsgQMod === MsgQModEnum.SYS || data.curMsgQMod === MsgQModEnum.MMI) {
+            if (data.curMsgQMod === MsgQModEnum.NIL || data.curMsgQMod === MsgQModEnum.KAL || data.curMsgQMod === MsgQModEnum.MMI) {
                 return true;
             }
             return Mutex.mmiMsgQMap[data.curMsgQMod] === true;
