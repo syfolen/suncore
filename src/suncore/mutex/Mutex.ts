@@ -13,7 +13,7 @@ module suncore {
         /**
          * 系统消息前缀（通用消息）
          */
-        export const SYSTEM_COMMAND_PREFIX: string = "sun";
+        export const KERNEL_COMMAND_PREFIX: string = "sun";
 
         /**
          * MsgQ消息传递互斥信息
@@ -35,7 +35,7 @@ module suncore {
          * MsgQ模块集
          * export
          */
-        export const msgQMap: { [prefix: string]: MsgQModEnum } = { "sun": MsgQModEnum.SYS, "MMI": MsgQModEnum.MMI };
+        export const msgQMap: { [prefix: string]: MsgQModEnum } = { "sun": MsgQModEnum.KAL, "MMI": MsgQModEnum.MMI };
 
         /**
          * MsgQ模块前缀集
@@ -53,8 +53,8 @@ module suncore {
          * 获取命令前缀
          */
         function getCommandPrefix(name: string): string {
-            if (name.substr(0, 3) === SYSTEM_COMMAND_PREFIX) {
-                return SYSTEM_COMMAND_PREFIX;
+            if (name.substr(0, 3) === KERNEL_COMMAND_PREFIX) {
+                return KERNEL_COMMAND_PREFIX;
             }
             const index: number = name.indexOf("_");
             if (index < 1) {
@@ -75,7 +75,7 @@ module suncore {
             if (checkPrefix === false) {
                 return true;
             }
-            if (data.curMsgQMod === MsgQModEnum.NIL || data.curMsgQMod === MsgQModEnum.SYS || data.curMsgQMod === MsgQModEnum.MMI) {
+            if (data.curMsgQMod === MsgQModEnum.NIL || data.curMsgQMod === MsgQModEnum.KAL || data.curMsgQMod === MsgQModEnum.MMI) {
                 return true;
             }
             return mmiMsgQMap[data.curMsgQMod] === true;

@@ -78,11 +78,7 @@ module suncore {
         function check(mod: MsgQModEnum, id: MsgQIdEnum): boolean {
             // 校验id的范围
             let min: number, max: number;
-            if (mod === MsgQModEnum.KAL) {
-                min = MsgQIdEnum.KAL_MSG_ID_BEGIN;
-                max = MsgQIdEnum.KAL_MSG_ID_END;
-            }
-            else if (mod === MsgQModEnum.MMI) {
+            if (mod === MsgQModEnum.MMI) {
                 min = MsgQIdEnum.MMI_MSG_ID_BEGIN;
                 max = MsgQIdEnum.MMI_MSG_ID_END;
             }

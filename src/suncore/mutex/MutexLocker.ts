@@ -12,7 +12,7 @@ module suncore {
         /**
          * 对象的系统互斥计数标记
          */
-        static readonly MUTEX_REFERENCE_SYS: string = "suncore$mutex$reference$sys";
+        static readonly MUTEX_REFERENCE_KAL: string = "suncore$mutex$reference$kal";
 
         /**
          * 对象的MMI互斥计数标记
@@ -35,7 +35,7 @@ module suncore {
         private $curMsgQMod: MsgQModEnum = MsgQModEnum.NIL;
 
         /**
-         * 互斥对象（统计项包括：SYS, MMI, ANY, PREFIX）
+         * 互斥对象（统计项包括：KAL, MMI, ANY, PREFIX）
          */
         private $target: { [name: string]: any } = {};
 
@@ -49,12 +49,12 @@ module suncore {
          */
         asserts(msgQMod: MsgQModEnum, target: Object): void {
             // 始终允许传递系统消息
-            if (msgQMod === MsgQModEnum.SYS) {
+            if (msgQMod === MsgQModEnum.KAL) {
                 return;
             }
 
             // 锁定空模块，或锁定系统模块时，允许传递任意消息
-            if (this.$curMsgQMod === MsgQModEnum.NIL || this.$curMsgQMod === MsgQModEnum.SYS) {
+            if (this.$curMsgQMod === MsgQModEnum.NIL || this.$curMsgQMod === MsgQModEnum.KAL) {
                 return;
             }
 
@@ -107,11 +107,11 @@ module suncore {
          * 锁定消息传递限制
          */
         lock(msgQMod: MsgQModEnum): void {
-            let a: number = this.$target[MutexLocker.MUTEX_REFERENCE_SYS] || 0;
+            let a: number = this.$target[MutexLocker.MUTEX_REFERENCE_KAL] || 0;
             let b: number = this.$target[MutexLocker.MUTEX_REFERENCE_MMI] || 0;
             let c: number = this.$target[MutexLocker.MUTEX_REFERENCE_ANY] || 0;
 
-            if (msgQMod === MsgQModEnum.SYS) {
+            if (msgQMod === MsgQModEnum.KAL) {
                 a++;
             }
             else if (msgQMod === MsgQModEnum.MMI) {
@@ -121,10 +121,10 @@ module suncore {
                 c++;
             }
 
-            if (this.$curMsgQMod === MsgQModEnum.NIL || this.$curMsgQMod === MsgQModEnum.SYS) {
+            if (this.$curMsgQMod === MsgQModEnum.NIL || this.$curMsgQMod === MsgQModEnum.KAL) {
                 this.$curMsgQMod = msgQMod;
             }
-            else if (this.$curMsgQMod === MsgQModEnum.MMI && msgQMod !== MsgQModEnum.SYS) {
+            else if (this.$curMsgQMod === MsgQModEnum.MMI && msgQMod !== MsgQModEnum.KAL) {
                 this.$curMsgQMod = msgQMod;
             }
 
@@ -135,11 +135,11 @@ module suncore {
          * 解除消息传递限制
          */
         unlock(msgQMod: MsgQModEnum): void {
-            let a: number = this.$target[MutexLocker.MUTEX_REFERENCE_SYS] || 0;
+            let a: number = this.$target[MutexLocker.MUTEX_REFERENCE_KAL] || 0;
             let b: number = this.$target[MutexLocker.MUTEX_REFERENCE_MMI] || 0;
             let c: number = this.$target[MutexLocker.MUTEX_REFERENCE_ANY] || 0;
 
-            if (msgQMod === MsgQModEnum.SYS) {
+            if (msgQMod === MsgQModEnum.KAL) {
                 a--;
             }
             else if (msgQMod === MsgQModEnum.MMI) {
@@ -150,7 +150,7 @@ module suncore {
             }
 
             if (a < 0 || b < 0 || c < 0) {
-                throw Error(`互斥体释放错误：SYS[${a}], MMI[${b}], ANY[${c}]`);
+                throw Error(`互斥体释放错误：KAL[${a}], MMI[${b}], ANY[${c}]`);
             }
 
             if (this.$curMsgQMod === this.$actMsgQMod) {
@@ -163,7 +163,7 @@ module suncore {
                 this.$curMsgQMod = MsgQModEnum.MMI;
             }
             else if (a > 0) {
-                this.$curMsgQMod = MsgQModEnum.SYS;
+                this.$curMsgQMod = MsgQModEnum.KAL;
             }
             else {
                 this.$curMsgQMod = this.$actMsgQMod;
@@ -185,7 +185,7 @@ module suncore {
          * 释放模块
          */
         deactive(): void {
-            let a: number = this.$target[MutexLocker.MUTEX_REFERENCE_SYS] || 0;
+            let a: number = this.$target[MutexLocker.MUTEX_REFERENCE_KAL] || 0;
             let b: number = this.$target[MutexLocker.MUTEX_REFERENCE_MMI] || 0;
             let c: number = this.$target[MutexLocker.MUTEX_REFERENCE_ANY] || 0;
 
@@ -199,10 +199,10 @@ module suncore {
          */
         private $cache(a: number, b: number, c: number, d: boolean): void {
             if (a > 0) {
-                this.$target[MutexLocker.MUTEX_REFERENCE_SYS] = a;
+                this.$target[MutexLocker.MUTEX_REFERENCE_KAL] = a;
             }
-            else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_SYS] > 0) {
-                delete this.$target[MutexLocker.MUTEX_REFERENCE_SYS];
+            else if (d === true && this.$target[MutexLocker.MUTEX_REFERENCE_KAL] > 0) {
+                delete this.$target[MutexLocker.MUTEX_REFERENCE_KAL];
             }
 
             if (b > 0) {

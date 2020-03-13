@@ -17,26 +17,15 @@ module suncore {
         NSL_MSG_ID_END = 10,
 
         /**
-         * KAL消息枚举
-         * export
-         */
-        KAL_MSG_ID_BEGIN = NSL_MSG_ID_END,
-
-        /**
-         * export
-         */
-        KAL_MSG_ID_END = 100,
-
-        /**
          * MMI消息枚举
          * export
          */
-        MMI_MSG_ID_BEGIN = KAL_MSG_ID_END,
+        MMI_MSG_ID_BEGIN = NSL_MSG_ID_END,
 
         /**
          * export
          */
-        MMI_MSG_ID_END = MMI_MSG_ID_BEGIN + 100,
+        MMI_MSG_ID_END = 100,
 
         /**
          * CUI消息枚举
