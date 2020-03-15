@@ -17,7 +17,7 @@ module suncore {
                 throw Error(`应当为参数 pause 指定有效值`);
             }
             if (System.isModulePaused(mod) === false) {
-                console.error(`模块 ${ModuleEnum[mod]} 己经启动！！！`);
+                suncom.Logger.error(`模块 ${ModuleEnum[mod]} 己经启动！！！`);
                 return;
             }
 

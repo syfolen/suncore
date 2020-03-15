@@ -20,7 +20,7 @@ module suncore {
          */
         run(): void {
             if (this.$running === true) {
-                console.warn(`服务[${suncom.Common.getQualifiedClassName(this)}]己运行`);
+                suncom.Logger.warn(`服务[${suncom.Common.getQualifiedClassName(this)}]己运行`);
                 return;
             }
             this.$running = true;
@@ -40,7 +40,7 @@ module suncore {
          */
         stop(): void {
             if (this.$running === false) {
-                console.warn(`服务[${suncom.Common.getQualifiedClassName(this)}]未运行`);
+                suncom.Logger.warn(`服务[${suncom.Common.getQualifiedClassName(this)}]未运行`);
                 return;
             }
             this.$running = false;

@@ -59,7 +59,7 @@ module suncore {
                 return M.engine.getDelta();
             }
             else {
-                console.error(`尝试获取帧时间间隔，但系统模块己停止！！！`);
+                suncom.Logger.error(`尝试获取帧时间间隔，但系统模块己停止！！！`);
             }
         }
 
@@ -78,7 +78,7 @@ module suncore {
                 return M.engine.getTime();
             }
             else {
-                console.error(`尝试获取时间戳，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+                suncom.Logger.error(`尝试获取时间戳，但模块 ${ModuleEnum[mod]} 己停止！！！`);
             }
         }
 
@@ -98,7 +98,7 @@ module suncore {
                 M.messageManager.putMessage(message);
             }
             else {
-                console.error(`尝试添加任务，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+                suncom.Logger.error(`尝试添加任务，但模块 ${ModuleEnum[mod]} 己停止！！！`);
             }
         }
 
@@ -124,7 +124,7 @@ module suncore {
                 M.messageManager.putMessage(message);
             }
             else {
-                console.error(`尝试添加触发器，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+                suncom.Logger.error(`尝试添加触发器，但模块 ${ModuleEnum[mod]} 己停止！！！`);
             }
         }
 
@@ -142,7 +142,7 @@ module suncore {
                 M.messageManager.putMessage(message);
             }
             else {
-                console.error(`尝试添加Message消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+                suncom.Logger.error(`尝试添加Message消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);
             }
         }
 
@@ -161,7 +161,7 @@ module suncore {
                 return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
             }
             else {
-                console.error(`尝试添加定时器，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+                suncom.Logger.error(`尝试添加定时器，但模块 ${ModuleEnum[mod]} 己停止！！！`);
             }
         }
 
