@@ -104,6 +104,7 @@ module suncore {
 
         /**
          * 取消任务
+         * export
          */
         export function cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void {
             M.messageManager.cancelTaskByGroupId(mod, groupId);
