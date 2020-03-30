@@ -61,6 +61,31 @@ declare module suncom {
     }
 
     /**
+     * 日志类型枚举
+     */
+    enum LogTypeEnum {
+        /**
+         * 普通日志
+         */
+        VERBOSE,
+
+        /**
+         * 警告日志
+         */
+        WARN,
+
+        /**
+         * 错误日志
+         */
+        ERROR,
+
+        /**
+         * 文件日志
+         */
+        LOG2F
+    }
+
+    /**
      * 自定义事件系统中的事件信息
      */
     interface IEventInfo {
@@ -409,6 +434,21 @@ declare module suncom {
         function formatDate(str: string, time: string | number | Date): string;
 
         /**
+         * 获取文件名（不包括后缀名）
+         */
+        function getFileName(path: string): string;
+
+        /**
+         * 获取文件的扩展名
+         */
+        function getFileExtension(path: string): string;
+
+        /**
+         * 替换扩展名，并返回新的路径
+         */
+        function replacePathExtension(path: string, newExt: string): string;
+
+        /**
          * 从数组中查找数据
          * @array: 数据源
          * @method: 查询规则，返回true表示与规则匹配
@@ -448,8 +488,9 @@ declare module suncom {
 
         /**
          * 存储数据
+         * @name: 若为负一，则自动生成键值
          */
-        function put(name: number, data: any): void;
+        function put(name: number, data: any): any;
 
         /**
          * 是否存在
@@ -525,7 +566,17 @@ declare module suncom {
         /**
          * 文件日志
          */
-        function log2f(name: number | string, sign: number | string, text: string): void;
+        function log2f(args: any[]): void;
+    }
+
+    /**
+     * 命令定义
+     */
+    namespace NotifyKey {
+        /**
+         * 输出打印日志 { text: string }
+         */
+        const DEBUG_PRINT: string;
     }
 
     /**

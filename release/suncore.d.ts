@@ -592,6 +592,11 @@ declare module suncore {
         function addTask(mod: ModuleEnum, groupId: number, task: ITask): void;
 
         /**
+         * 取消任务
+         */
+        function cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void;
+
+        /**
          * 添加触发器
          */
         function addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void;

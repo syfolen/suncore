@@ -16,6 +16,13 @@ var suncom;
         EnvMode[EnvMode["DEBUG"] = 1] = "DEBUG";
         EnvMode[EnvMode["WEB"] = 2] = "WEB";
     })(EnvMode = suncom.EnvMode || (suncom.EnvMode = {}));
+    var LogTypeEnum;
+    (function (LogTypeEnum) {
+        LogTypeEnum[LogTypeEnum["VERBOSE"] = 0] = "VERBOSE";
+        LogTypeEnum[LogTypeEnum["WARN"] = 1] = "WARN";
+        LogTypeEnum[LogTypeEnum["ERROR"] = 2] = "ERROR";
+        LogTypeEnum[LogTypeEnum["LOG2F"] = 3] = "LOG2F";
+    })(LogTypeEnum = suncom.LogTypeEnum || (suncom.LogTypeEnum = {}));
     var EventSystem = (function () {
         function EventSystem() {
             this.$events = {};
@@ -623,6 +630,35 @@ var suncom;
             throw Error("未实现的接口！！！");
         }
         Common.md5 = md5;
+        function getFileName(path) {
+            var index = path.lastIndexOf("/");
+            if (index > -1) {
+                path = path.substr(index + 1);
+            }
+            var suffix = Common.getFileExtension(path);
+            return path.substr(0, path.length - suffix.length - 1);
+        }
+        Common.getFileName = getFileName;
+        function getFileExtension(path) {
+            var index = path.lastIndexOf(".");
+            if (index === -1) {
+                return null;
+            }
+            else {
+                return path.substr(index + 1).toLowerCase();
+            }
+        }
+        Common.getFileExtension = getFileExtension;
+        function replacePathExtension(path, newExt) {
+            var index = path.lastIndexOf(".");
+            if (index === -1) {
+                return path;
+            }
+            else {
+                return path.substr(0, index + 1) + newExt;
+            }
+        }
+        Common.replacePathExtension = replacePathExtension;
         function createHttpSign(params) {
             var keys = Object.keys(params).sort();
             var array = [];
@@ -667,11 +703,11 @@ var suncom;
         Common.removeItemsFromArray = removeItemsFromArray;
         function compareVersion(ver) {
             if (typeof ver !== "string") {
-                console.error("\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548");
+                Logger.error("\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548");
                 return 0;
             }
             if (typeof Global.VERSION !== "string") {
-                console.error("\u7248\u672C\u53F7\u672A\u8BBE\u7F6E");
+                Logger.error("\u7248\u672C\u53F7\u672A\u8BBE\u7F6E");
                 return 0;
             }
             var array = ver.split(".");
@@ -698,10 +734,10 @@ var suncom;
                 }
             }
             if (a === true) {
-                console.error("\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548 ver:" + ver);
+                Logger.error("\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548 ver:" + ver);
             }
             if (b === true) {
-                console.error("\u5F53\u524D\u7248\u672C\u53F7\u65E0\u6548 ver:" + Global.VERSION);
+                Logger.error("\u5F53\u524D\u7248\u672C\u53F7\u65E0\u6548 ver:" + Global.VERSION);
             }
             if (a === true || b === true) {
                 return 0;
@@ -724,21 +760,29 @@ var suncom;
     })(Common = suncom.Common || (suncom.Common = {}));
     var DBService;
     (function (DBService) {
-        var $table = {};
+        var $id = 0;
+        DBService.$table = {};
         function get(name) {
-            return $table[name];
+            return DBService.$table[name];
         }
         DBService.get = get;
         function put(name, data) {
-            $table[name] = data;
+            if (name > -1) {
+                DBService.$table[name] = data;
+            }
+            else {
+                $id++;
+                DBService.$table["auto_" + $id] = data;
+            }
+            return data;
         }
         DBService.put = put;
         function exist(name) {
-            return $table[name] !== void 0;
+            return DBService.$table[name] !== void 0;
         }
         DBService.exist = exist;
         function drop(name) {
-            delete $table[name];
+            delete DBService.$table[name];
         }
         DBService.drop = drop;
     })(DBService = suncom.DBService || (suncom.DBService = {}));
@@ -759,7 +803,9 @@ var suncom;
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i] = arguments[_i];
             }
-            console.log(args.join(" "));
+            var str = args.join(" ");
+            console.log(str);
+            puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.VERBOSE, str]);
         }
         Logger.log = log;
         function warn() {
@@ -767,7 +813,9 @@ var suncom;
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i] = arguments[_i];
             }
-            console.warn(args.join(" "));
+            var str = args.join(" ");
+            console.warn(str);
+            puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.WARN, str]);
         }
         Logger.warn = warn;
         function error() {
@@ -775,13 +823,22 @@ var suncom;
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i] = arguments[_i];
             }
-            console.error(args.join(" "));
+            var str = args.join(" ");
+            console.error(str);
+            puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.ERROR, str]);
         }
         Logger.error = error;
-        function log2f(name, sign, text) {
+        function log2f(args) {
+            var str = args.join(" ");
+            console.info(str);
+            puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.LOG2F, str]);
         }
         Logger.log2f = log2f;
     })(Logger = suncom.Logger || (suncom.Logger = {}));
+    var NotifyKey;
+    (function (NotifyKey) {
+        NotifyKey.DEBUG_PRINT = "suncom.NotifyKey.DEBUG_PRINT";
+    })(NotifyKey = suncom.NotifyKey || (suncom.NotifyKey = {}));
     var Pool;
     (function (Pool) {
         var $pool = {};
