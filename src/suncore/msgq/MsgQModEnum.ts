@@ -27,6 +27,12 @@ module suncore {
         MMI = 1,
 
         /**
+         * 逻辑层
+         * export
+         */
+        L4C,
+
+        /**
          * 通用界面
          * export
          */
@@ -37,12 +43,6 @@ module suncore {
          * export
          */
         GUI,
-
-        /**
-         * 逻辑层
-         * export
-         */
-        L4C,
 
         /**
          * 网络层
