@@ -113,7 +113,7 @@ module suncore {
 
             // 定时器执行间隔不得小于 1 毫秒
             if (delay < 1) {
-                throw Error("非法的定时器执行间隔");
+                delay = 1;
             }
 
             // 响应时间偏差值
