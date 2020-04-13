@@ -30,7 +30,7 @@ module suncore {
                 throw Error(`请重写$frameLoop方法来替代ENTER_FRAME事件`);
             }
             if (this.$running === true && this.$frameLoop !== BaseService.prototype.$frameLoop) {
-                this.facade.registerObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
+                this.facade.registerObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this, false, suncom.EventPriorityEnum.EGL);
             }
         }
 
