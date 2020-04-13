@@ -65,12 +65,17 @@ declare module suncom {
      */
     export enum EventPriorityEnum {
         /**
-         * 低
+         * 最低
          */
-        LOW = 0,
+        LAZY = 0,
 
         /**
-         * 中（默认）
+         * 低（默认）
+         */
+        LOW,
+
+        /**
+         * 中
          */
         NOR,
 
