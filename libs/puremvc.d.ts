@@ -40,7 +40,7 @@ declare module puremvc {
         /**
          * 注册命令
          */
-        registerCommand(name: string, cls: new () => ICommand): void;
+        registerCommand(name: string, cls: new () => ICommand, priority?: number): void;
 
         /**
          * 移除命令

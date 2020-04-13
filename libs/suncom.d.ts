@@ -77,7 +77,7 @@ declare module suncom {
         /**
          * 中
          */
-        NOR,
+        MID,
 
         /**
          * 高
