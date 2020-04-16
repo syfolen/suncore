@@ -7,7 +7,7 @@ module suncore {
         /**
          * 消息队列列表
          */
-        private $queues: Array<MessageQueue> = [];
+        private $queues: MessageQueue[] = [];
 
         constructor() {
             for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {

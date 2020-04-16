@@ -151,7 +151,7 @@ declare module puremvc {
         /**
          * 执行接口
          */
-        execute(...args: Array<any>): void;
+        execute(...args: any[]): void;
     }
 
     /**
@@ -189,7 +189,9 @@ declare module puremvc {
      * 控制类（命令集合）
      */
     class Controller implements IController {
-
+        /**
+         * 控制类单例
+         */
         static inst: IController;
     }
 
@@ -197,9 +199,14 @@ declare module puremvc {
      * 外观类
      */
     class Facade implements IFacade {
-
+        /**
+         * 外观类单例
+         */
         static inst: IFacade;
 
+        /**
+         * 外观类单例方法
+         */
         static getInstance(): IFacade;
 
         /**
@@ -367,14 +374,16 @@ declare module puremvc {
         /**
          * 执行接口
          */
-        abstract execute(...args: Array<any>): void;
+        abstract execute(...args: any[]): void;
     }
 
     /**
      * 视图类（视图集合）
      */
     class View implements IView {
-
+        /**
+         * 视图类单例
+         */
         static inst: IView;
     }
 
@@ -437,7 +446,8 @@ declare module puremvc {
 
         /**
          * 注册事件回调
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.LOW
          */
-        protected $handleNotification(name: string, method: Function): void;
+        protected $handleNotification(name: string, method: Function, priority?: suncom.EventPriorityEnum): void;
     }
 }

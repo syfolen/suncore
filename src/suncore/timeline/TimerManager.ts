@@ -12,7 +12,7 @@ module suncore {
         /**
          * 定时器列表
          */
-        private $timers: Array<Array<ITimer>> = [];
+        private $timers: ITimer[][] = [];
 
         /**
          * 定时器集合
@@ -42,7 +42,7 @@ module suncore {
                 // 当前模块未暂停
                 if (System.isModulePaused(mod) === false) {
                     // 获取模块中的所有定时器
-                    const timers: Array<ITimer> = this.$timers[mod];
+                    const timers: ITimer[] = this.$timers[mod];
                     // 获取当前时间戳
                     const timestamp: number = System.getModuleTimestamp(mod);
                     // 对模块中的所有定时器进行遍历
@@ -157,7 +157,7 @@ module suncore {
             };
 
             // 获取对应模块的定时器列表
-            const timers: Array<ITimer> = this.$timers[mod];
+            const timers: ITimer[] = this.$timers[mod];
 
             let index: number = -1;
 
@@ -211,7 +211,7 @@ module suncore {
          * 清除指定模块下的所有定时器
          */
         clearTimer(mod: ModuleEnum): void {
-            const timers: Array<ITimer> = this.$timers[mod];
+            const timers: ITimer[] = this.$timers[mod];
             while (timers.length > 0) {
                 const timer: ITimer = timers.pop();
                 delete this.$timerMap[timer.timerId];

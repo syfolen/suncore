@@ -27,7 +27,6 @@ module suncore {
         private $messages0: IMessage[] = [];
 
         constructor(mod: ModuleEnum) {
-            // 所属模块
             this.$mod = mod;
             // 初始化消息队列
             for (let priority: MessagePriorityEnum = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
@@ -119,7 +118,7 @@ module suncore {
 
             // 若只剩下惰性消息，则处理惰性消息
             if (remainCount === 0 && dealCount === 0 && this.$messages0.length === 0) {
-                const queue: Array<IMessage> = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
+                const queue: IMessage[] = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
                 if (queue.length > 0) {
                     this.$dealCustomMessage(queue.shift());
                     dealCount++;
@@ -191,7 +190,7 @@ module suncore {
          * 将临时消息按优先级分类
          */
         classifyMessages0(): void {
-            while (this.$messages0.length) {
+            while (this.$messages0.length > 0) {
                 const message: IMessage = this.$messages0.shift();
                 if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
                     this.$addTaskMessage(message);
@@ -209,7 +208,7 @@ module suncore {
          * 添加触发器消息
          */
         private $addTriggerMessage(message: IMessage): void {
-            const queue: Array<IMessage> = this.$queues[MessagePriorityEnum.PRIORITY_TRIGGER];
+            const queue: IMessage[] = this.$queues[MessagePriorityEnum.PRIORITY_TRIGGER];
 
             let min: number = 0;
             let mid: number = 0;
