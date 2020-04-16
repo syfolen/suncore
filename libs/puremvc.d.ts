@@ -23,9 +23,9 @@ declare module puremvc {
         /**
          * 注册观察者
          * @receiveOnce: 是否只响应一次，默认为：false
-         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：1
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.LOW
          */
-        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: number): IObserver;
+        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum): IObserver;
 
         /**
          * 移除观察者
@@ -39,8 +39,9 @@ declare module puremvc {
 
         /**
          * 注册命令
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.LOW
          */
-        registerCommand(name: string, cls: new () => ICommand, priority?: number): void;
+        registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum): void;
 
         /**
          * 移除命令
@@ -174,6 +175,11 @@ declare module puremvc {
         getViewComponent(): any;
 
         /**
+         * 设置视图对象
+         */
+        setViewComponent(view: any): void;
+
+        /**
          * 注册感兴趣的事件列表
          */
         listNotificationInterests(): void;
@@ -231,9 +237,9 @@ declare module puremvc {
         /**
          * 注册观察者
          * @receiveOnce: 是否只响应一次，默认为：false
-         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：1
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.LOW
          */
-        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: number): IObserver;
+        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum): IObserver;
 
         /**
          * 移除观察者
@@ -247,8 +253,9 @@ declare module puremvc {
 
         /**
          * 注册命令
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.LOW
          */
-        registerCommand(name: string, cls: new () => ICommand): void;
+        registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum): void;
 
         /**
          * 移除命令
@@ -417,6 +424,11 @@ declare module puremvc {
          * 获取视图对象
          */
         getViewComponent(): any;
+
+        /**
+         * 设置视图对象
+         */
+        setViewComponent(view: any): void;
 
         /**
          * 注册感兴趣的事件列表
