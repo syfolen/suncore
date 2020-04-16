@@ -18,16 +18,16 @@ module suncore {
             }
             if (stop === true) {
                 if (System.isModuleStopped(mod) === true) {
-                    suncom.Logger.error(`模块 ${ModuleEnum[mod]} 己经停止！！！`);
+                    suncom.Logger.error(suncom.DebugMode.ANY, `模块 ${ModuleEnum[mod]} 己经停止！！！`);
                     return;
                 }
             }
             else if (System.isModulePaused(mod) === true) {
-                suncom.Logger.error(`模块 ${ModuleEnum[mod]} 己经暂停！！！`);
+                suncom.Logger.error(suncom.DebugMode.ANY, `模块 ${ModuleEnum[mod]} 己经暂停！！！`);
                 return;
             }
             else if (mod === ModuleEnum.SYSTEM) {
-                suncom.Logger.error(`无法暂停 ${ModuleEnum[mod]} 模块！！！`);
+                suncom.Logger.error(suncom.DebugMode.ANY, `无法暂停 ${ModuleEnum[mod]} 模块！！！`);
                 return;
             }
 
