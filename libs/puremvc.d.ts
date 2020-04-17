@@ -450,4 +450,20 @@ declare module puremvc {
          */
         protected $handleNotification(name: string, method: Function, priority?: suncom.EventPriorityEnum): void;
     }
+
+    /**
+     * 互斥锁，用于实现模块之间的消息互斥
+     */
+    namespace MutexLocker {
+
+        /**
+         * 备份快照，并锁定target指定的模块
+         */
+        function backup(target: Object): void;
+
+        /**
+         * 恢复快照中的数据（自动从上次备份的快照中获取）
+         */
+        function restore(): void;
+    }
 }
