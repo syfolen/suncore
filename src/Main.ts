@@ -9,6 +9,7 @@ class Facade extends puremvc.Facade {
 	}
 
 	protected $initMsgQ(): void {
+		super.$initMsgQ();
 		this.$regMMICmd(suncore.MsgQModEnum.CUI, "CUI");
 		this.$regMMICmd(suncore.MsgQModEnum.GUI, "GUI");
 		this.$regMsgQCmd(suncore.MsgQModEnum.L4C, "MSG");

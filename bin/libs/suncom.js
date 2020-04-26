@@ -1,14 +1,16 @@
+
 var suncom;
 (function (suncom) {
     var DebugMode;
     (function (DebugMode) {
-        DebugMode[DebugMode["DEBUG"] = 1] = "DEBUG";
-        DebugMode[DebugMode["ENGINEER"] = 2] = "ENGINEER";
-        DebugMode[DebugMode["ENGINE"] = 4] = "ENGINE";
-        DebugMode[DebugMode["NATIVE"] = 8] = "NATIVE";
-        DebugMode[DebugMode["NETWORK"] = 16] = "NETWORK";
-        DebugMode[DebugMode["NETWORK_HEARTBEAT"] = 32] = "NETWORK_HEARTBEAT";
-        DebugMode[DebugMode["NORMAL"] = 64] = "NORMAL";
+        DebugMode[DebugMode["ANY"] = 1] = "ANY";
+        DebugMode[DebugMode["DEBUG"] = 2] = "DEBUG";
+        DebugMode[DebugMode["ENGINEER"] = 4] = "ENGINEER";
+        DebugMode[DebugMode["ENGINE"] = 8] = "ENGINE";
+        DebugMode[DebugMode["NATIVE"] = 16] = "NATIVE";
+        DebugMode[DebugMode["NETWORK"] = 32] = "NETWORK";
+        DebugMode[DebugMode["NETWORK_HEARTBEAT"] = 64] = "NETWORK_HEARTBEAT";
+        DebugMode[DebugMode["NORMAL"] = 128] = "NORMAL";
     })(DebugMode = suncom.DebugMode || (suncom.DebugMode = {}));
     var EnvMode;
     (function (EnvMode) {
@@ -16,6 +18,16 @@ var suncom;
         EnvMode[EnvMode["DEBUG"] = 1] = "DEBUG";
         EnvMode[EnvMode["WEB"] = 2] = "WEB";
     })(EnvMode = suncom.EnvMode || (suncom.EnvMode = {}));
+    var EventPriorityEnum;
+    (function (EventPriorityEnum) {
+        EventPriorityEnum[EventPriorityEnum["LAZY"] = 0] = "LAZY";
+        EventPriorityEnum[EventPriorityEnum["LOW"] = 1] = "LOW";
+        EventPriorityEnum[EventPriorityEnum["MID"] = 2] = "MID";
+        EventPriorityEnum[EventPriorityEnum["HIGH"] = 3] = "HIGH";
+        EventPriorityEnum[EventPriorityEnum["FWL"] = 4] = "FWL";
+        EventPriorityEnum[EventPriorityEnum["EGL"] = 5] = "EGL";
+        EventPriorityEnum[EventPriorityEnum["OSL"] = 6] = "OSL";
+    })(EventPriorityEnum = suncom.EventPriorityEnum || (suncom.EventPriorityEnum = {}));
     var LogTypeEnum;
     (function (LogTypeEnum) {
         LogTypeEnum[LogTypeEnum["VERBOSE"] = 0] = "VERBOSE";
@@ -38,10 +50,7 @@ var suncom;
                 throw Error("派发无效事件！！！");
             }
             var list = this.$events[type] || null;
-            if (list === null) {
-                return;
-            }
-            if (list.length === 1) {
+            if (list === null || list.length === 1) {
                 return;
             }
             list[0] = true;
@@ -67,14 +76,14 @@ var suncom;
             }
             this.$isCanceled = isCanceled;
             list[0] = false;
-            while (this.$onceList.length) {
+            while (this.$onceList.length > 0) {
                 var event_2 = this.$onceList.pop();
                 this.removeEventListener(event_2.type, event_2.method, event_2.caller);
             }
         };
         EventSystem.prototype.addEventListener = function (type, method, caller, receiveOnce, priority) {
             if (receiveOnce === void 0) { receiveOnce = false; }
-            if (priority === void 0) { priority = 1; }
+            if (priority === void 0) { priority = EventPriorityEnum.LOW; }
             if (Common.isStringInvalidOrEmpty(type) === true) {
                 throw Error("注册无效事件！！！");
             }
@@ -83,7 +92,7 @@ var suncom;
                 list = this.$events[type] = [false];
             }
             else if (list[0] === true) {
-                list = this.$events[type] = list.concat();
+                list = this.$events[type] = list.slice(0);
                 list[0] = false;
             }
             var index = -1;
@@ -115,10 +124,7 @@ var suncom;
                 throw Error("移除无效事件！！！");
             }
             var list = this.$events[type] || null;
-            if (list === null) {
-                return;
-            }
-            if (list.length === 1) {
+            if (list === null || list.length === 1) {
                 return;
             }
             if (list[0] === true) {
@@ -394,27 +400,6 @@ var suncom;
             return str;
         }
         Common.formatString$ = formatString$;
-        function abs(a) {
-            if (a < 0) {
-                return -a;
-            }
-            return a;
-        }
-        Common.abs = abs;
-        function min(a, b) {
-            if (b < a) {
-                return b;
-            }
-            return a;
-        }
-        Common.min = min;
-        function max(a, b) {
-            if (a < b) {
-                return b;
-            }
-            return a;
-        }
-        Common.max = max;
         function clamp(value, min, max) {
             if (value < min) {
                 return min;
@@ -428,33 +413,33 @@ var suncom;
         function round(value, n) {
             if (n === void 0) { n = 0; }
             var str = value.toString();
-            var reg0 = str.indexOf(".");
-            if (reg0 === -1) {
+            var dotIndex = str.indexOf(".");
+            if (dotIndex === -1) {
                 return value;
             }
-            var reg1 = reg0 + 1;
-            if (str.length - reg1 <= n) {
+            var integerDotLength = dotIndex + 1;
+            if (str.length - integerDotLength <= n) {
                 return value;
             }
-            var s0 = str.substr(0, reg0);
-            var s1 = str.substr(reg1, n);
-            var s2 = str.substr(reg1 + n, 2);
+            var s0 = str.substr(0, dotIndex);
+            var s1 = str.substr(integerDotLength, n);
+            var s2 = str.substr(integerDotLength + n, 2);
             var a = s2.length === 1 ? s2 : s2.charAt(0);
             var b = s2.length === 1 ? "0" : s2.charAt(1);
             var intValue = parseInt(s0 + s1);
             var floatValue = parseInt(a + b);
             if (intValue < 0 && floatValue > 0) {
-                intValue--;
+                intValue -= 1;
                 floatValue = 100 - floatValue;
             }
             var s3 = floatValue.toString();
-            var reg2 = parseInt(s3.charAt(0));
-            var reg3 = parseInt(s3.charAt(1));
-            if (reg2 > 5) {
+            var reg0 = parseInt(s3.charAt(0));
+            var reg1 = parseInt(s3.charAt(1));
+            if (reg0 > 5) {
                 intValue += 1;
             }
-            else if (reg2 === 5) {
-                if (reg3 > 0) {
+            else if (reg0 === 5) {
+                if (reg1 > 0) {
                     intValue++;
                 }
                 else {
@@ -464,28 +449,30 @@ var suncom;
                     }
                 }
             }
-            var s4 = intValue.toString();
-            var reg4 = s4.length - n;
-            var s5 = s4.substr(0, reg4) + "." + s4.substr(reg4);
-            var reg5 = parseFloat(s5);
-            return reg5;
+            var newValue = intValue.toString();
+            var newDotIndex = newValue.length - n;
+            var retValue = newValue.substr(0, newDotIndex) + "." + newValue.substr(newDotIndex);
+            var retValueF = parseFloat(retValue);
+            return retValueF;
         }
         Common.round = round;
         function $round(value, n) {
             if (n === void 0) { n = 0; }
-            var multiples = Math.pow(10, n + 1);
-            var tmpValue = Math.floor(value * multiples);
-            var floatValue = tmpValue % 10;
-            var intValue = (tmpValue - floatValue) / 10;
-            if (floatValue < 0) {
+            Logger.warn(DebugMode.ANY, "\u6B64\u63A5\u53E3\u5DF1\u5F03\u7528\uFF1Asuncom.Common.$round(value: number, n: number = 0);");
+            var tmpValue = Math.floor(value * Math.pow(10, n + 2));
+            var floatValue = tmpValue % 100;
+            var intValue = (tmpValue - floatValue) / 100;
+            if (floatValue < 0 && floatValue > 0) {
                 intValue -= 1;
-                floatValue += 10;
+                floatValue += 100;
             }
-            if (floatValue > 5) {
+            var a = floatValue % 10;
+            var b = (floatValue - a) / 10;
+            if (b > 5) {
                 intValue += 1;
             }
-            else if (floatValue === 5) {
-                var modValue = intValue % 2;
+            else if (b === 5) {
+                var modValue = a % 2;
                 if (modValue === 1 || modValue === -1) {
                     intValue += 1;
                 }
@@ -570,33 +557,33 @@ var suncom;
         function dateDiff(datepart, date, date2) {
             var d1 = Common.convertToDate(date);
             var d2 = Common.convertToDate(date2);
-            var time = d1.valueOf();
-            var time2 = d2.valueOf();
+            var t1 = d1.valueOf();
+            var t2 = d2.valueOf();
             if (datepart === "ms") {
-                return time2 - time;
+                return t2 - t1;
             }
-            time = Math.floor(time / 1000);
-            time2 = Math.floor(time2 / 1000);
+            t1 = Math.floor(t1 / 1000);
+            t2 = Math.floor(t2 / 1000);
             if (datepart === "ss") {
-                return time2 - time;
+                return t2 - t1;
             }
-            time = Math.floor(time / 60);
-            time2 = Math.floor(time2 / 60);
+            t1 = Math.floor(t1 / 60);
+            t2 = Math.floor(t2 / 60);
             if (datepart === "mm") {
-                return time2 - time;
+                return t2 - t1;
             }
-            time = Math.floor(time / 60);
-            time2 = Math.floor(time2 / 60);
+            t1 = Math.floor(t1 / 60);
+            t2 = Math.floor(t2 / 60);
             if (datepart === "hh") {
-                return time2 - time;
+                return t2 - t1;
             }
-            time = Math.floor(time / 24);
-            time2 = Math.floor(time2 / 24);
+            t1 = Math.floor(t1 / 24);
+            t2 = Math.floor(t2 / 24);
             if (datepart === "dd") {
-                return time2 - time;
+                return t2 - t1;
             }
             if (datepart === "ww") {
-                return Math.floor(((time2 - 4) - (time - 4)) / 7);
+                return Math.floor(((t2 - 4) - (t1 - 4)) / 7);
             }
             if (datepart === "MM") {
                 return d2.getMonth() - d1.getMonth() + (d2.getFullYear() - d1.getFullYear()) * 12;
@@ -659,16 +646,17 @@ var suncom;
             }
         }
         Common.replacePathExtension = replacePathExtension;
-        function createHttpSign(params) {
+        function createHttpSign(params, key, sign) {
+            if (sign === void 0) { sign = "sign"; }
             var keys = Object.keys(params).sort();
             var array = [];
             for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
-                if (key !== "sign") {
-                    array.push(key + "=" + params[key]);
+                var key_1 = keys[i];
+                if (key_1 !== sign) {
+                    array.push(key_1 + "=" + params[key_1]);
                 }
             }
-            array.push("key=123456789012345678");
+            array.push("key=" + key);
             return Common.md5(array.join("&"));
         }
         Common.createHttpSign = createHttpSign;
@@ -703,11 +691,11 @@ var suncom;
         Common.removeItemsFromArray = removeItemsFromArray;
         function compareVersion(ver) {
             if (typeof ver !== "string") {
-                Logger.error("\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548");
+                Logger.error(DebugMode.ANY, "\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548");
                 return 0;
             }
             if (typeof Global.VERSION !== "string") {
-                Logger.error("\u7248\u672C\u53F7\u672A\u8BBE\u7F6E");
+                Logger.error(DebugMode.ANY, "\u7248\u672C\u53F7\u672A\u8BBE\u7F6E");
                 return 0;
             }
             var array = ver.split(".");
@@ -719,34 +707,31 @@ var suncom;
             while (array2.length < length) {
                 array2.push("0");
             }
-            var a = false;
-            var b = false;
+            var error = 0;
             for (var i = 0; i < length; i++) {
                 var s0 = array[i];
                 var s1 = array2[i];
                 if (Common.isNumber(s0) === false) {
-                    a = true;
+                    error = (error & 1);
                     array[i] = "0";
                 }
                 if (Common.isNumber(s1) === false) {
-                    b = true;
+                    error = (error & 2);
                     array2[i] = "0";
                 }
             }
-            if (a === true) {
-                Logger.error("\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548 ver:" + ver);
+            if (error & 1) {
+                Logger.error(DebugMode.ANY, "\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548 ver:" + ver);
             }
-            if (b === true) {
-                Logger.error("\u5F53\u524D\u7248\u672C\u53F7\u65E0\u6548 ver:" + Global.VERSION);
+            if (error & 2) {
+                Logger.error(DebugMode.ANY, "\u5F53\u524D\u7248\u672C\u53F7\u65E0\u6548 ver:" + Global.VERSION);
             }
-            if (a === true || b === true) {
+            if (error > 0) {
                 return 0;
             }
             for (var i = 0; i < length; i++) {
-                var s0 = array[i];
-                var s1 = array2[i];
-                var reg0 = Number(s0);
-                var reg1 = Number(s1);
+                var reg0 = Number(array[i]);
+                var reg1 = Number(array2[i]);
                 if (reg0 < reg1) {
                     return 1;
                 }
@@ -768,7 +753,7 @@ var suncom;
         DBService.get = get;
         function put(name, data) {
             if (name > -1) {
-                DBService.$table[name] = data;
+                DBService.$table[name.toString()] = data;
             }
             else {
                 $id++;
@@ -778,11 +763,11 @@ var suncom;
         }
         DBService.put = put;
         function exist(name) {
-            return DBService.$table[name] !== void 0;
+            return DBService.$table[name.toString()] !== void 0;
         }
         DBService.exist = exist;
         function drop(name) {
-            delete DBService.$table[name];
+            delete DBService.$table[name.toString()];
         }
         DBService.drop = drop;
     })(DBService = suncom.DBService || (suncom.DBService = {}));
@@ -798,40 +783,60 @@ var suncom;
     })(Global = suncom.Global || (suncom.Global = {}));
     var Logger;
     (function (Logger) {
-        function log() {
+        function log(mod) {
             var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
             }
-            var str = args.join(" ");
-            console.log(str);
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.VERBOSE, str]);
+            if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
+                var str = args.join(" ");
+                console.log(str);
+                if (Global.debugMode === DebugMode.DEBUG) {
+                    puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.VERBOSE, str]);
+                }
+            }
         }
         Logger.log = log;
-        function warn() {
+        function warn(mod) {
             var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
             }
-            var str = args.join(" ");
-            console.warn(str);
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.WARN, str]);
+            if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
+                var str = args.join(" ");
+                console.warn(str);
+                if (Global.debugMode === DebugMode.DEBUG) {
+                    puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.WARN, str]);
+                }
+            }
         }
         Logger.warn = warn;
-        function error() {
+        function error(mod) {
             var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
             }
-            var str = args.join(" ");
-            console.error(str);
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.ERROR, str]);
+            if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
+                var str = args.join(" ");
+                console.error(str);
+                if (Global.debugMode === DebugMode.DEBUG) {
+                    puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.ERROR, str]);
+                }
+            }
         }
         Logger.error = error;
-        function log2f(args) {
-            var str = args.join(" ");
-            console.info(str);
-            puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.LOG2F, str]);
+        function log2f(mod) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
+                var str = args.join(" ");
+                console.info(str);
+                if (Global.debugMode === DebugMode.DEBUG) {
+                    puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.LOG2F, str]);
+                }
+            }
         }
         Logger.log2f = log2f;
     })(Logger = suncom.Logger || (suncom.Logger = {}));

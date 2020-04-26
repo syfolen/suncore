@@ -34,7 +34,7 @@ var puremvc;
                 command.execute.call(command, args);
             }
         };
-        Controller.prototype.registerCommand = function (name, cls) {
+        Controller.prototype.registerCommand = function (name, cls, priority) {
             if (name === void 0) {
                 throw Error("注册无效的命令");
             }
@@ -42,7 +42,7 @@ var puremvc;
                 throw Error("重复注册命令：" + name);
             }
             this.$commands[name] = cls;
-            View.inst.registerObserver(name, this.executeCommand, this);
+            View.inst.registerObserver(name, this.executeCommand, this, false, priority);
         };
         Controller.prototype.removeCommand = function (name) {
             if (this.hasCommand(name) === false) {
@@ -86,6 +86,10 @@ var puremvc;
             this.$initializeController();
         };
         Facade.prototype.$initMsgQ = function () {
+            MutexLocker.scope = new MutexScope();
+            MutexLocker.locker = new MutexScope();
+            MutexLocker.msgQMap["sun"] = suncore.MsgQModEnum.KAL;
+            MutexLocker.msgQMap["MMI"] = suncore.MsgQModEnum.MMI;
         };
         Facade.prototype.$initializeModel = function () {
         };
@@ -95,87 +99,87 @@ var puremvc;
         };
         Facade.prototype.$regMMICmd = function (msgQMod, prefix) {
             this.$regMsgQCmd(msgQMod, prefix);
-            suncore.Mutex.mmiMsgQMap[msgQMod] = true;
+            MutexLocker.mmiMsgQMap[msgQMod] = true;
         };
         Facade.prototype.$regMsgQCmd = function (msgQMod, prefix) {
-            suncore.Mutex.checkPrefix = true;
-            suncore.Mutex.msgQMap[prefix] = msgQMod;
-            suncore.Mutex.msgQCmd[msgQMod] = prefix;
+            MutexLocker.checkPrefix = true;
+            MutexLocker.msgQMap[prefix] = msgQMod;
+            MutexLocker.msgQCmd[msgQMod] = prefix;
         };
         Facade.prototype.registerObserver = function (name, method, caller, receiveOnce, priority) {
-            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            MutexLocker.active(suncore.MsgQModEnum.MMI);
             var observer = this.$view.registerObserver(name, method, caller, receiveOnce, priority);
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
             return observer;
         };
         Facade.prototype.removeObserver = function (name, method, caller) {
-            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            MutexLocker.active(suncore.MsgQModEnum.MMI);
             this.$view.removeObserver(name, method, caller);
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
         };
         Facade.prototype.hasObserver = function (name, method, caller) {
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
             return this.$view.hasObserver(name, method, caller);
         };
-        Facade.prototype.registerCommand = function (name, cls) {
-            suncore.Mutex.deactive();
-            this.$controller.registerCommand(name, cls);
+        Facade.prototype.registerCommand = function (name, cls, priority) {
+            MutexLocker.deactive();
+            this.$controller.registerCommand(name, cls, priority);
         };
         Facade.prototype.removeCommand = function (name) {
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
             this.$controller.removeCommand(name);
         };
         Facade.prototype.hasCommand = function (name) {
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
             return this.$controller.hasCommand(name);
         };
         Facade.prototype.registerProxy = function (proxy) {
-            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            MutexLocker.active(suncore.MsgQModEnum.MMI);
             this.$model.registerProxy(proxy);
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
         };
         Facade.prototype.removeProxy = function (name) {
-            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            MutexLocker.active(suncore.MsgQModEnum.MMI);
             this.$model.removeProxy(name);
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
         };
         Facade.prototype.retrieveProxy = function (name) {
-            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            MutexLocker.active(suncore.MsgQModEnum.MMI);
             var proxy = this.$model.retrieveProxy(name);
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
             return proxy;
         };
         Facade.prototype.hasProxy = function (name) {
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
             return this.$model.hasProxy(name);
         };
         Facade.prototype.registerMediator = function (mediator) {
-            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            MutexLocker.active(suncore.MsgQModEnum.MMI);
             this.$view.registerMediator(mediator);
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
         };
         Facade.prototype.removeMediator = function (name) {
-            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            MutexLocker.active(suncore.MsgQModEnum.MMI);
             this.$view.removeMediator(name);
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
         };
         Facade.prototype.retrieveMediator = function (name) {
-            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            MutexLocker.active(suncore.MsgQModEnum.MMI);
             var mediator = this.$view.retrieveMediator(name);
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
             return mediator;
         };
         Facade.prototype.hasMediator = function (name) {
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
             return this.$view.hasMediator(name);
         };
         Facade.prototype.sendNotification = function (name, args, cancelable) {
-            suncore.Mutex.active(suncore.MsgQModEnum.MMI);
+            MutexLocker.active(suncore.MsgQModEnum.MMI);
             this.$view.notifyObservers(name, args, cancelable);
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
         };
         Facade.prototype.notifyCancel = function () {
-            suncore.Mutex.deactive();
+            MutexLocker.deactive();
             this.$view.notifyCancel();
         };
         Facade.SINGLETON_MSG = "Facade singleton already constructed!";
@@ -199,7 +203,7 @@ var puremvc;
             if (this.hasProxy(name) === true) {
                 throw Error("重复注册Proxy：" + name);
             }
-            if (suncore.Mutex.enableMMIAction() === false) {
+            if (MutexLocker.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             this.$proxies[name] = proxy;
@@ -213,20 +217,20 @@ var puremvc;
             if (proxy === null) {
                 throw Error("重复移除Proxy：" + name);
             }
-            if (suncore.Mutex.enableMMIAction() === false) {
+            if (MutexLocker.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             delete this.$proxies[name];
             proxy.onRemove();
         };
         Model.prototype.retrieveProxy = function (name) {
-            if (suncore.Mutex.enableMMIAction() === false) {
+            if (MutexLocker.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             return this.$proxies[name] || null;
         };
         Model.prototype.hasProxy = function (name) {
-            if (suncore.Mutex.enableMMIAction() === false) {
+            if (MutexLocker.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             return this.retrieveProxy(name) != null;
@@ -236,6 +240,185 @@ var puremvc;
         return Model;
     }());
     puremvc.Model = Model;
+    var MutexScope = (function () {
+        function MutexScope() {
+            this.$actMsgQMod = suncore.MsgQModEnum.NIL;
+            this.$curMsgQMod = suncore.MsgQModEnum.NIL;
+            this.$target = {};
+            this.$snapshots = [];
+        }
+        MutexScope.prototype.asserts = function (msgQMod, target) {
+            if (msgQMod === suncore.MsgQModEnum.KAL) {
+                return;
+            }
+            if (this.$curMsgQMod === suncore.MsgQModEnum.NIL || this.$curMsgQMod === suncore.MsgQModEnum.KAL) {
+                return;
+            }
+            if (this.$curMsgQMod === suncore.MsgQModEnum.MMI) {
+                if (msgQMod === suncore.MsgQModEnum.MMI || MutexLocker.mmiMsgQMap[msgQMod] === true) {
+                    return;
+                }
+            }
+            else if (this.$curMsgQMod === msgQMod) {
+                return;
+            }
+            else if (msgQMod === suncore.MsgQModEnum.MMI && MutexLocker.mmiMsgQMap[this.$curMsgQMod] === true) {
+                return;
+            }
+            if (target === null) {
+                throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[this.$curMsgQMod] + ", dest:" + suncore.MsgQModEnum[msgQMod]);
+            }
+            else {
+                throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[this.$curMsgQMod] + ", dest:" + suncore.MsgQModEnum[msgQMod]);
+            }
+        };
+        MutexScope.prototype.update = function (target) {
+            this.$target = target;
+            if (target instanceof puremvc.Notifier) {
+                this.$actMsgQMod = target.msgQMod;
+            }
+            else {
+                this.$actMsgQMod = suncore.MsgQModEnum.MMI;
+            }
+            var prefix = target[MutexScope.MUTEX_PREFIX_KEY] || null;
+            if (prefix === null) {
+                this.$curMsgQMod = this.$actMsgQMod;
+            }
+            else {
+                this.$curMsgQMod = MutexLocker.msgQMap[prefix];
+            }
+        };
+        MutexScope.prototype.lock = function (msgQMod) {
+            var a = this.$target[MutexScope.MUTEX_REFERENCE_KAL] || 0;
+            var b = this.$target[MutexScope.MUTEX_REFERENCE_MMI] || 0;
+            var c = this.$target[MutexScope.MUTEX_REFERENCE_ANY] || 0;
+            if (msgQMod === suncore.MsgQModEnum.KAL) {
+                a++;
+            }
+            else if (msgQMod === suncore.MsgQModEnum.MMI) {
+                b++;
+            }
+            else {
+                c++;
+            }
+            if (this.$curMsgQMod === suncore.MsgQModEnum.NIL || this.$curMsgQMod === suncore.MsgQModEnum.KAL) {
+                this.$curMsgQMod = msgQMod;
+            }
+            else if (this.$curMsgQMod === suncore.MsgQModEnum.MMI && msgQMod !== suncore.MsgQModEnum.KAL) {
+                this.$curMsgQMod = msgQMod;
+            }
+            this.$cache(a, b, c, false);
+        };
+        MutexScope.prototype.unlock = function (msgQMod) {
+            var a = this.$target[MutexScope.MUTEX_REFERENCE_KAL] || 0;
+            var b = this.$target[MutexScope.MUTEX_REFERENCE_MMI] || 0;
+            var c = this.$target[MutexScope.MUTEX_REFERENCE_ANY] || 0;
+            if (msgQMod === suncore.MsgQModEnum.KAL) {
+                a--;
+            }
+            else if (msgQMod === suncore.MsgQModEnum.MMI) {
+                b--;
+            }
+            else {
+                c--;
+            }
+            if (a < 0 || b < 0 || c < 0) {
+                throw Error("\u4E92\u65A5\u4F53\u91CA\u653E\u9519\u8BEF\uFF1AKAL[" + a + "], MMI[" + b + "], ANY[" + c + "]");
+            }
+            if (this.$curMsgQMod === this.$actMsgQMod) {
+            }
+            else if (c > 0) {
+            }
+            else if (b > 0) {
+                this.$curMsgQMod = suncore.MsgQModEnum.MMI;
+            }
+            else if (a > 0) {
+                this.$curMsgQMod = suncore.MsgQModEnum.KAL;
+            }
+            else {
+                this.$curMsgQMod = this.$actMsgQMod;
+            }
+            this.$cache(a, b, c, true);
+        };
+        MutexScope.prototype.active = function (msgQMod) {
+            if (this.$actMsgQMod === suncore.MsgQModEnum.NIL) {
+                this.$actMsgQMod = this.$curMsgQMod = msgQMod;
+            }
+        };
+        MutexScope.prototype.deactive = function () {
+            var a = this.$target[MutexScope.MUTEX_REFERENCE_KAL] || 0;
+            var b = this.$target[MutexScope.MUTEX_REFERENCE_MMI] || 0;
+            var c = this.$target[MutexScope.MUTEX_REFERENCE_ANY] || 0;
+            if (a === 0 && b === 0 && c === 0) {
+                this.$actMsgQMod = this.$curMsgQMod = suncore.MsgQModEnum.NIL;
+            }
+        };
+        MutexScope.prototype.$cache = function (a, b, c, d) {
+            if (a > 0) {
+                this.$target[MutexScope.MUTEX_REFERENCE_KAL] = a;
+            }
+            else if (d === true && this.$target[MutexScope.MUTEX_REFERENCE_KAL] > 0) {
+                delete this.$target[MutexScope.MUTEX_REFERENCE_KAL];
+            }
+            if (b > 0) {
+                this.$target[MutexScope.MUTEX_REFERENCE_MMI] = b;
+            }
+            else if (d === true && this.$target[MutexScope.MUTEX_REFERENCE_MMI] > 0) {
+                delete this.$target[MutexScope.MUTEX_REFERENCE_MMI];
+            }
+            if (c > 0) {
+                this.$target[MutexScope.MUTEX_PREFIX_KEY] = MutexLocker.msgQCmd[this.$curMsgQMod];
+                this.$target[MutexScope.MUTEX_REFERENCE_ANY] = c;
+            }
+            else if (d === true && this.$target[MutexScope.MUTEX_REFERENCE_ANY] > 0) {
+                delete this.$target[MutexScope.MUTEX_PREFIX_KEY];
+                delete this.$target[MutexScope.MUTEX_REFERENCE_ANY];
+            }
+        };
+        MutexScope.prototype.backup = function (target) {
+            var msgQMod = null;
+            if (target instanceof puremvc.Notifier) {
+                msgQMod = target.msgQMod;
+            }
+            else {
+                msgQMod = suncore.MsgQModEnum.MMI;
+            }
+            if (msgQMod !== this.$curMsgQMod) {
+                var snapshot = {
+                    data: this.$target,
+                    actMsgQMod: this.$actMsgQMod,
+                    curMsgQMod: this.$curMsgQMod
+                };
+                this.$snapshots.push(snapshot);
+                this.$target = {};
+                this.$actMsgQMod = this.$curMsgQMod = msgQMod;
+            }
+            else {
+                this.$snapshots.push(null);
+            }
+        };
+        MutexScope.prototype.restore = function () {
+            var snapshot = this.$snapshots.pop() || null;
+            if (snapshot !== null) {
+                this.$target = snapshot.data;
+                this.$actMsgQMod = snapshot.actMsgQMod;
+                this.$curMsgQMod = snapshot.curMsgQMod;
+            }
+        };
+        Object.defineProperty(MutexScope.prototype, "curMsgQMod", {
+            get: function () {
+                return this.$curMsgQMod;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MutexScope.MUTEX_PREFIX_KEY = "puremvc$mutex$prefix";
+        MutexScope.MUTEX_REFERENCE_KAL = "puremvc$mutex$reference$kal";
+        MutexScope.MUTEX_REFERENCE_MMI = "puremvc$mutex$reference$mmi";
+        MutexScope.MUTEX_REFERENCE_ANY = "puremvc$mutex$reference$any";
+        return MutexScope;
+    }());
+    puremvc.MutexScope = MutexScope;
     var Notifier = (function () {
         function Notifier(msgQMod) {
             this.$msgQMod = suncore.MsgQModEnum.MMI;
@@ -246,7 +429,7 @@ var puremvc;
         }
         Object.defineProperty(Notifier.prototype, "facade", {
             get: function () {
-                suncore.Mutex.active(this.$msgQMod);
+                MutexLocker.active(this.$msgQMod);
                 return this.$facade;
             },
             enumerable: true,
@@ -307,7 +490,7 @@ var puremvc;
         View.prototype.registerObserver = function (name, method, caller, receiveOnce, priority) {
             if (caller === void 0) { caller = null; }
             if (receiveOnce === void 0) { receiveOnce = false; }
-            if (priority === void 0) { priority = 1; }
+            if (priority === void 0) { priority = suncom.EventPriorityEnum.LOW; }
             if (name === void 0) {
                 throw Error("注册无效的监听");
             }
@@ -332,11 +515,11 @@ var puremvc;
                     index = i;
                 }
             }
-            suncore.Mutex.create(name, caller);
+            MutexLocker.create(name, caller);
             var observer = {
                 name: name,
-                caller: caller,
                 method: method,
+                caller: caller,
                 priority: priority,
                 receiveOnce: receiveOnce
             };
@@ -356,8 +539,8 @@ var puremvc;
             if (method === void 0) {
                 throw Error("移除无效的监听回调");
             }
-            var observers = this.$observers[name];
-            if (observers === void 0) {
+            var observers = this.$observers[name] || null;
+            if (observers === null || observers.length === 1) {
                 return;
             }
             if (observers[0] === true) {
@@ -368,7 +551,7 @@ var puremvc;
                 var observer = observers[i];
                 if (observer.method === method && observer.caller === caller) {
                     observers.splice(i, 1);
-                    suncore.Mutex.release(name, caller);
+                    MutexLocker.release(name, caller);
                     break;
                 }
             }
@@ -409,12 +592,12 @@ var puremvc;
             if (name === void 0) {
                 throw Error("派发无效的通知");
             }
-            var observers = this.$observers[name];
-            if (observers === void 0) {
+            var observers = this.$observers[name] || null;
+            if (observers === null || observers.length === 1) {
                 return;
             }
             observers[0] = true;
-            suncore.Mutex.lock(name);
+            MutexLocker.lock(name);
             var isCanceled = this.$isCanceled;
             this.$isCanceled = false;
             for (var i = 1; i < observers.length; i++) {
@@ -440,7 +623,7 @@ var puremvc;
             }
             this.$isCanceled = isCanceled;
             observers[0] = false;
-            suncore.Mutex.unlock(name);
+            MutexLocker.unlock(name);
             while (this.$onceObservers.length > 0) {
                 var observer = this.$onceObservers.pop();
                 this.removeObserver(observer.name, observer.method, observer.caller);
@@ -454,7 +637,7 @@ var puremvc;
             if (this.hasMediator(name) === true) {
                 throw Error("重复注册Mediator " + name);
             }
-            if (suncore.Mutex.enableMMIAction() === false) {
+            if (MutexLocker.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             this.$mediators[name] = mediator;
@@ -469,7 +652,7 @@ var puremvc;
             if (mediator === null) {
                 throw Error("移除不存在的Mediator " + name);
             }
-            if (suncore.Mutex.enableMMIAction() === false) {
+            if (MutexLocker.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             delete this.$mediators[name];
@@ -477,13 +660,13 @@ var puremvc;
             mediator.onRemove();
         };
         View.prototype.retrieveMediator = function (name) {
-            if (suncore.Mutex.enableMMIAction() === false) {
+            if (MutexLocker.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             return this.$mediators[name] || null;
         };
         View.prototype.hasMediator = function (name) {
-            if (suncore.Mutex.enableMMIAction() === false) {
+            if (MutexLocker.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
             return this.retrieveMediator(name) != null;
@@ -538,6 +721,9 @@ var puremvc;
         Mediator.prototype.getViewComponent = function () {
             return this.$viewComponent || null;
         };
+        Mediator.prototype.setViewComponent = function (view) {
+            this.$viewComponent = view || null;
+        };
         Mediator.prototype.listNotificationInterests = function () {
         };
         Mediator.prototype.removeNotificationInterests = function () {
@@ -546,11 +732,117 @@ var puremvc;
                 this.facade.removeObserver(observer.name, observer.method, observer.caller);
             }
         };
-        Mediator.prototype.$handleNotification = function (name, method) {
+        Mediator.prototype.$handleNotification = function (name, method, priority) {
+            if (priority === void 0) { priority = suncom.EventPriorityEnum.LOW; }
             var observer = this.facade.registerObserver(name, method, this);
             observer && this.$notificationInterests.push(observer);
         };
         return Mediator;
     }(Notifier));
     puremvc.Mediator = Mediator;
+    var MutexLocker;
+    (function (MutexLocker) {
+        MutexLocker.MMI_COMMAND_PREFIX = "MMI";
+        MutexLocker.KERNEL_COMMAND_PREFIX = "sun";
+        MutexLocker.scope = null;
+        MutexLocker.locker = null;
+        MutexLocker.checkPrefix = false;
+        MutexLocker.msgQMap = {};
+        MutexLocker.msgQCmd = {};
+        MutexLocker.mmiMsgQMap = {};
+        function getCommandPrefix(name) {
+            if (name.substr(0, 3) === MutexLocker.KERNEL_COMMAND_PREFIX) {
+                return MutexLocker.KERNEL_COMMAND_PREFIX;
+            }
+            var index = name.indexOf("_");
+            if (index < 1) {
+                throw Error("\u5FC5\u987B\u4E3A\u547D\u4EE4\u6307\u5B9A\u4E00\u4E2A\u6A21\u5757\u540D\uFF0C\u683C\u5F0F\u5982 MOD_" + name);
+            }
+            var prefix = name.substr(0, index);
+            if (MutexLocker.msgQMap[prefix] === void 0) {
+                throw Error("\u672A\u6CE8\u518C\u7684MsgQ\u6D88\u606F\u524D\u7F00\uFF1A" + prefix);
+            }
+            return prefix;
+        }
+        function enableMMIAction() {
+            if (MutexLocker.checkPrefix === false) {
+                return true;
+            }
+            if (MutexLocker.scope.curMsgQMod === suncore.MsgQModEnum.NIL || MutexLocker.scope.curMsgQMod === suncore.MsgQModEnum.KAL || MutexLocker.scope.curMsgQMod === suncore.MsgQModEnum.MMI) {
+                return true;
+            }
+            return MutexLocker.mmiMsgQMap[MutexLocker.scope.curMsgQMod] === true;
+        }
+        MutexLocker.enableMMIAction = enableMMIAction;
+        function active(msgQMod) {
+            if (MutexLocker.checkPrefix === true) {
+                MutexLocker.scope.active(msgQMod);
+            }
+        }
+        MutexLocker.active = active;
+        function deactive() {
+            if (MutexLocker.checkPrefix === true) {
+                MutexLocker.scope.deactive();
+            }
+        }
+        MutexLocker.deactive = deactive;
+        function lock(name) {
+            if (MutexLocker.checkPrefix === false) {
+                return;
+            }
+            var prefix = getCommandPrefix(name);
+            var msgQMod = MutexLocker.msgQMap[prefix];
+            MutexLocker.scope.asserts(msgQMod, null);
+            MutexLocker.scope.lock(msgQMod);
+        }
+        MutexLocker.lock = lock;
+        function unlock(name) {
+            if (MutexLocker.checkPrefix === false) {
+                return;
+            }
+            var prefix = getCommandPrefix(name);
+            var msgQMod = MutexLocker.msgQMap[prefix];
+            MutexLocker.scope.asserts(msgQMod, null);
+            MutexLocker.scope.unlock(msgQMod);
+        }
+        MutexLocker.unlock = unlock;
+        function create(name, target) {
+            if (MutexLocker.checkPrefix === false) {
+                return;
+            }
+            if (target === null || target === puremvc.Controller.inst || target === puremvc.View.inst) {
+                return;
+            }
+            var prefix = getCommandPrefix(name);
+            var msgQMod = MutexLocker.msgQMap[prefix];
+            MutexLocker.locker.update(target);
+            MutexLocker.locker.lock(msgQMod);
+        }
+        MutexLocker.create = create;
+        function release(name, target) {
+            if (MutexLocker.checkPrefix === false) {
+                return;
+            }
+            if (target === null || target === puremvc.Controller.inst || target === puremvc.View.inst) {
+                return;
+            }
+            var prefix = getCommandPrefix(name);
+            var msgQMod = MutexLocker.msgQMap[prefix];
+            MutexLocker.locker.update(target);
+            MutexLocker.locker.unlock(msgQMod);
+        }
+        MutexLocker.release = release;
+        function backup(target) {
+            if (MutexLocker.checkPrefix === true) {
+                MutexLocker.scope.backup(target);
+            }
+        }
+        MutexLocker.backup = backup;
+        function restore() {
+            if (MutexLocker.checkPrefix === true) {
+                MutexLocker.scope.restore();
+            }
+        }
+        MutexLocker.restore = restore;
+    })(MutexLocker = puremvc.MutexLocker || (puremvc.MutexLocker = {}));
 })(puremvc || (puremvc = {}));
