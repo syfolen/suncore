@@ -72,7 +72,7 @@ module suncore {
                 M.timeline.lapse(delta);
             }
 
-            // 优先广播MsgQModEnum.NET的数据（谨慎修改）
+            // 优先广播MsgQModEnum.NSL的数据（谨慎修改）
             this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NSL);
 
             // 物理相关事件
