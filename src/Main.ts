@@ -22,4 +22,5 @@ setTimeout(() => {
 	Facade.getInstance().sendNotification(suncore.NotifyKey.STARTUP);
 
 	new test.TestTimelineCommand();
+	new test.TestMessage();
 }, 1000);
