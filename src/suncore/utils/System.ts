@@ -11,6 +11,15 @@ module suncore {
      * export
      */
     export namespace System {
+        /**
+         * 随机的groupId
+         */
+        let $taskGroupId: number = 1000;
+
+        function createTaskGroupId(): number {
+            $taskGroupId++;
+            return $taskGroupId;
+        }
 
         /**
          * 判断指定模块是否己停止
@@ -84,11 +93,20 @@ module suncore {
 
         /**
          * 添加任务
-         * @groupId: 不同编组并行执行
+         * @groupId: 不同编组并行执行，若为-1，则自动给预一个groupId
+         * @return: 返回任务的groupId，若为-1，则说明任务添加失败
+         * 说明：
+         * 1. 自定义的groupId的值不允许超过1000
          * export
          */
-        export function addTask(mod: ModuleEnum, groupId: number, task: ITask): void {
+        export function addTask(mod: ModuleEnum, groupId: number, task: ITask): number {
             if (System.isModuleStopped(mod) === false) {
+                if (groupId === -1) {
+                    groupId = createTaskGroupId();
+                }
+                else if (groupId > 1000) {
+                    throw Error(`自定义的Task GroupId不允许超过1000`);
+                }
                 const message: IMessage = {
                     mod: mod,
                     task: task,
@@ -98,8 +116,10 @@ module suncore {
                 M.messageManager.putMessage(message);
             }
             else {
+                groupId = -1;
                 suncom.Logger.error(suncom.DebugMode.ANY, `尝试添加任务，但模块 ${ModuleEnum[mod]} 己停止！！！`);
             }
+            return groupId;
         }
 
         /**
@@ -144,6 +164,23 @@ module suncore {
             }
             else {
                 suncom.Logger.error(suncom.DebugMode.ANY, `尝试添加Message消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            }
+        }
+
+        /**
+         * 添加测试任务
+         */
+        export function addTest(mod: ModuleEnum, tTask: ITestTask): void {
+            if (System.isModuleStopped(mod) === false) {
+                const message: IMessage = {
+                    mod: mod,
+                    task: tTask,
+                    priority: MessagePriorityEnum.PRIORITY_TASK
+                };
+                M.messageManager.putMessage(message);
+            }
+            else {
+                suncom.Logger.error(suncom.DebugMode.ANY, `尝试添加测试任务，但模块 ${ModuleEnum[mod]} 己停止！！！`);
             }
         }
 

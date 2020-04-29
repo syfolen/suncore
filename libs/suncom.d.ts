@@ -10,39 +10,44 @@ declare module suncom {
         ANY = 0x01,
 
         /**
+         * 测试信息
+         */
+        TEST = 0x02,
+
+        /**
          * 调试信息
          */
-        DEBUG = 0x02,
+        DEBUG = 0x04,
 
         /**
          * 工程模式
          */
-        ENGINEER = 0x04,
+        ENGINEER = 0x08,
 
         /**
          * 框架
          */
-        ENGINE = 0x08,
+        ENGINE = 0x10,
 
         /**
          * 原生
          */
-        NATIVE = 0x10,
+        NATIVE = 0x20,
 
         /**
          * 网络
          */
-        NETWORK = 0x20,
+        NETWORK = 0x40,
 
         /**
          * 网络心跳
          */
-        NETWORK_HEARTBEAT = 0x40,
+        NETWORK_HEARTBEAT = 0x80,
 
         /**
          * 普通
          */
-        NORMAL = 0x80
+        NORMAL = 0x100
     }
 
     /**
@@ -167,6 +172,37 @@ declare module suncom {
     }
 
     /**
+     * 期望异常测试类接口
+     */
+    interface IExpect {
+
+        /**
+         * 期望值为：value
+         */
+        toBe(value: any): void;
+
+        /**
+         * 期望值为：null
+         */
+        toBeNull(): void;
+
+        /**
+         * 期望值不为：null
+         */
+        toBeNotNull(): void;
+
+        /**
+         * 期望值为：undefined
+         */
+        toBeUndefined(): void;
+
+        /**
+         * 期望对象类型为：cls
+         */
+        toBeInstanceOf(cls: new () => any): void;
+    }
+
+    /**
      * 回调执行器接口
      */
     interface IHandler {
@@ -286,6 +322,37 @@ declare module suncom {
     }
 
     /**
+     * 期望异常测试类
+     */
+    class Expect implements IExpect {
+
+        /**
+         * 期望值为：value
+         */
+        toBe(value: any): void;
+
+        /**
+         * 期望值为：null
+         */
+        toBeNull(): void;
+
+        /**
+         * 期望值不为：null
+         */
+        toBeNotNull(): void;
+
+        /**
+         * 期望值为：undefined
+         */
+        toBeUndefined(): void;
+
+        /**
+         * 期望对象类型为：cls
+         */
+        toBeInstanceOf(cls: new () => any): void;
+    }
+
+    /**
      * 事件处理器
      */
     class Handler implements IHandler {
@@ -394,11 +461,6 @@ declare module suncom {
          * @caller: 默认为：null
          */
         function getMethodName(method: Function, caller?: Object): string;
-
-        /**
-         * 将枚举转化成字符串
-         */
-        function convertEnumToString(value: number, oEnum: any): string;
 
         /**
          * 判断是否为数字
@@ -667,5 +729,40 @@ declare module suncom {
          * 返回一个随机数
          */
         function random(): number;
+    }
+
+    /**
+     * 测试类
+     */
+    namespace Test {
+        /**
+         * 断言是否失败
+         */
+        let ASSERT_FAILED: boolean;
+
+        /**
+         * 断言失败时是否自动断点
+         */
+        let ASSERT_BREAKPOINT: boolean;
+
+        /**
+         * 期望测试
+         */
+        function expect(value: any): IExpect;
+
+        /**
+         * 测试表达式是否为true
+         */
+        function assertTrue(value: boolean, msg?: string): void;
+
+        /**
+         * 测试表达式是否为false
+         */
+        function assertFalse(value: boolean, msg?: string): void;
+
+        /**
+         * 测试表达式是否相等
+         */
+        function assertEquals(a: any, b: any, msg?: string): void;
     }
 }

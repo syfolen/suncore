@@ -50,6 +50,13 @@ module suncore {
             // 剩余消息条数
             let remainCount: number = 0;
 
+            // 执行测试任务，测试任务的阻塞机制是独立的
+            const tQueue: IMessage[] = this.$queues[MessagePriorityEnum.PRIORITY_TASK] as IMessage[];
+            if (tQueue.length > 0 && this.$dealTaskMessage(tQueue[0]) === true) {
+                tQueue.shift();
+            }
+
+            // 执行一般消息
             for (let priority: MessagePriorityEnum = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
                 let queue: any[];
 
@@ -193,7 +200,12 @@ module suncore {
             while (this.$messages0.length > 0) {
                 const message: IMessage = this.$messages0.shift();
                 if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
-                    this.$addTaskMessage(message);
+                    if (message.task instanceof TestTask) {
+                        this.$queues[message.priority].push(message);
+                    }
+                    else {
+                        this.$addTaskMessage(message);
+                    }
                 }
                 else if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);

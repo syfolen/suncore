@@ -7,7 +7,7 @@ module test {
             this.facade.registerCommand(suncore.NotifyKey.START_TIMELINE, suncore.StartTimelineCommand, suncom.EventPriorityEnum.OSL);
             this.facade.registerCommand(suncore.NotifyKey.PAUSE_TIMELINE, suncore.PauseTimelineCommand, suncom.EventPriorityEnum.OSL);
 
-            // this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.SYSTEM, false]);
+            this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.SYSTEM, false]);
             // this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.CUSTOM, false]);
             // this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.TIMELINE, false]);
 
