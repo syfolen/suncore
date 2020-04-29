@@ -175,6 +175,36 @@ declare module suncom {
      * 期望异常测试类接口
      */
     interface IExpect {
+        /**
+         * 测试与期望接口相反的情形
+         */
+        readonly not: IExpect;
+
+        /**
+         * 期望为任意值，但不为null和undefined
+         */
+        anything(): void;
+
+        /**
+         * 期望数组中包含
+         */
+        arrayContaining<T>(array: T[]): void;
+
+        /**
+         * 期望字符串中含有value
+         */
+        stringContaining(value: string): void;
+
+        /**
+         * 期望字符串被包含
+         */
+        stringMatching(value: string): void;
+
+        /**
+         * 期望存在属性
+         * @value: 若不为void 0，则同时校验值
+         */
+        toHaveProperty(key: string, value?: any): void;
 
         /**
          * 期望值为：value
@@ -187,11 +217,6 @@ declare module suncom {
         toBeNull(): void;
 
         /**
-         * 期望值不为：null
-         */
-        toBeNotNull(): void;
-
-        /**
          * 期望值为：undefined
          */
         toBeUndefined(): void;
@@ -200,6 +225,36 @@ declare module suncom {
          * 期望对象类型为：cls
          */
         toBeInstanceOf(cls: new () => any): void;
+
+        /**
+         * 期望数字大于
+         */
+        toBeGreaterThan(value: number): void;
+
+        /**
+         * 期望数字大于或等于
+         */
+        toBeGreaterOrEqualThan(value: number): void;
+
+        /**
+         * 期望数字小于
+         */
+        toBeLessThan(value: number): void;
+
+        /**
+         * 期望数字小于或等于
+         */
+        toBeLessOrEqualThan(value: number): void;
+
+        /**
+         * 是否与期望对象一致
+         */
+        toEqual(value: any): void;
+
+        /**
+         * 是否与期望对象完成一致
+         */
+        toStrictEqual(value: any): void;
     }
 
     /**
@@ -327,6 +382,32 @@ declare module suncom {
     class Expect implements IExpect {
 
         /**
+         * 期望为任意值，但不为null和undefined
+         */
+        anything(): void;
+
+        /**
+         * 期望数组中包含
+         */
+        arrayContaining<T>(array: T[]): void;
+
+        /**
+         * 期望字符串中含有value
+         */
+        stringContaining(value: string): void;
+
+        /**
+         * 期望字符串被包含
+         */
+        stringMatching(value: string): void;
+
+        /**
+         * 期望存在属性
+         * @value: 若不为void 0，则同时校验值
+         */
+        toHaveProperty(key: string, value?: any): void;
+
+        /**
          * 期望值为：value
          */
         toBe(value: any): void;
@@ -337,11 +418,6 @@ declare module suncom {
         toBeNull(): void;
 
         /**
-         * 期望值不为：null
-         */
-        toBeNotNull(): void;
-
-        /**
          * 期望值为：undefined
          */
         toBeUndefined(): void;
@@ -350,6 +426,42 @@ declare module suncom {
          * 期望对象类型为：cls
          */
         toBeInstanceOf(cls: new () => any): void;
+
+        /**
+         * 期望数字大于
+         */
+        toBeGreaterThan(value: number): void;
+
+        /**
+         * 期望数字大于或等于
+         */
+        toBeGreaterOrEqualThan(value: number): void;
+
+        /**
+         * 期望数字小于
+         */
+        toBeLessThan(value: number): void;
+
+        /**
+         * 期望数字小于或等于
+         */
+        toBeLessOrEqualThan(value: number): void;
+
+        /**
+         * 是否与期望对象一致
+         */
+        toEqual(value: any): void;
+
+        /**
+         * 是否与期望对象完成一致
+         */
+        toStrictEqual(value: any): void;
+
+        /**
+         * 测试与期望接口相反的情形
+         * export
+         */
+        readonly not: IExpect;
     }
 
     /**
@@ -509,13 +621,15 @@ declare module suncom {
          * 时间累加
          * @datepart: yy, MM, ww, dd, hh, mm, ss, ms
          * @increment： 增量，可为负
-         * @arg2: 时间参数
+         * @time: 时间参数
+         * @return: 时间戳
          */
         function dateAdd(datepart: string, increment: number, time: string | number | Date): number;
 
         /**
          * 计算时间差
          * @datepart: yy, MM, ww, dd, hh, mm, ss, ms
+         * @return: 时间戳
          */
         function dateDiff(datepart: string, date: string | number | Date, date2: string | number | Date): number;
 
@@ -751,6 +865,11 @@ declare module suncom {
         function expect(value: any): IExpect;
 
         /**
+         * 期望之外的，执行此方法时直接触发ASSERT_FAILED
+         */
+        function outOfExpection(): void;
+
+        /**
          * 测试表达式是否为true
          */
         function assertTrue(value: boolean, msg?: string): void;
@@ -759,10 +878,5 @@ declare module suncom {
          * 测试表达式是否为false
          */
         function assertFalse(value: boolean, msg?: string): void;
-
-        /**
-         * 测试表达式是否相等
-         */
-        function assertEquals(a: any, b: any, msg?: string): void;
     }
 }

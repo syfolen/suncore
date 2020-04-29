@@ -147,16 +147,83 @@ var suncom;
     suncom.EventSystem = EventSystem;
     var Expect = (function () {
         function Expect() {
+            this.$asNot = false;
         }
         Expect.prototype.expect = function (value) {
             this.$value = value;
             return this;
         };
+        Expect.prototype.anything = function () {
+            if (Global.debugMode & DebugMode.TEST) {
+                var yes = this.$value === null || this.$value === void 0;
+                if ((this.$asNot === false && yes === true) || (this.$asNot === true && yes === false)) {
+                    Test.ASSERT_FAILED = true;
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B\u503C" + (this.$asNot === false ? "" : "不为") + "\uFF1Anull or undefined, \u5B9E\u9645\u503C\uFF1A" + Test.convertToDisplayString(this.$value));
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
+        Expect.prototype.arrayContaining = function (array) {
+            if (Global.debugMode & DebugMode.TEST) {
+                var yes = true;
+                for (var i = 0; i < array.length; i++) {
+                    if (this.$value.indexOf(array[i]) < 0) {
+                        yes = false;
+                        break;
+                    }
+                }
+                if ((this.$asNot === false && yes === false) || (this.$asNot === true && yes === true)) {
+                    Test.ASSERT_FAILED = true;
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B" + (this.$asNot === false ? "" : "不") + "\u5305\u542B\uFF1A" + Test.convertToDisplayString(array) + ", \u5B9E\u9645\u503C\uFF1A" + Test.convertToDisplayString(this.$value));
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
+        Expect.prototype.stringContaining = function (value) {
+            if (Global.debugMode & DebugMode.TEST) {
+                var yes = this.$value.indexOf(value) > -1;
+                if ((this.$asNot === false && yes === false) || (this.$asNot === true && yes === true)) {
+                    Test.ASSERT_FAILED = true;
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B" + (this.$asNot === false ? "" : "不") + "\u5305\u542B\uFF1A" + value + ", \u5B9E\u9645\u503C\uFF1A" + this.$value);
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
+        Expect.prototype.stringMatching = function (value) {
+            if (Global.debugMode & DebugMode.TEST) {
+                var yes = value.indexOf(this.$value) > -1;
+                if ((this.$asNot === false && yes === false) || (this.$asNot === true && yes === true)) {
+                    Test.ASSERT_FAILED = true;
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B" + (this.$asNot === false ? "" : "不") + "\u88AB\u5305\u542B\uFF1A" + value + ", \u5B9E\u9645\u503C\uFF1A" + this.$value);
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
+        Expect.prototype.toHaveProperty = function (key, value) {
+            if (Global.debugMode & DebugMode.TEST) {
+                var yes = value === void 0 ? this.$value[key] !== void 0 : this.$value[key] === value;
+                if ((this.$asNot === false && yes === false) || (this.$asNot === true && yes === true)) {
+                    Test.ASSERT_FAILED = true;
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B" + (this.$asNot === false ? "" : "不") + "\u5B58\u5728\u5C5E\u6027\uFF1A" + key + ", \u5B9E\u9645\u503C\uFF1A" + this.$value);
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
         Expect.prototype.toBe = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                if (this.$value !== value) {
+                if ((this.$value === value && this.$asNot === true) || (this.$value !== value && this.$asNot === false)) {
                     Test.ASSERT_FAILED = true;
-                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B\u503C\uFF1A" + Test.convertToDisplayString(value) + ", \u5F53\u524D\u503C\uFF1A" + Test.convertToDisplayString(this.$value));
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B\u503C" + (this.$asNot === false ? "" : "不为") + "\uFF1A" + Test.convertToDisplayString(value) + ", \u5B9E\u9645\u503C\uFF1A" + Test.convertToDisplayString(this.$value));
                     if (Test.ASSERT_BREAKPOINT === true) {
                         debugger;
                     }
@@ -166,31 +233,131 @@ var suncom;
         Expect.prototype.toBeNull = function () {
             this.toBe(null);
         };
-        Expect.prototype.toBeNotNull = function () {
-            if (Global.debugMode & DebugMode.TEST) {
-                if (this.$value === null) {
-                    Test.ASSERT_FAILED = true;
-                    suncom.Logger.error(DebugMode.ANY, Test.convertToDisplayString(this.$value) + " \u5E94\u5F53\u4E3A\u4E0D\u4E3Anull");
-                    if (Test.ASSERT_BREAKPOINT === true) {
-                        debugger;
-                    }
-                }
-            }
-        };
         Expect.prototype.toBeUndefined = function () {
             this.toBe(void 0);
         };
         Expect.prototype.toBeInstanceOf = function (cls) {
             if (Global.debugMode & DebugMode.TEST) {
-                if (this.$value instanceof cls === false) {
+                var yes = this.$value instanceof cls === true;
+                if ((this.$asNot === false && yes === false) || (this.$asNot === true && yes === true)) {
                     Test.ASSERT_FAILED = true;
-                    suncom.Logger.error(DebugMode.ANY, Test.convertToDisplayString(this.$value) + " \u5E94\u5F53\u4E3A " + Common.getClassName(cls) + " \u7684\u5B50\u7C7B");
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B " + Test.convertToDisplayString(this.$value) + " \u7684\u7C7B\u578B" + (this.$asNot === false ? "" : "不") + "\u4E3A " + Common.getClassName(cls));
                     if (Test.ASSERT_BREAKPOINT === true) {
                         debugger;
                     }
                 }
             }
         };
+        Expect.prototype.toBeCloseTo = function (value, deviation) {
+            if (deviation === void 0) { deviation = 0; }
+            if (Global.debugMode & DebugMode.TEST) {
+                var yes = Math.abs(this.$value - value) <= Math.abs(deviation) ? true : false;
+                if ((this.$asNot === false && yes === false) || (this.$asNot === true && yes === true)) {
+                    Test.ASSERT_FAILED = true;
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B\u4E0E" + value + "\u7684\u8BEF\u5DEE" + (this.$asNot === true ? "" : "不") + "\u8D85\u8FC7" + deviation + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$value);
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
+        Expect.prototype.toBeGreaterThan = function (value) {
+            if (Global.debugMode & DebugMode.TEST) {
+                var yes = this.$value > value;
+                if ((this.$asNot === false && yes === false) || (this.$asNot === true && yes === true)) {
+                    Test.ASSERT_FAILED = true;
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B" + (this.$asNot === true ? "" : "不") + "\u5927\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$value);
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
+        Expect.prototype.toBeGreaterOrEqualThan = function (value) {
+            if (Global.debugMode & DebugMode.TEST) {
+                var yes = this.$value >= value;
+                if ((this.$asNot === false && yes === false) || (this.$asNot === true && yes === true)) {
+                    Test.ASSERT_FAILED = true;
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B" + (this.$asNot === true ? "" : "不") + "\u5927\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$value);
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
+        Expect.prototype.toBeLessThan = function (value) {
+            if (Global.debugMode & DebugMode.TEST) {
+                var yes = this.$value < value;
+                if ((this.$asNot === false && yes === false) || (this.$asNot === true && yes === true)) {
+                    Test.ASSERT_FAILED = true;
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B" + (this.$asNot === true ? "" : "不") + "\u5C0F\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$value);
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
+        Expect.prototype.toBeLessOrEqualThan = function (value) {
+            if (Global.debugMode & DebugMode.TEST) {
+                var yes = this.$value <= value;
+                if ((this.$asNot === false && yes === false) || (this.$asNot === true && yes === true)) {
+                    Test.ASSERT_FAILED = true;
+                    suncom.Logger.error(DebugMode.ANY, "\u671F\u671B" + (this.$asNot === true ? "" : "不") + "\u5C0F\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$value);
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
+        Expect.prototype.toEqual = function (value) {
+            if (Global.debugMode & DebugMode.TEST) {
+                if (this.$value instanceof Array && value instanceof Array) {
+                    var a = this.$value.slice(0);
+                    var b = value.slice(0);
+                    a.sort();
+                    b.sort();
+                    if (a.length === b.length) {
+                        for (var i = 0; i < a.length; i++) {
+                            if (a[i] === b[i]) {
+                                continue;
+                            }
+                            Test.ASSERT_FAILED = true;
+                        }
+                    }
+                    else {
+                        Test.ASSERT_FAILED = true;
+                    }
+                }
+                else if (this.$value instanceof Array || value instanceof Array) {
+                    Test.ASSERT_FAILED = true;
+                }
+                else if (this.$value !== value) {
+                    Test.ASSERT_FAILED = true;
+                }
+                if (Test.ASSERT_FAILED === true) {
+                    suncom.Logger.error(DebugMode.ANY, "Test.assertEquals \u671F\u671B\u503C\uFF1A" + Test.convertToDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Test.convertToDisplayString(this.$value));
+                    if (Test.ASSERT_BREAKPOINT === true) {
+                        debugger;
+                    }
+                }
+            }
+        };
+        Expect.prototype.toStrictEqual = function (value) {
+            if (Global.debugMode & DebugMode.TEST) {
+                suncom.Logger.error(DebugMode.ANY, "\u6682\u672A\u5B9E\u73B0");
+                if (Test.ASSERT_BREAKPOINT === true) {
+                    debugger;
+                }
+            }
+        };
+        Object.defineProperty(Expect.prototype, "not", {
+            get: function () {
+                this.$asNot = true;
+                return this;
+            },
+            enumerable: true,
+            configurable: true
+        });
         return Expect;
     }());
     suncom.Expect = Expect;
@@ -987,12 +1154,20 @@ var suncom;
             return new Expect().expect(value);
         }
         Test.expect = expect;
+        function outOfExpection() {
+            Test.ASSERT_FAILED = true;
+            suncom.Logger.error(DebugMode.ANY, "Test.outOfExpection \u671F\u671B\u4E4B\u5916\u7684");
+            if (Test.ASSERT_BREAKPOINT === true) {
+                debugger;
+            }
+        }
+        Test.outOfExpection = outOfExpection;
         function assertTrue(value, msg) {
             if (msg === void 0) { msg = null; }
             if (Global.debugMode & DebugMode.TEST) {
                 if (value !== true) {
                     Test.ASSERT_FAILED = true;
-                    suncom.Logger.error(DebugMode.ANY, "Test.assertTrue \u6267\u884C\u5931\u8D25\uFF0C\u5F53\u524D\u503C\uFF1A" + Test.convertToDisplayString(value));
+                    suncom.Logger.error(DebugMode.ANY, "Test.assertTrue \u6267\u884C\u5931\u8D25\uFF0C\u5B9E\u9645\u503C\uFF1A" + Test.convertToDisplayString(value));
                     msg !== null && suncom.Logger.error(DebugMode.ANY, msg);
                     if (Test.ASSERT_BREAKPOINT === true) {
                         debugger;
@@ -1006,7 +1181,7 @@ var suncom;
             if (Global.debugMode & DebugMode.TEST) {
                 if (value !== false) {
                     Test.ASSERT_FAILED = true;
-                    suncom.Logger.error(DebugMode.ANY, "Test.assertFalse \u6267\u884C\u5931\u8D25\uFF0C\u5F53\u524D\u503C\uFF1A" + Test.convertToDisplayString(value));
+                    suncom.Logger.error(DebugMode.ANY, "Test.assertFalse \u6267\u884C\u5931\u8D25\uFF0C\u5B9E\u9645\u503C\uFF1A" + Test.convertToDisplayString(value));
                     msg !== null && suncom.Logger.error(DebugMode.ANY, msg);
                     if (Test.ASSERT_BREAKPOINT === true) {
                         debugger;
@@ -1015,42 +1190,6 @@ var suncom;
             }
         }
         Test.assertFalse = assertFalse;
-        function assertEquals(a, b, msg) {
-            if (msg === void 0) { msg = null; }
-            if (Global.debugMode & DebugMode.TEST) {
-                if (a instanceof Array && b instanceof Array) {
-                    a = a.slice(0);
-                    b = b.slice(0);
-                    a.sort();
-                    b.sort();
-                    if (a.length === b.length) {
-                        for (var i = 0; i < a.length; i++) {
-                            if (a[i] === b[i]) {
-                                continue;
-                            }
-                            Test.ASSERT_FAILED = true;
-                        }
-                    }
-                    else {
-                        Test.ASSERT_FAILED = true;
-                    }
-                }
-                else if (a instanceof Array || b instanceof Array) {
-                    Test.ASSERT_FAILED = true;
-                }
-                else if (a !== b) {
-                    Test.ASSERT_FAILED = true;
-                }
-                if (Test.ASSERT_FAILED === true) {
-                    suncom.Logger.error(DebugMode.ANY, "Test.assertEquals \u671F\u671B\u503C\uFF1A" + Test.convertToDisplayString(a) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Test.convertToDisplayString(b));
-                    msg !== null && suncom.Logger.error(DebugMode.ANY, msg);
-                    if (Test.ASSERT_BREAKPOINT === true) {
-                        debugger;
-                    }
-                }
-            }
-        }
-        Test.assertEquals = assertEquals;
         function convertToDisplayString(data) {
             if (data === void 0 || data === null) {
                 return data;
