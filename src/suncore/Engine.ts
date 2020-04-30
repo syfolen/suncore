@@ -86,9 +86,9 @@ module suncore {
             this.facade.sendNotification(NotifyKey.ENTER_FRAME);
 
             // 处理消息
-            M.messageManager.dealMessage();
+            M.messageManager !== null && M.messageManager.dealMessage();
             // 处理临时消息
-            M.messageManager.classifyMessages0();
+            M.messageManager !== null && M.messageManager.classifyMessages0();
 
             // 始终派发帧相关事件
             this.facade.sendNotification(NotifyKey.LATER_FRAME);

@@ -3,6 +3,13 @@ module test {
 
     export class TestTimelineCommandTask extends suncore.TestTask {
 
+        private $handler: suncom.IHandler = null;
+
+        constructor(handler: suncom.IHandler) {
+            super();
+            this.$handler = handler;
+        }
+
         run(): boolean {
             this.$startTimelineButPaused();
             this.$startTimelineNotPaused();
@@ -24,11 +31,11 @@ module test {
             suncom.Test.assertFalse(suncore.System.isModuleStopped(suncore.ModuleEnum.TIMELINE));
             suncom.Test.assertTrue(suncore.System.isModulePaused(suncore.ModuleEnum.TIMELINE));
 
-            // suncom.Test.expect(suncore.System.getDelta()).toBe(0);
+            suncom.Test.expect(suncore.System.getDelta()).toBeGreaterOrEqualThan(0);
 
-            suncom.Test.expect(suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM)).toBe(0);
-            suncom.Test.expect(suncore.System.getModuleTimestamp(suncore.ModuleEnum.CUSTOM)).toBe(0);
-            suncom.Test.expect(suncore.System.getModuleTimestamp(suncore.ModuleEnum.TIMELINE)).toBe(0);
+            suncom.Test.expect(suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM)).toBeGreaterOrEqualThan(0);
+            suncom.Test.expect(suncore.System.getModuleTimestamp(suncore.ModuleEnum.CUSTOM)).toBeGreaterOrEqualThan(0);
+            suncom.Test.expect(suncore.System.getModuleTimestamp(suncore.ModuleEnum.TIMELINE)).toBeGreaterOrEqualThan(0);
         }
 
         private $startTimelineNotPaused(): void {
@@ -62,6 +69,9 @@ module test {
             suncom.Test.expect(suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM)).toBeUndefined();
             suncom.Test.expect(suncore.System.getModuleTimestamp(suncore.ModuleEnum.CUSTOM)).toBeUndefined();
             suncom.Test.expect(suncore.System.getModuleTimestamp(suncore.ModuleEnum.TIMELINE)).toBeUndefined();
+
+            puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.SYSTEM, false]);
+            this.$handler.run();
         }
     }
 }

@@ -176,9 +176,14 @@ declare module suncom {
      */
     interface IExpect {
         /**
-         * 测试与期望接口相反的情形
+         * 期望相反
          */
         readonly not: IExpect;
+
+        /**
+         * 解释异常
+         */
+        interpret(str: string): IExpect;
 
         /**
          * 期望为任意值，但不为null和undefined
@@ -227,6 +232,16 @@ declare module suncom {
         toBeInstanceOf(cls: new () => any): void;
 
         /**
+         * 期望在不关心类型的情况下，值在布尔上下文中为假
+         */
+        toBeFalsy(value: any): void;
+
+        /**
+         * 期望在不关心类型的情况下，值在布尔上下文中为真
+         */
+        toBeTruthy(value: any): void;
+
+        /**
          * 期望数字大于
          */
         toBeGreaterThan(value: number): void;
@@ -247,12 +262,12 @@ declare module suncom {
         toBeLessOrEqualThan(value: number): void;
 
         /**
-         * 是否与期望对象一致
+         * 深度相等
          */
         toEqual(value: any): void;
 
         /**
-         * 是否与期望对象完成一致
+         * 深度相等且类型一致
          */
         toStrictEqual(value: any): void;
     }
@@ -374,94 +389,6 @@ declare module suncom {
          * 移除事件
          */
         removeEventListener(type: string, method: Function, caller: Object): void;
-    }
-
-    /**
-     * 期望异常测试类
-     */
-    class Expect implements IExpect {
-
-        /**
-         * 期望为任意值，但不为null和undefined
-         */
-        anything(): void;
-
-        /**
-         * 期望数组中包含
-         */
-        arrayContaining<T>(array: T[]): void;
-
-        /**
-         * 期望字符串中含有value
-         */
-        stringContaining(value: string): void;
-
-        /**
-         * 期望字符串被包含
-         */
-        stringMatching(value: string): void;
-
-        /**
-         * 期望存在属性
-         * @value: 若不为void 0，则同时校验值
-         */
-        toHaveProperty(key: string, value?: any): void;
-
-        /**
-         * 期望值为：value
-         */
-        toBe(value: any): void;
-
-        /**
-         * 期望值为：null
-         */
-        toBeNull(): void;
-
-        /**
-         * 期望值为：undefined
-         */
-        toBeUndefined(): void;
-
-        /**
-         * 期望对象类型为：cls
-         */
-        toBeInstanceOf(cls: new () => any): void;
-
-        /**
-         * 期望数字大于
-         */
-        toBeGreaterThan(value: number): void;
-
-        /**
-         * 期望数字大于或等于
-         */
-        toBeGreaterOrEqualThan(value: number): void;
-
-        /**
-         * 期望数字小于
-         */
-        toBeLessThan(value: number): void;
-
-        /**
-         * 期望数字小于或等于
-         */
-        toBeLessOrEqualThan(value: number): void;
-
-        /**
-         * 是否与期望对象一致
-         */
-        toEqual(value: any): void;
-
-        /**
-         * 是否与期望对象完成一致
-         */
-        toStrictEqual(value: any): void;
-
-        /**
-         * 测试与期望接口相反的情形
-         * export
-         */
-        readonly not: IExpect;
     }
 
     /**
@@ -684,6 +611,11 @@ declare module suncom {
         function removeItemsFromArray<T>(items: T[], array: T[]): void;
 
         /**
+         * 判断深度相等
+         */
+        function isEqual(oldData: any, newData: any, strict: boolean): boolean;
+
+        /**
          * 比较版本号
          * 若当前版本低于参数版本，返回 -1
          * 若当前版本高于参数版本，返回 1
@@ -862,21 +794,21 @@ declare module suncom {
         /**
          * 期望测试
          */
-        function expect(value: any): IExpect;
+        function expect(value: any, description?: string): IExpect;
 
         /**
          * 期望之外的，执行此方法时直接触发ASSERT_FAILED
          */
-        function outOfExpection(): void;
+        function notExpected(): void;
 
         /**
          * 测试表达式是否为true
          */
-        function assertTrue(value: boolean, msg?: string): void;
+        function assertTrue(value: boolean, message?: string): void;
 
         /**
          * 测试表达式是否为false
          */
-        function assertFalse(value: boolean, msg?: string): void;
+        function assertFalse(value: boolean, message?: string): void;
     }
 }

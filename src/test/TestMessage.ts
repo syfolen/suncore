@@ -47,7 +47,7 @@ module test {
         }
 
         run(): boolean {
-            console.assert(false, "你不应该看到这条消息");
+            suncom.Test.notExpected();
             return true;
         }
 
@@ -85,30 +85,30 @@ module test {
             puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.CUSTOM, false]);
 
             suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_0, suncom.Handler.create(this, () => {
-                console.assert(false, "你不应该看到这条消息");
+                suncom.Test.notExpected();
             }));
             suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_HIGH, suncom.Handler.create(this, () => {
-                console.assert(false, "你不应该看到这条消息");
+                suncom.Test.notExpected();
             }));
             suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_NOR, suncom.Handler.create(this, () => {
-                console.assert(false, "你不应该看到这条消息");
+                suncom.Test.notExpected();
             }));
             suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LOW, suncom.Handler.create(this, () => {
-                console.assert(false, "你不应该看到这条消息");
+                suncom.Test.notExpected();
             }));
             const testCancelTaskData: IData = { msg: 0, list: [] };
             suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 1, new TestCancelTask(testCancelTaskData));
             suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, 1000, suncom.Handler.create(this, () => {
-                console.assert(false, "你不应该看到这条消息");
+                suncom.Test.notExpected();
             }));
             suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
-                console.assert(false, "你不应该看到这条消息");
+                suncom.Test.notExpected();
             }));
             puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
             puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.CUSTOM, false]);
             suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
-                console.assert(testCancelTaskData.msg === 1, `task被取消了，但是没有执行cancel方法`);
-                console.assert(
+                suncom.Test.expect(testCancelTaskData.msg).interpret(`task被取消了，但是没有执行cancel方法`).toBe(1);
+                suncom.Test.assertTrue(
                     res.is_priority_0_canceled === true ||
                     res.is_priority_high_canceled === true ||
                     res.is_priority_nor_canceled === true ||
@@ -125,36 +125,25 @@ module test {
 
             // let exeCnt: number = 0;
             // suncore.System.addTrigger(suncore.ModuleEnum.SYSTEM, 3000, suncom.Handler.create(this, () => {
-            //     console.assert(data.msg === 0, `时间轴暂停，但task依然执行了`)
+            //     suncom.Test.expect(exeCnt).note(`时间轴暂停，但task依然执行了`).toBe(0);
             //     exeCnt++;
             //     puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
             // }));
 
             // suncore.System.addTrigger(suncore.ModuleEnum.SYSTEM, 6000, suncom.Handler.create(this, () => {
-            //     console.assert(data.msg === 1, `时间轴停止，但task没有执行取消接口`)
+            //     suncom.Test.expect(exeCnt).note(`时间轴停止，但task没有执行取消接口`).toBe(1);
             //     exeCnt++;
             // }));
 
             // suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
-            //     console.assert(exeCnt === 2, `系统任务没有完全执行`);
+            //     suncom.Test.expect(exeCnt).note(`系统任务没有完全执行`).toBe(2);
             //     console.log("message test complete");
             //     puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.SYSTEM, true]);
             // }));
 
             // suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
-            //     console.assert(false, "你不应该看到这条消息");
+            //     suncom.Test.notExpected();
             // }));
-        }
-
-        private $aEqualsB<T>(a: T[], b: T[]): void {
-            a = a.slice();
-            b = b.slice();
-            a.sort();
-            b.sort();
-            console.assert(a.length === b.length, `当前：[${a.join(",")}], 预期：[${b.join(",")}]`);
-            for (let i = 0; i < a.length; i++) {
-                console.assert(a[i] === b[i], `当前：[${a.join(",")}], 预期：[${b.join(",")}]`);
-            }
         }
 
         private $testAllMessageWhetherExecuteInRightTimes(): void {
@@ -215,12 +204,12 @@ module test {
             ));
 
             suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
-                console.assert(counter.priority_0 === 50, `priority_0 执行次数不正确，若者lazy过早执行`);
-                console.assert(counter.priority_high === 50, `priority_high 执行次数不正确，若者lazy过早执行`);
-                console.assert(counter.priority_nor === 9, `priority_nor 执行次数不正确，若者lazy过早执行`);
-                console.assert(counter.priority_low === 5, `priority_low 执行次数不正确，若者lazy过早执行`);
-                console.assert(counter.priority_trigger === 10, `priority_trigger 执行次数不正确，若者lazy过早执行`);
-                console.assert(counter.priority_task === 2, `priority_task 执行次数不正确，若者lazy过早执行`);
+                suncom.Test.expect(counter.priority_0).interpret(`priority_0 执行次数不正确，若者lazy过早执行`).toBe(50);
+                suncom.Test.expect(counter.priority_high).interpret(`priority_high 执行次数不正确，若者lazy过早执行`).toBe(50);
+                suncom.Test.expect(counter.priority_nor).interpret(`priority_nor 执行次数不正确，若者lazy过早执行`).toBe(9);
+                suncom.Test.expect(counter.priority_low).interpret(`priority_low 执行次数不正确，若者lazy过早执行`).toBe(5);
+                suncom.Test.expect(counter.priority_trigger).interpret(`priority_trigger 执行次数不正确，若者lazy过早执行`).toBe(10);
+                suncom.Test.expect(counter.priority_task).interpret(`priority_task 执行次数不正确，若者lazy过早执行`).toBe(2);
                 counter.priority_lazy++;
             }));
 
@@ -229,12 +218,12 @@ module test {
                 puremvc.Facade.getInstance().removeObserver(suncore.NotifyKey.ENTER_FRAME, onEnterFrameCheckMessageExeccuteTimes, null);
                 puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
 
-                console.assert(counter.priority_lazy === 2, `priority_task 执行次数不正确`);
+                suncom.Test.expect(counter.priority_lazy).interpret(`priority_lazy 执行次数不正确`).toBe(2);
             }));
 
             function onEnterFrameCheckMessageExeccuteTimes(): void {
-                console.assert(counter.priority_0 === 0 || counter.priority_0 === 50, `message priority_0的执行次数不对，当前：${counter.priority_0}, 预期为0或50`);
-                console.assert(
+                suncom.Test.assertTrue(counter.priority_0 === 0 || counter.priority_0 === 50, `message priority_0的执行次数不对，当前：${counter.priority_0}, 预期为0或50`);
+                suncom.Test.assertTrue(
                     counter.priority_high === 0 ||
                     counter.priority_high === 10 ||
                     counter.priority_high === 20 ||
@@ -242,13 +231,13 @@ module test {
                     counter.priority_high === 40 ||
                     counter.priority_high === 50,
                     `message priority_high的执行次数不对，当前：${counter.priority_high}, 预期为0或10或20或30或40或50`);
-                console.assert(
+                suncom.Test.assertTrue(
                     counter.priority_nor === 0 ||
                     counter.priority_nor === 3 ||
                     counter.priority_nor === 6 ||
                     counter.priority_nor === 9,
                     `message priority_nor的执行次数不对，当前：${counter.priority_nor}, 预期为0或3或6或9`);
-                console.assert(
+                suncom.Test.assertTrue(
                     counter.priority_low === 0 ||
                     counter.priority_low === 1 ||
                     counter.priority_low === 2 ||
