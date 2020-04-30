@@ -6,7 +6,7 @@ module test {
         private $handler: suncom.IHandler = null;
 
         constructor(handler: suncom.IHandler) {
-            super();
+            super(1);
             this.$handler = handler;
         }
 

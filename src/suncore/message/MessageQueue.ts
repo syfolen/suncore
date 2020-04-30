@@ -38,7 +38,13 @@ module suncore {
          * 添加消息
          */
         putMessage(message: IMessage): void {
-            this.$messages0.push(message);
+            if (message.priority === MessagePriorityEnum.PRIORITY_TASK && message.groupId === void 0) {
+                suncom.Test.expect(this.$queues[message.priority].length).interpret("测试用例不可同时执行").toBe(0);
+                this.$queues[message.priority].push(message);
+            }
+            else {
+                this.$messages0.push(message);
+            }
         }
 
         /**
@@ -50,10 +56,20 @@ module suncore {
             // 剩余消息条数
             let remainCount: number = 0;
 
-            // 执行测试任务，测试任务的阻塞机制是独立的
-            const tQueue: IMessage[] = this.$queues[MessagePriorityEnum.PRIORITY_TASK] as IMessage[];
-            if (tQueue.length > 0 && this.$dealTaskMessage(tQueue[0]) === true) {
-                tQueue.shift();
+            if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
+                if (this.$mod === ModuleEnum.SYSTEM) {
+                    // 执行测试任务，测试任务的阻塞机制是独立的
+                    const tQueue: IMessage[] = this.$queues[MessagePriorityEnum.PRIORITY_TASK] as IMessage[];
+                    if (tQueue.length === 0) {
+                        if (M.tccQueue.length > 0) {
+                            const tcc: ITestCaseCfg = M.tccQueue.shift();
+                            System.addTest(new tcc.taskCls(tcc.tcId));
+                        }
+                    }
+                    else if (this.$dealTaskMessage(tQueue[0]) === true) {
+                        tQueue.shift();
+                    }
+                }
             }
 
             // 执行一般消息

@@ -23,7 +23,7 @@ setTimeout(() => {
 
 	// new test.TestMessage();
 
-	suncore.System.addTest(suncore.ModuleEnum.SYSTEM, new test.TestTimelineCommandTask(suncom.Handler.create(null, testOther)));
+	suncore.System.addTest(new test.TestTimelineCommandTask(suncom.Handler.create(null, testOther)));
 }, 1000);
 
 function testOther(): void {

@@ -229,7 +229,7 @@ declare module suncom {
         /**
          * 期望对象类型为：cls
          */
-        toBeInstanceOf(cls: new () => any): void;
+        toBeInstanceOf(cls: new (...args: any[]) => any): void;
 
         /**
          * 期望在不关心类型的情况下，值在布尔上下文中为假
@@ -782,14 +782,19 @@ declare module suncom {
      */
     namespace Test {
         /**
-         * 断言是否失败
+         * 断言是否失败，默认为：false
          */
         let ASSERT_FAILED: boolean;
 
         /**
-         * 断言失败时是否自动断点
+         * 断言失败时是否自动断点，默认为：true
          */
         let ASSERT_BREAKPOINT: boolean;
+
+        /**
+         * 启用微服务器，默认为：false
+         */
+        let ENABLE_MICRO_SERVER: boolean;
 
         /**
          * 期望测试
@@ -810,5 +815,15 @@ declare module suncom {
          * 测试表达式是否为false
          */
         function assertFalse(value: boolean, message?: string): void;
+
+        /**
+         * 等待信号，同一时间只允许监听一个测试信号
+         */
+        function wait(id: number, handler: IHandler): void;
+
+        /**
+         * 发送信号
+         */
+        function emit(id: number, args?: any): void;
     }
 }

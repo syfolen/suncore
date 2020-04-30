@@ -169,18 +169,23 @@ module suncore {
 
         /**
          * 添加测试任务
+         * 说明：
+         * 1. 测试任务只允许被添加在 SYSTEM 模块
+         * export
          */
-        export function addTest(mod: ModuleEnum, tTask: ITestTask): void {
-            if (System.isModuleStopped(mod) === false) {
-                const message: IMessage = {
-                    mod: mod,
-                    task: tTask,
-                    priority: MessagePriorityEnum.PRIORITY_TASK
-                };
-                M.messageManager.putMessage(message);
-            }
-            else {
-                suncom.Logger.error(suncom.DebugMode.ANY, `尝试添加测试任务，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+        export function addTest(tTask: TestTask): void {
+            if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
+                if (System.isModuleStopped(ModuleEnum.SYSTEM) === false) {
+                    const message: IMessage = {
+                        mod: ModuleEnum.SYSTEM,
+                        task: tTask,
+                        priority: MessagePriorityEnum.PRIORITY_TASK
+                    };
+                    M.messageManager.putMessage(message);
+                }
+                else {
+                    suncom.Logger.error(suncom.DebugMode.ANY, `尝试添加测试任务，但模块 SYSTEM 己停止！！！`);
+                }
             }
         }
 
