@@ -729,6 +729,38 @@ declare module suncom {
          * 1. 此事件仅在Global.debugMode为DebugMode.DEBUG时才会被派发
          */
         const DEBUG_PRINT: string;
+
+        /**
+         * 测试等待信号 { id: number, handler: suncom.IHandler = null}
+         */
+        const TEST_WAIT: string;
+
+        /**
+         * 测试发射信号 { id: number, args?: any }
+         */
+        const TEST_EMIT: string;
+
+        /**
+         * 测试发送事件 { id: number, event: Laya.Event, act: string }
+         * @act: "exe" or "reg", exe为执行点击行为，reg为注册点击行为
+         */
+        export const TEST_EVENT: string;
+
+        /**
+         * 测试下行协议 { id: number, act: string }
+         * @act: "exe" or "reg", exe为执行下行行为，reg为注册下行行为
+         */
+        export const TEST_PROTOCAL: string;
+
+        /**
+         * 测试注册按钮事件 { id: number, button?: any, once: boolean = true }
+         */
+        const TEST_REG_BUTTON: string;
+
+        /**
+         * 测试点击按钮事件 { btnId: number, type: string | Laya.Event = Laya.Event.CLICK }
+         */
+        const TEST_CLICK_BUTTON: string;
     }
 
     /**
@@ -825,5 +857,17 @@ declare module suncom {
          * 发送信号
          */
         function emit(id: number, args?: any): void;
+
+        /**
+         * 点击按钮
+         */
+        function click(btnId: number, type?: string, data?: any): void;
+
+        /**
+         * 注册按钮
+         * @id: 按钮编号，若为-1则清除所有按钮
+         * @ignoreWarning: ID指定的按钮己存在时会有警告日志，传入true忽略该警告，
+         */
+        function regButton(id: number, button?: any, ignoreWarning?: boolean): void;
     }
 }
