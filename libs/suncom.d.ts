@@ -7,47 +7,57 @@ declare module suncom {
         /**
          * 任意
          */
-        ANY = 0x01,
+        ANY = 0x1,
+
+        /**
+         * 开发测试
+         */
+        TDD = 0x2,
+
+        /**
+         * 验收测试
+         */
+        ATDD = 0x4,
 
         /**
          * 测试信息
          */
-        TEST = 0x02,
+        TEST = 0x8,
 
         /**
          * 调试信息
          */
-        DEBUG = 0x04,
+        DEBUG = 0x10,
 
         /**
          * 工程模式
          */
-        ENGINEER = 0x08,
+        ENGINEER = 0x20,
 
         /**
          * 框架
          */
-        ENGINE = 0x10,
+        ENGINE = 0x40,
 
         /**
          * 原生
          */
-        NATIVE = 0x20,
+        NATIVE = 0x80,
 
         /**
          * 网络
          */
-        NETWORK = 0x40,
+        NETWORK = 0x100,
 
         /**
          * 网络心跳
          */
-        NETWORK_HEARTBEAT = 0x80,
+        NETWORK_HEARTBEAT = 0x200,
 
         /**
          * 普通
          */
-        NORMAL = 0x100
+        NORMAL = 0x400
     }
 
     /**
@@ -741,16 +751,16 @@ declare module suncom {
         const TEST_EMIT: string;
 
         /**
-         * 测试发送事件 { id: number, event: Laya.Event, act: string }
+         * 测试发送事件 { id: number, act: string, out: suncore.ITestSeqInfo }
          * @act: "exe" or "reg", exe为执行点击行为，reg为注册点击行为
          */
-        export const TEST_EVENT: string;
+        const TEST_EVENT: string;
 
         /**
-         * 测试下行协议 { id: number, act: string }
+         * 测试下行协议 { id: number, act: string, out: suncore.ITestSeqInfo }
          * @act: "exe" or "reg", exe为执行下行行为，reg为注册下行行为
          */
-        export const TEST_PROTOCAL: string;
+        const TEST_PROTOCAL: string;
 
         /**
          * 测试注册按钮事件 { id: number, button?: any, once: boolean = true }
@@ -836,7 +846,7 @@ declare module suncom {
         /**
          * 期望之外的，执行此方法时直接触发ASSERT_FAILED
          */
-        function notExpected(): void;
+        function notExpected(message?: string): void;
 
         /**
          * 测试表达式是否为true
@@ -851,23 +861,26 @@ declare module suncom {
         /**
          * 等待信号，同一时间只允许监听一个测试信号
          */
-        function wait(id: number, handler: IHandler): void;
+        function wait(id: number, handler?: IHandler): void;
 
         /**
-         * 发送信号
+         * 发射信号
          */
         function emit(id: number, args?: any): void;
 
         /**
          * 点击按钮
+         * @event: 默认为：Laya.Event.CLICK
+         * 说明：
+         * 1. 按钮的点击会延时500毫秒执行
          */
-        function click(btnId: number, type?: string, data?: any): void;
+        function click(btnId: number, event?: string | Laya.Event): void;
 
         /**
          * 注册按钮
          * @id: 按钮编号，若为-1则清除所有按钮
-         * @ignoreWarning: ID指定的按钮己存在时会有警告日志，传入true忽略该警告，
+         * @once: 一次性的按钮，默认为：true
          */
-        function regButton(id: number, button?: any, ignoreWarning?: boolean): void;
+        function regButton(id: number, button?: any, once?: boolean): void;
     }
 }
