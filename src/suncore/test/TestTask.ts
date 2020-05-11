@@ -79,7 +79,7 @@ module suncore {
          * 1. 信号的发射可能是非预期的，故不在预期内发射的信号应当被忽略
          */
         private $onTestEmit(id: number, args: any): void {
-            System.addMessage(ModuleEnum.SYSTEM, MessagePriorityEnum.PRIORITY_0, suncom.Handler.create(this, this.$onTestEmitEx));
+            System.addMessage(ModuleEnum.SYSTEM, MessagePriorityEnum.PRIORITY_0, suncom.Handler.create(this, this.$onTestEmitEx, [id, args]));
         }
 
         /**
