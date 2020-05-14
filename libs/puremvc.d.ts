@@ -35,7 +35,7 @@ declare module puremvc {
         /**
          * 查询是否存在观察者
          */
-        hasObserver(name: string, method: Function, caller: Object): boolean;
+        hasObserver(name: string, method: Function, caller?: Object): boolean;
 
         /**
          * 注册命令
@@ -113,6 +113,16 @@ declare module puremvc {
          * MsgQ消息模块标识，默认为MMI
          */
         readonly msgQMod: suncore.MsgQModEnum;
+
+        /**
+         * 是否己销毁
+         */
+        readonly destroyed: boolean;
+
+        /**
+         * 销毁对象
+         */
+        destroy(): void;
     }
 
     /**
@@ -256,7 +266,7 @@ declare module puremvc {
         /**
          * 查询是否存在观察者
          */
-        hasObserver(name: string, method: Function, caller: Object): boolean;
+        hasObserver(name: string, method: Function, caller?: Object): boolean;
 
         /**
          * 注册命令
@@ -330,8 +340,17 @@ declare module puremvc {
      * 消息派发者
      */
     class Notifier implements INotifier {
+        /**
+         * 是否己销毁
+         */
+        protected $destroyed: boolean;
 
         constructor(msgQMod?: suncore.MsgQModEnum);
+
+        /**
+         * 销毁对象
+         */
+        destroy(): void;
 
         /**
          * 获取PureMVC外观引用
@@ -342,6 +361,11 @@ declare module puremvc {
          * 获取消息派发者MsgQ消息模块标识
          */
         readonly msgQMod: suncore.MsgQModEnum;
+
+        /**
+         * 是否己销毁
+         */
+        readonly destroyed: boolean;
     }
 
     /**
@@ -395,12 +419,12 @@ declare module puremvc {
         /**
          * 初始化复合命令
          */
-        abstract initializeMacroCommand(): void;
+        protected abstract $initializeMacroCommand(): void;
 
         /**
          * 添加子命令
          */
-        addSubCommand(cls: new () => ICommand): void;
+        protected $addSubCommand(cls: new () => ICommand): void;
 
         /**
          * 执行复合命令

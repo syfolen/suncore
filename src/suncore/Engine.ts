@@ -35,6 +35,11 @@ module suncore {
          * 销毁对象
          */
         destroy(): void {
+            if (this.$destroyed === true) {
+                return;
+            }
+            super.destroy();
+
             Laya.timer.clear(this, this.$onFrameLoop);
         }
 
