@@ -765,7 +765,7 @@ declare module suncom {
         /**
          * 测试注册按钮事件 { id: number, button?: any, once: boolean = true }
          */
-        const TEST_REG_BUTTON: string;
+        const TEST_CASE_DONE: string;
 
         /**
          * 测试点击按钮事件 { btnId: number, type: string | Laya.Event = Laya.Event.CLICK }
