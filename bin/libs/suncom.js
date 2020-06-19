@@ -3,14 +3,16 @@ var suncom;
     var DebugMode;
     (function (DebugMode) {
         DebugMode[DebugMode["ANY"] = 1] = "ANY";
-        DebugMode[DebugMode["TEST"] = 2] = "TEST";
-        DebugMode[DebugMode["DEBUG"] = 4] = "DEBUG";
-        DebugMode[DebugMode["ENGINEER"] = 8] = "ENGINEER";
-        DebugMode[DebugMode["ENGINE"] = 16] = "ENGINE";
-        DebugMode[DebugMode["NATIVE"] = 32] = "NATIVE";
-        DebugMode[DebugMode["NETWORK"] = 64] = "NETWORK";
-        DebugMode[DebugMode["NETWORK_HEARTBEAT"] = 128] = "NETWORK_HEARTBEAT";
-        DebugMode[DebugMode["NORMAL"] = 256] = "NORMAL";
+        DebugMode[DebugMode["ENGINE"] = 2] = "ENGINE";
+        DebugMode[DebugMode["NATIVE"] = 4] = "NATIVE";
+        DebugMode[DebugMode["NETWORK"] = 8] = "NETWORK";
+        DebugMode[DebugMode["NETWORK_HEARTBEAT"] = 16] = "NETWORK_HEARTBEAT";
+        DebugMode[DebugMode["DEBUG"] = 32] = "DEBUG";
+        DebugMode[DebugMode["ENGINEER"] = 64] = "ENGINEER";
+        DebugMode[DebugMode["NORMAL"] = 128] = "NORMAL";
+        DebugMode[DebugMode["TEST"] = 256] = "TEST";
+        DebugMode[DebugMode["TDD"] = 512] = "TDD";
+        DebugMode[DebugMode["ATDD"] = 1024] = "ATDD";
     })(DebugMode = suncom.DebugMode || (suncom.DebugMode = {}));
     var EnvMode;
     (function (EnvMode) {
@@ -28,13 +30,6 @@ var suncom;
         EventPriorityEnum[EventPriorityEnum["EGL"] = 5] = "EGL";
         EventPriorityEnum[EventPriorityEnum["OSL"] = 6] = "OSL";
     })(EventPriorityEnum = suncom.EventPriorityEnum || (suncom.EventPriorityEnum = {}));
-    var LogTypeEnum;
-    (function (LogTypeEnum) {
-        LogTypeEnum[LogTypeEnum["VERBOSE"] = 0] = "VERBOSE";
-        LogTypeEnum[LogTypeEnum["WARN"] = 1] = "WARN";
-        LogTypeEnum[LogTypeEnum["ERROR"] = 2] = "ERROR";
-        LogTypeEnum[LogTypeEnum["LOG2F"] = 3] = "LOG2F";
-    })(LogTypeEnum = suncom.LogTypeEnum || (suncom.LogTypeEnum = {}));
     var EventSystem = (function () {
         function EventSystem() {
             this.$events = {};
@@ -50,7 +45,7 @@ var suncom;
                 throw Error("派发无效事件！！！");
             }
             var list = this.$events[type] || null;
-            if (list === null || list.length === 1) {
+            if (list === null) {
                 return;
             }
             list[0] = true;
@@ -87,6 +82,9 @@ var suncom;
             if (Common.isStringInvalidOrEmpty(type) === true) {
                 throw Error("注册无效事件！！！");
             }
+            if (method === void 0 || method === null) {
+                throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u4E8B\u4EF6\u56DE\u8C03\uFF01\uFF01\uFF01");
+            }
             var list = this.$events[type] || null;
             if (list === null) {
                 list = this.$events[type] = [false];
@@ -121,10 +119,13 @@ var suncom;
         };
         EventSystem.prototype.removeEventListener = function (type, method, caller) {
             if (Common.isStringInvalidOrEmpty(type) === true) {
-                throw Error("移除无效事件！！！");
+                throw Error("移除无效的事件！！！");
+            }
+            if (method === void 0 || method === null) {
+                throw Error("\u79FB\u9664\u65E0\u6548\u7684\u4E8B\u4EF6\u56DE\u8C03\uFF01\uFF01\uFF01");
             }
             var list = this.$events[type] || null;
-            if (list === null || list.length === 1) {
+            if (list === null) {
                 return;
             }
             if (list[0] === true) {
@@ -165,11 +166,12 @@ var suncom;
         Expect.prototype.test = function (pass, message) {
             if ((this.$asNot === false && pass === false) || (this.$asNot === true && pass === true)) {
                 Test.ASSERT_FAILED = true;
-                message !== null && suncom.Logger.error(DebugMode.ANY, message);
-                this.$interpretation !== null && suncom.Logger.error(DebugMode.ANY, this.$interpretation);
+                message !== null && Logger.error(DebugMode.ANY, message);
+                this.$interpretation !== null && Logger.error(DebugMode.ANY, this.$interpretation);
                 if (Test.ASSERT_BREAKPOINT === true) {
                     debugger;
                 }
+                throw Error("测试失败！");
             }
         };
         Expect.prototype.anything = function () {
@@ -227,10 +229,17 @@ var suncom;
         Expect.prototype.toBeUndefined = function () {
             this.toBe(void 0);
         };
+        Expect.prototype.toBeBoolean = function () {
+            if (Global.debugMode & DebugMode.TEST) {
+                var pass = typeof this.$value === "boolean";
+                var message = "\u671F\u671B" + (this.$asNot === false ? "为" : "不为") + "\uFF1A\u5E03\u5C14\u7C7B\u578B, \u5B9E\u9645\u4E3A\uFF1A" + typeof this.$value;
+                this.test(pass, message);
+            }
+        };
         Expect.prototype.toBeInstanceOf = function (cls) {
             if (Global.debugMode & DebugMode.TEST) {
                 var pass = this.$value instanceof cls;
-                var message = "\u671F\u671B " + suncom.Common.getQualifiedClassName(this.$value) + " \u7684\u7C7B\u578B" + (this.$asNot === false ? "" : "不") + "\u4E3A " + Common.getClassName(cls);
+                var message = "\u671F\u671B " + Common.getQualifiedClassName(this.$value) + " \u7684\u7C7B\u578B" + (this.$asNot === false ? "" : "不") + "\u4E3A " + Common.getClassName(cls);
                 this.test(pass, message);
             }
         };
@@ -286,14 +295,14 @@ var suncom;
         };
         Expect.prototype.toEqual = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = suncom.Common.isEqual(this.$value, value, false);
+                var pass = Common.isEqual(this.$value, value, false);
                 var message = "\u671F\u671B\u76F8\u7B49\uFF1A" + Common.toDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toStrictEqual = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = suncom.Common.isEqual(this.$value, value, true);
+                var pass = Common.isEqual(this.$value, value, true);
                 var message = "\u671F\u671B\u76F8\u7B49\uFF1A" + Common.toDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$value);
                 this.test(pass, message);
             }
@@ -319,22 +328,16 @@ var suncom;
             if (this.$args === void 0) {
                 return this.$method.call(this.$caller);
             }
-            else {
-                return this.$method.apply(this.$caller, this.$args);
-            }
+            return this.$method.apply(this.$caller, this.$args);
         };
         Handler.prototype.runWith = function (args) {
             if (this.$args === void 0) {
                 if (args instanceof Array) {
                     return this.$method.apply(this.$caller, args);
                 }
-                else {
-                    return this.$method.call(this.$caller, args);
-                }
+                return this.$method.call(this.$caller, args);
             }
-            else {
-                return this.$method.apply(this.$caller, this.$args.concat(args));
-            }
+            return this.$method.apply(this.$caller, this.$args.concat(args));
         };
         Object.defineProperty(Handler.prototype, "caller", {
             get: function () {
@@ -360,18 +363,13 @@ var suncom;
         function HashMap(primaryKey) {
             this.source = [];
             this.dataMap = {};
-            if (typeof primaryKey === "number") {
-                primaryKey = primaryKey.toString();
-            }
             if (typeof primaryKey !== "string") {
                 throw Error("\u975E\u6CD5\u7684\u4E3B\u952E\u5B57\u6BB5\u540D\uFF1A" + primaryKey);
             }
-            if (primaryKey.length == 0) {
+            if (primaryKey.length === 0) {
                 throw Error("\u65E0\u6548\u7684\u4E3B\u952E\u5B57\u6BB5\u540D\u5B57\u957F\u5EA6\uFF1A" + primaryKey.length);
             }
-            else {
-                this.$primaryKey = primaryKey;
-            }
+            this.$primaryKey = primaryKey;
         }
         HashMap.prototype.$removeByIndex = function (index) {
             var data = this.source[index];
@@ -394,11 +392,8 @@ var suncom;
         };
         HashMap.prototype.put = function (data) {
             var value = data[this.$primaryKey];
-            if (typeof value === "number") {
-                value = value.toString();
-            }
-            if (typeof value !== "string") {
-                throw Error("\u4E3B\u952E\u7684\u503C\u7C7B\u578B\u9519\u8BEF\uFF1A" + typeof value + "\uFF0C\u53EA\u5141\u8BB8\u4F7F\u7528Number\u6216String\u7C7B\u578B");
+            if (Common.isStringInvalidOrEmpty(value) === true) {
+                throw Error("\u65E0\u6548\u7684\u4E3B\u952E\u7684\u503C\uFF0Ctype:" + typeof value + ", value:" + value);
             }
             if (this.getByPrimaryValue(value) === null) {
                 this.source.push(data);
@@ -408,15 +403,6 @@ var suncom;
                 throw Error("\u91CD\u590D\u7684\u4E3B\u952E\u503C\uFF1A[" + this.$primaryKey + "]" + value);
             }
             return data;
-        };
-        HashMap.prototype.remove = function (data) {
-            var index = this.source.indexOf(data);
-            if (index === -1) {
-                return data;
-            }
-            else {
-                return this.$removeByIndex(index);
-            }
         };
         HashMap.prototype.getByValue = function (key, value) {
             if (key === this.$primaryKey) {
@@ -429,16 +415,24 @@ var suncom;
             return this.source[index];
         };
         HashMap.prototype.getByPrimaryValue = function (value) {
-            return this.dataMap[value] || null;
+            return this.dataMap[value.toString()] || null;
+        };
+        HashMap.prototype.remove = function (data) {
+            var index = this.source.indexOf(data);
+            if (index === -1) {
+                return data;
+            }
+            return this.$removeByIndex(index);
         };
         HashMap.prototype.removeByValue = function (key, value) {
+            if (key === this.$primaryKey) {
+                return this.removeByPrimaryValue(value);
+            }
             var index = this.$getIndexByValue(key, value);
             if (index === -1) {
                 return null;
             }
-            else {
-                return this.$removeByIndex(index);
-            }
+            return this.$removeByIndex(index);
         };
         HashMap.prototype.removeByPrimaryValue = function (value) {
             var data = this.getByPrimaryValue(value);
@@ -448,9 +442,8 @@ var suncom;
             return this.remove(data);
         };
         HashMap.prototype.forEach = function (method) {
-            var source = this.source.slice(0);
-            for (var i = 0; i < source.length; i++) {
-                if (method(source[i]) === true) {
+            for (var i = 0; i < this.source.length; i++) {
+                if (method(this.source[i]) === true) {
                     break;
                 }
             }
@@ -460,6 +453,10 @@ var suncom;
     suncom.HashMap = HashMap;
     var Common;
     (function (Common) {
+        Common.PI = Math.PI;
+        Common.PI2 = Math.PI * 2;
+        Common.MAX_SAFE_INTEGER = 9007199254740991;
+        Common.MIN_SAFE_INTEGER = -9007199254740991;
         var $hashId = 0;
         function createHashId() {
             $hashId++;
@@ -498,9 +495,7 @@ var suncom;
         }
         Common.getMethodName = getMethodName;
         function convertEnumToString(value, oEnum) {
-            var keys = Object.keys(oEnum);
-            for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
+            for (var key in oEnum) {
                 if (oEnum[key] === value) {
                     return key;
                 }
@@ -546,7 +541,8 @@ var suncom;
                     }
                 }
                 if (indexOfReplace === -1) {
-                    throw Error("\u5B57\u7B26\u4E32\u66FF\u6362\u672A\u5B8C\u6210 str:" + str);
+                    Logger.warn(DebugMode.ANY, "\u5B57\u7B26\u4E32\u66FF\u6362\u672A\u5B8C\u6210 str:" + str);
+                    break;
                 }
                 var suffix = str.substr(indexOfReplace + key.length);
                 str = str.substr(0, indexOfReplace) + args.shift() + suffix;
@@ -560,7 +556,8 @@ var suncom;
             while (args.length > 0) {
                 var indexOfSign = str.indexOf("{$}", index);
                 if (index === -1) {
-                    throw Error("\u5B57\u7B26\u4E32\u66FF\u6362\u672A\u5B8C\u6210 str:" + str);
+                    Logger.warn(DebugMode.ANY, "\u5B57\u7B26\u4E32\u66FF\u6362\u672A\u5B8C\u6210 str:" + str);
+                    break;
                 }
                 var suffix = str.substr(indexOfSign + 3);
                 str = str.substr(0, indexOfSign) + args.shift() + suffix;
@@ -569,6 +566,41 @@ var suncom;
             return str;
         }
         Common.formatString$ = formatString$;
+        function d2r(d) {
+            return d * Math.PI / 180;
+        }
+        Common.d2r = d2r;
+        function r2d(a) {
+            return a * 180 / Math.PI;
+        }
+        Common.r2d = r2d;
+        function abs(a) {
+            if (a < 0) {
+                return -a;
+            }
+            else {
+                return a;
+            }
+        }
+        Common.abs = abs;
+        function min(a, b) {
+            if (a < b) {
+                return a;
+            }
+            else {
+                return b;
+            }
+        }
+        Common.min = min;
+        function max(a, b) {
+            if (a > b) {
+                return a;
+            }
+            else {
+                return b;
+            }
+        }
+        Common.max = max;
         function clamp(value, min, max) {
             if (value < min) {
                 return min;
@@ -667,10 +699,10 @@ var suncom;
                 var times = array[0].split(":");
                 if (times.length === 3) {
                     if (dates.length === 0) {
-                        var a = new Date();
-                        dates[0] = a.getFullYear().toString();
-                        dates[1] = (a.getMonth() + 1).toString();
-                        dates[2] = a.getDate().toString();
+                        var dt = new Date();
+                        dates[0] = dt.getFullYear().toString();
+                        dates[1] = (dt.getMonth() + 1).toString();
+                        dates[2] = dt.getDate().toString();
                     }
                     return new Date(Number(dates[0]), Number(dates[1]) - 1, Number(dates[2]), Number(times[0]), Number(times[1]), Number(times[2]));
                 }
@@ -786,6 +818,18 @@ var suncom;
             throw Error("未实现的接口！！！");
         }
         Common.md5 = md5;
+        function createHttpSign(params, key, sign) {
+            if (sign === void 0) { sign = "sign"; }
+            var array = [];
+            for (var key_1 in params) {
+                if (key_1 !== sign) {
+                    array.push(key_1 + "=" + params[key_1]);
+                }
+            }
+            array.push("key=" + key);
+            return Common.md5(array.join("&"));
+        }
+        Common.createHttpSign = createHttpSign;
         function getFileName(path) {
             var index = path.lastIndexOf("/");
             if (index > -1) {
@@ -800,9 +844,7 @@ var suncom;
             if (index === -1) {
                 return null;
             }
-            else {
-                return path.substr(index + 1).toLowerCase();
-            }
+            return path.substr(index + 1).toLowerCase();
         }
         Common.getFileExtension = getFileExtension;
         function replacePathExtension(path, newExt) {
@@ -810,25 +852,9 @@ var suncom;
             if (index === -1) {
                 return path;
             }
-            else {
-                return path.substr(0, index + 1) + newExt;
-            }
+            return path.substr(0, index + 1) + newExt;
         }
         Common.replacePathExtension = replacePathExtension;
-        function createHttpSign(params, key, sign) {
-            if (sign === void 0) { sign = "sign"; }
-            var keys = Object.keys(params).sort();
-            var array = [];
-            for (var i = 0; i < keys.length; i++) {
-                var key_1 = keys[i];
-                if (key_1 !== sign) {
-                    array.push(key_1 + "=" + params[key_1]);
-                }
-            }
-            array.push("key=" + key);
-            return Common.md5(array.join("&"));
-        }
-        Common.createHttpSign = createHttpSign;
         function findFromArray(array, method, out) {
             if (out === void 0) { out = null; }
             for (var i = 0; i < array.length; i++) {
@@ -840,7 +866,7 @@ var suncom;
                     out.push(item);
                 }
             }
-            return out;
+            return null;
         }
         Common.findFromArray = findFromArray;
         function removeItemFromArray(item, array) {
@@ -858,6 +884,66 @@ var suncom;
             }
         }
         Common.removeItemsFromArray = removeItemsFromArray;
+        function createPrefab(json) {
+            var prefab = new Laya.Prefab();
+            prefab.json = Laya.loader.getRes(json);
+            return prefab.create();
+        }
+        Common.createPrefab = createPrefab;
+        function copy(data, deep) {
+            if (deep === void 0) { deep = false; }
+            if (data instanceof Array) {
+                if (deep === false) {
+                    return data.slice(0);
+                }
+                else {
+                    var array = [];
+                    for (var i = 0; i < data.length; i++) {
+                        array.push(Common.copy(data[i], deep));
+                    }
+                    return array;
+                }
+            }
+            else if (data instanceof Object) {
+                var newData = {};
+                if (deep === false) {
+                    for (var key in data) {
+                        newData[key] = data[key];
+                    }
+                }
+                else {
+                    for (var key in data) {
+                        newData[key] = Common.copy(data[key], deep);
+                    }
+                }
+                return newData;
+            }
+            return data;
+        }
+        Common.copy = copy;
+        function clone(data) {
+            var newData = {};
+            for (var key in data) {
+                var value = data[key];
+                if (typeof value === "number") {
+                    newData[key] = 0;
+                }
+                else if (typeof value === "boolean") {
+                    newData[key] = false;
+                }
+                else if (value instanceof Array) {
+                    newData[key] = [];
+                }
+                else if (value instanceof Object) {
+                    newData[key] = null;
+                }
+                else {
+                    throw Error("\u514B\u9686\u610F\u5916\u7684\u6570\u636E\u7C7B\u578B\uFF1A" + value);
+                }
+            }
+            return newData;
+        }
+        Common.clone = clone;
         function isEqual(oldData, newData, strict) {
             if (oldData === newData) {
                 return true;
@@ -890,9 +976,7 @@ var suncom;
                 }
                 return true;
             }
-            else {
-                return false;
-            }
+            return false;
         }
         Common.isEqual = isEqual;
         function toDisplayString(data) {
@@ -911,17 +995,11 @@ var suncom;
                 return "[" + array.join(",") + "]";
             }
             else {
-                var json = {};
-                for (var key in data) {
-                    if (data.hasOwnProperty(key) === true) {
-                        json[key] = data[key];
-                    }
-                }
                 try {
                     str = JSON.stringify(data);
                 }
                 catch (error) {
-                    str = JSON.stringify(json);
+                    str = "[" + Common.getQualifiedClassName(data) + "]";
                 }
             }
             return str;
@@ -986,16 +1064,16 @@ var suncom;
         var $id = 0;
         DBService.$table = {};
         function get(name) {
-            return DBService.$table[name];
+            return DBService.$table[name.toString()];
         }
         DBService.get = get;
         function put(name, data) {
-            if (name > -1) {
-                DBService.$table[name.toString()] = data;
-            }
-            else {
+            if (name < 0) {
                 $id++;
                 DBService.$table["auto_" + $id] = data;
+            }
+            else {
+                DBService.$table[name.toString()] = data;
             }
             return data;
         }
@@ -1011,8 +1089,8 @@ var suncom;
     })(DBService = suncom.DBService || (suncom.DBService = {}));
     var Global;
     (function (Global) {
-        Global.envMode = EnvMode.DEVELOP;
-        Global.debugMode = DebugMode.TEST;
+        Global.envMode = 0;
+        Global.debugMode = 0;
         Global.WIDTH = 1280;
         Global.HEIGHT = 720;
         Global.width = 1280;
@@ -1021,6 +1099,63 @@ var suncom;
     })(Global = suncom.Global || (suncom.Global = {}));
     var Logger;
     (function (Logger) {
+        Logger.NUM_OF_BLOCK = 200;
+        Logger.LINES_OF_BLOCK = 200;
+        var $messages = [];
+        Logger.locked = false;
+        function $addLine(line) {
+            if (Logger.locked === false && $messages.length > Logger.NUM_OF_BLOCK) {
+                $messages.shift();
+            }
+            var lines = null;
+            var length = $messages.length;
+            if (length > 0) {
+                lines = $messages[length - 1];
+                if (lines.length === Logger.LINES_OF_BLOCK) {
+                    lines = null;
+                }
+            }
+            if (lines === null) {
+                lines = [];
+                $messages.push(lines);
+            }
+            lines.push(line);
+        }
+        function getDebugString(index, length) {
+            if (index < 0) {
+                length += index;
+                index = 0;
+            }
+            var lineIndex = index % Logger.LINES_OF_BLOCK;
+            var groupIndex = (index - lineIndex) / Logger.LINES_OF_BLOCK;
+            var lines = [];
+            for (var i = 0; i < length; i++) {
+                if (groupIndex < $messages.length) {
+                    var array = $messages[groupIndex];
+                    if (lineIndex < array.length) {
+                        lines.push(array[lineIndex]);
+                    }
+                    lineIndex++;
+                    if (lineIndex === array.length) {
+                        lineIndex = 0;
+                        groupIndex++;
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+            return lines;
+        }
+        Logger.getDebugString = getDebugString;
+        function getNumOfLines() {
+            var length = 0;
+            for (var i = 0; i < $messages.length; i++) {
+                length += $messages[i].length;
+            }
+            return length;
+        }
+        Logger.getNumOfLines = getNumOfLines;
         function log(mod) {
             var args = [];
             for (var _i = 1; _i < arguments.length; _i++) {
@@ -1029,9 +1164,7 @@ var suncom;
             if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
                 var str = args.join(" ");
                 console.log(str);
-                if (Global.debugMode === DebugMode.DEBUG) {
-                    puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.VERBOSE, str]);
-                }
+                $addLine(str);
             }
         }
         Logger.log = log;
@@ -1043,9 +1176,7 @@ var suncom;
             if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
                 var str = args.join(" ");
                 console.warn(str);
-                if (Global.debugMode === DebugMode.DEBUG) {
-                    puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.WARN, str]);
-                }
+                $addLine(str);
             }
         }
         Logger.warn = warn;
@@ -1057,9 +1188,7 @@ var suncom;
             if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
                 var str = args.join(" ");
                 console.error(str);
-                if (Global.debugMode === DebugMode.DEBUG) {
-                    puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.ERROR, str]);
-                }
+                $addLine(str);
             }
         }
         Logger.error = error;
@@ -1071,49 +1200,49 @@ var suncom;
             if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
                 var str = args.join(" ");
                 console.info(str);
-                if (Global.debugMode === DebugMode.DEBUG) {
-                    puremvc.Facade.getInstance().sendNotification(NotifyKey.DEBUG_PRINT, [LogTypeEnum.LOG2F, str]);
-                }
+                $addLine(str);
             }
         }
         Logger.log2f = log2f;
+        function trace(mod) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
+                var str = args.join(" ");
+                console.trace(str);
+            }
+        }
+        Logger.trace = trace;
     })(Logger = suncom.Logger || (suncom.Logger = {}));
-    var NotifyKey;
-    (function (NotifyKey) {
-        NotifyKey.DEBUG_PRINT = "suncom.NotifyKey.DEBUG_PRINT";
-    })(NotifyKey = suncom.NotifyKey || (suncom.NotifyKey = {}));
     var Pool;
     (function (Pool) {
         var $pool = {};
         function getItem(sign) {
             var array = $pool[sign] || null;
-            if (array !== null && array.length > 0) {
-                var item = array.pop();
-                delete item["__suncom__$__inPool__"];
-                return item;
+            if (array === null || array.length === 0) {
+                return null;
             }
-            return null;
+            var item = array.pop();
+            delete item["__suncom__$__inPool__"];
+            return item;
         }
         Pool.getItem = getItem;
         function getItemByClass(sign, cls, args) {
             var item = Pool.getItem(sign);
             if (item === null) {
                 if (Laya.Prefab !== void 0 && cls === Laya.Prefab) {
-                    var prefab = new Laya.Prefab();
-                    prefab.json = Laya.Loader.getRes(args[0]);
-                    item = prefab.create();
+                    item = Common.createPrefab(args);
                 }
                 else {
                     item = {};
                     item.__proto__ = cls.prototype;
-                    if (args === void 0) {
-                        cls.call(item);
-                    }
-                    else if (args instanceof Array === false) {
-                        cls.call(item, args);
+                    if (args instanceof Array) {
+                        cls.apply(item, args);
                     }
                     else {
-                        cls.apply(item, args);
+                        cls.call(item, args);
                     }
                 }
             }
@@ -1167,25 +1296,32 @@ var suncom;
     (function (Test) {
         Test.ASSERT_FAILED = false;
         Test.ASSERT_BREAKPOINT = true;
+        var $expect = null;
         function expect(value, description) {
-            return new Expect(description).expect(value);
+            if (Global.debugMode & DebugMode.TEST) {
+                return new Expect(description).expect(value);
+            }
+            if ($expect === null) {
+                $expect = new Expect();
+            }
+            return $expect;
         }
         Test.expect = expect;
-        function notExpected() {
+        function notExpected(message) {
             if (Global.debugMode & DebugMode.TEST) {
-                new Expect().test(false, "Test.notExpected \u671F\u671B\u4E4B\u5916\u7684");
+                suncom.Test.expect(true).interpret("Test.notExpected \u671F\u671B\u4E4B\u5916\u7684").toBe(false);
             }
         }
         Test.notExpected = notExpected;
         function assertTrue(value, message) {
             if (Global.debugMode & DebugMode.TEST) {
-                new Expect().test(value, message || "Test.assertTrue error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value));
+                suncom.Test.expect(value).interpret(message || "Test.assertTrue error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(true);
             }
         }
         Test.assertTrue = assertTrue;
         function assertFalse(value, message) {
             if (Global.debugMode & DebugMode.TEST) {
-                new Expect().test(value === false, message || "Test.assertFalse error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value));
+                suncom.Test.expect(value).interpret(message || "Test.assertFalse error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(false);
             }
         }
         Test.assertFalse = assertFalse;

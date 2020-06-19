@@ -28,10 +28,5 @@ module suncore {
          * 消息管理器
          */
         export let messageManager: MessageManager = null;
-
-        /**
-         * 测试用例配置列表 
-         */
-        export let tccQueue: ITestCaseCfg[] = [];
     }
 }

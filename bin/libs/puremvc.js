@@ -423,10 +423,14 @@ var puremvc;
         function Notifier(msgQMod) {
             this.$msgQMod = suncore.MsgQModEnum.MMI;
             this.$facade = Facade.getInstance();
+            this.$destroyed = false;
             if (msgQMod !== void 0) {
                 this.$msgQMod = msgQMod;
             }
         }
+        Notifier.prototype.destroy = function () {
+            this.$destroyed = true;
+        };
         Object.defineProperty(Notifier.prototype, "facade", {
             get: function () {
                 MutexLocker.active(this.$msgQMod);
@@ -438,6 +442,13 @@ var puremvc;
         Object.defineProperty(Notifier.prototype, "msgQMod", {
             get: function () {
                 return this.$msgQMod;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Notifier.prototype, "destroyed", {
+            get: function () {
+                return this.$destroyed;
             },
             enumerable: true,
             configurable: true
@@ -496,6 +507,9 @@ var puremvc;
             }
             if (method === void 0) {
                 throw Error("注册无效的监听回调");
+            }
+            if (caller && caller.destroyed === true) {
+                throw Error("对象己销毁");
             }
             var observers = this.$observers[name];
             if (observers === void 0) {
@@ -576,10 +590,18 @@ var puremvc;
             }
             for (var i = 1; i < observers.length; i++) {
                 var observer = observers[i];
-                if (observer.caller === caller) {
-                    if (method === null || observer.method === method) {
+                if (method === null) {
+                    if (observer.caller === caller) {
                         return true;
                     }
+                }
+                else if (caller === null) {
+                    if (observer.method === method) {
+                        return true;
+                    }
+                }
+                else if (observer.method === method && observer.caller === caller) {
+                    return true;
                 }
             }
             return false;
@@ -604,6 +626,15 @@ var puremvc;
                 var observer = observers[i];
                 if (observer.receiveOnce === true) {
                     this.$onceObservers.push(observer);
+                }
+                if (observer.caller && observer.caller.destroyed === true) {
+                    if (suncom && suncom["Common"]) {
+                        console.warn("\u5BF9\u8C61[" + suncom["Common"].getQualifiedClassName(observer.caller) + "]\u5DF1\u9500\u6BC1\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
+                    }
+                    else {
+                        console.warn("\u5BF9\u8C61\u5DF1\u9500\u6BC1\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
+                    }
+                    continue;
                 }
                 if (observer.caller === Controller.inst) {
                     observer.method.call(observer.caller, name, args);
@@ -681,10 +712,10 @@ var puremvc;
         function MacroCommand() {
             var _this = _super.call(this) || this;
             _this.$commands = [];
-            _this.initializeMacroCommand();
+            _this.$initializeMacroCommand();
             return _this;
         }
-        MacroCommand.prototype.addSubCommand = function (cls) {
+        MacroCommand.prototype.$addSubCommand = function (cls) {
             this.$commands.push(cls);
         };
         MacroCommand.prototype.execute = function () {
@@ -734,7 +765,7 @@ var puremvc;
         };
         Mediator.prototype.$handleNotification = function (name, method, priority) {
             if (priority === void 0) { priority = suncom.EventPriorityEnum.LOW; }
-            var observer = this.facade.registerObserver(name, method, this);
+            var observer = this.facade.registerObserver(name, method, this, void 0, priority);
             observer && this.$notificationInterests.push(observer);
         };
         return Mediator;
@@ -816,6 +847,7 @@ var puremvc;
             var prefix = getCommandPrefix(name);
             var msgQMod = MutexLocker.msgQMap[prefix];
             MutexLocker.locker.update(target);
+            MutexLocker.locker.asserts(msgQMod, target);
             MutexLocker.locker.lock(msgQMod);
         }
         MutexLocker.create = create;
@@ -829,6 +861,7 @@ var puremvc;
             var prefix = getCommandPrefix(name);
             var msgQMod = MutexLocker.msgQMap[prefix];
             MutexLocker.locker.update(target);
+            MutexLocker.locker.asserts(msgQMod, target);
             MutexLocker.locker.unlock(msgQMod);
         }
         MutexLocker.release = release;

@@ -20,12 +20,4 @@ class Facade extends puremvc.Facade {
 setTimeout(() => {
 	Facade.getInstance().registerCommand(suncore.NotifyKey.STARTUP, test.StartupCommand);
 	Facade.getInstance().sendNotification(suncore.NotifyKey.STARTUP);
-
-	// new test.TestMessage();
-
-	suncore.System.addTest(new test.TestTimelineCommandTask(suncom.Handler.create(null, testOther)));
 }, 1000);
-
-function testOther(): void {
-
-}

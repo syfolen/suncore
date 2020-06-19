@@ -1,7 +1,7 @@
 
 declare module suncom {
     /**
-     * 调试模式，主要用于控制LOG的打印
+     * 调试模式，主要用于日志打印的控制，也用于模块中调试代码的开启与关闭
      */
     enum DebugMode {
         /**
@@ -10,58 +10,58 @@ declare module suncom {
         ANY = 0x1,
 
         /**
-         * 开发测试
+         * 引擎
          */
-        TDD = 0x2,
-
-        /**
-         * 验收测试
-         */
-        ATDD = 0x4,
-
-        /**
-         * 测试信息
-         */
-        TEST = 0x8,
-
-        /**
-         * 调试信息
-         */
-        DEBUG = 0x10,
-
-        /**
-         * 工程模式
-         */
-        ENGINEER = 0x20,
-
-        /**
-         * 框架
-         */
-        ENGINE = 0x40,
+        ENGINE = 0x2,
 
         /**
          * 原生
          */
-        NATIVE = 0x80,
+        NATIVE = 0x4,
 
         /**
          * 网络
          */
-        NETWORK = 0x100,
+        NETWORK = 0x8,
 
         /**
          * 网络心跳
          */
-        NETWORK_HEARTBEAT = 0x200,
+        NETWORK_HEARTBEAT = 0x10,
+
+        /**
+         * 调试模式
+         */
+        DEBUG = 0x20,
+
+        /**
+         * 工程模式
+         */
+        ENGINEER = 0x40,
 
         /**
          * 普通
          */
-        NORMAL = 0x400
+        NORMAL = 0x80,
+
+        /**
+         * 测试模式
+         */
+        TEST = 0x100,
+
+        /**
+         * 测试驱动开发模式
+         */
+        TDD = 0x200,
+
+        /**
+         * 验收测试模式
+         */
+        ATDD = 0x400
     }
 
     /**
-     * 环境模式，主要用于代码的版本控制
+     * 环境模式，主要用于发布控制
      */
     enum EnvMode {
         /**
@@ -118,31 +118,6 @@ declare module suncom {
          * 系统级别
          */
         OSL
-    }
-
-    /**
-     * 日志类型枚举
-     */
-    enum LogTypeEnum {
-        /**
-         * 普通日志
-         */
-        VERBOSE,
-
-        /**
-         * 警告日志
-         */
-        WARN,
-
-        /**
-         * 错误日志
-         */
-        ERROR,
-
-        /**
-         * 文件日志
-         */
-        LOG2F
     }
 
     /**
@@ -235,6 +210,11 @@ declare module suncom {
          * 期望值为：undefined
          */
         toBeUndefined(): void;
+
+        /**
+         * 期望值为：布尔类型
+         */
+        toBeBoolean(): void;
 
         /**
          * 期望对象类型为：cls
@@ -348,14 +328,30 @@ declare module suncom {
         removeByPrimaryValue(value: number | string): T;
 
         /**
-         * 为每个数据执行方法（谨慎在此方法中新增或移除数据）
-         * 若method的返回值为true，则会中断遍历
+         * 为每个数据执行方法
+         * 说明：
+         * 1. 若method返回true，则会中断遍历
+         * 2. 谨慎在此方法中新增或移除数据
          */
         forEach(method: (data: T) => any): void;
     }
 
+    interface IPCMInt2 {
+
+        arg1: number;
+
+        arg2: number;
+    }
+
+    interface IPCMIntString {
+
+        arg1: number;
+
+        arg2: string;
+    }
+
     /**
-     * EventSystem 自定义事件系统
+     * 自定义事件系统
      */
     class EventSystem implements IEventSystem {
         /**
@@ -434,7 +430,7 @@ declare module suncom {
     }
 
     /**
-     * 哈希表接口，通常用于作为一个大量数据的集合，用于快速获取数据集中的某条数据
+     * 哈希表，通常用于作为一个大量数据的集合，用于快速获取数据集中的某条数据
      */
     class HashMap<T> implements IHashMap<T> {
         /**
@@ -445,17 +441,12 @@ declare module suncom {
         /**
          * @primaryKey: 指定主键字段名，哈希表会使用主键值来作为数据索引，所以请确保主键值是恒值
          */
-        constructor(primaryKey: number | string);
+        constructor(primaryKey: string);
 
         /**
          * 添加数据
          */
         put(data: T): T;
-
-        /**
-         * 移除数据
-         */
-        remove(data: T): T;
 
         /**
          * 根据键值返回数据
@@ -468,6 +459,11 @@ declare module suncom {
         getByPrimaryValue(value: number | string): T;
 
         /**
+         * 移除数据
+         */
+        remove(data: T): T;
+
+        /**
          * 根据键值移除数据
          */
         removeByValue(key: string, value: any): T;
@@ -478,8 +474,10 @@ declare module suncom {
         removeByPrimaryValue(value: number | string): T;
 
         /**
-         * 为每个数据执行方法（谨慎在此方法中新增或移除数据）
-         * 若method返回true，则会中断遍历
+         * 为每个数据执行方法
+         * 说明：
+         * 1. 若method返回true，则会中断遍历
+         * 2. 谨慎在此方法中新增或移除数据
          */
         forEach(method: (data: T) => any): void;
     }
@@ -488,6 +486,25 @@ declare module suncom {
      * 常用库（纯JS方法）
      */
     namespace Common {
+        /**
+         * PI
+         */
+        const PI: number;
+
+        /**
+         * 2PI
+         */
+        const PI2: number;
+
+        /**
+         * 整数的最大安全值
+         */
+        const MAX_SAFE_INTEGER: number;
+
+        /**
+         * 整数的最小安全值
+         */
+        const MIN_SAFE_INTEGER: number;
 
         /**
          * 获取全局唯一的哈希值
@@ -525,6 +542,21 @@ declare module suncom {
          * 格式化字符串
          */
         function formatString(str: string, args: any[]): string;
+
+        /**
+         * 格式化字符串
+         */
+        function formatString$(str: string, args: any[]): string;
+
+        /**
+         * 角度换算为弧度
+         */
+        function d2r(d: number): number;
+
+        /**
+         * 弧度换算为角度
+         */
+        function r2d(a: number): number;
 
         /**
          * 将value限制于min和max之间
@@ -581,7 +613,14 @@ declare module suncom {
         function md5(str: string): string;
 
         /**
-         * 获取文件名（不包括后缀名）
+         * 生成HTTP签名
+         * @key: 密钥
+         * @sign: 忽略签名字段，默认为："sign"
+         */
+        function createHttpSign(params: Object, key: string, sign?: string): string;
+
+        /**
+         * 获取文件名（不包括扩展名）
          */
         function getFileName(path: string): string;
 
@@ -596,19 +635,13 @@ declare module suncom {
         function replacePathExtension(path: string, newExt: string): string;
 
         /**
-         * 生成HTTP签名
-         * @key: 密钥
-         * @sign: 忽略签名字段，默认为："sign"
-         */
-        function createHttpSign(params: Object, key: string, sign?: string): string;
-
-        /**
          * 从数组中查找数据
          * @array: 数据源
          * @method: 查询规则，返回true表示与规则匹配
-         * @out: 若为null，则只返回查询到的第一条数据，否则将以数组的形式返回查询到的所有数据
+         * @out: 若不为null，则返回查询到的所有数据
+         * @return: 若out为null，则只返回查询到的第一条数据，否则返回null
          */
-        function findFromArray<T>(array: T[], method: (data: T) => boolean, out?: T[]): T | T[];
+        function findFromArray<T>(array: T[], method: (data: T) => boolean, out?: T[]): T;
 
         /**
          * 将数据从数组中移除
@@ -619,6 +652,11 @@ declare module suncom {
          * 将数据从数组中移除
          */
         function removeItemsFromArray<T>(items: T[], array: T[]): void;
+
+        /**
+         * 创建预置对象
+         */
+        function createPrefab(json: string): Laya.View;
 
         /**
          * 判断深度相等
@@ -644,13 +682,13 @@ declare module suncom {
         /**
          * 获取数据
          */
-        function get(name: number): any;
+        function get<T>(name: number): T;
 
         /**
          * 存储数据
          * @name: 若小于0，则存储的数据不可通过get方法获取
          */
-        function put(name: number, data: any): any;
+        function put<T>(name: number, data: T): T;
 
         /**
          * 是否存在
@@ -668,37 +706,37 @@ declare module suncom {
      */
     namespace Global {
         /**
-         * 运行环境
+         * 运行环境，默认为：EnvMode.DEVELOP
          */
         let envMode: EnvMode;
 
         /**
-         * 调试模式
+         * 调试模式，默认为：0
          */
         let debugMode: DebugMode;
 
         /**
-         * 设计分辨率
+         * 设计分辨率宽，默认为：1280
          */
         const WIDTH: number;
 
         /**
-         * 设计分辨率
+         * 设计分辨率高，默认为：720
          */
         const HEIGHT: number;
 
         /**
-         * 实际分辨率
+         * 实际分辨率宽，默认为：Global.WIDTH
          */
         let width: number;
 
         /**
-         * 实际分辨率
+         * 实际分辨率高，默认为：Global.HEIGHT
          */
         let height: number;
 
         /**
-         * 游戏版本
+         * 游戏版本，默认为：1.0.0
          */
         let VERSION: string;
     }
@@ -707,6 +745,20 @@ declare module suncom {
      * 日志接口
      */
     namespace Logger {
+        /**
+         * 锁定日志，若为false，则旧日志会实时被移除，默认：false
+         */
+        let locked: boolean;
+
+        /**
+         * 获取部分日志
+         */
+        function getDebugString(index: number, length: number): string[];
+
+        /**
+         * 日志总行数
+         */
+        function getNumOfLines(): number;
 
         /**
          * 普通日志
@@ -727,50 +779,11 @@ declare module suncom {
          * 文件日志
          */
         function log2f(mod: DebugMode, ...args: any[]): void;
-    }
-
-    /**
-     * 命令定义
-     */
-    namespace NotifyKey {
-        /**
-         * 输出打印日志 { text: string }
-         * 说明：
-         * 1. 此事件仅在Global.debugMode为DebugMode.DEBUG时才会被派发
-         */
-        const DEBUG_PRINT: string;
 
         /**
-         * 测试等待信号 { id: number, handler: suncom.IHandler = null}
+         * 调用追踪日志
          */
-        const TEST_WAIT: string;
-
-        /**
-         * 测试发射信号 { id: number, args?: any }
-         */
-        const TEST_EMIT: string;
-
-        /**
-         * 测试发送事件 { id: number, act: string, out: suncore.ITestSeqInfo }
-         * @act: "exe" or "reg", exe为执行点击行为，reg为注册点击行为
-         */
-        const TEST_EVENT: string;
-
-        /**
-         * 测试下行协议 { id: number, act: string, out: suncore.ITestSeqInfo }
-         * @act: "exe" or "reg", exe为执行下行行为，reg为注册下行行为
-         */
-        const TEST_PROTOCAL: string;
-
-        /**
-         * 测试注册按钮事件 { id: number, button?: any, once: boolean = true }
-         */
-        const TEST_CASE_DONE: string;
-
-        /**
-         * 测试点击按钮事件 { btnId: number, type: string | Laya.Event = Laya.Event.CLICK }
-         */
-        const TEST_CLICK_BUTTON: string;
+        function trace(mod: DebugMode, ...args: any[]): void;
     }
 
     /**
@@ -780,13 +793,11 @@ declare module suncom {
 
         /**
          * 根据标识从池中获取对象，获取失败时返回null
-         * @sign: 对象标识
          */
         function getItem(sign: string): any;
 
         /**
          * 根据标识从池中获取对象，获取失败时将创建新的对象
-         * @sign: 对象标识
          * @cls: 对象类型，支持Laya.Prefab
          * @args: 构造函数参数列表，若cls为Laya.Prefab，则args应当为字符串
          */
@@ -834,11 +845,6 @@ declare module suncom {
         let ASSERT_BREAKPOINT: boolean;
 
         /**
-         * 启用微服务器，默认为：false
-         */
-        let ENABLE_MICRO_SERVER: boolean;
-
-        /**
          * 期望测试
          */
         function expect(value: any, description?: string): IExpect;
@@ -857,30 +863,5 @@ declare module suncom {
          * 测试表达式是否为false
          */
         function assertFalse(value: boolean, message?: string): void;
-
-        /**
-         * 等待信号，同一时间只允许监听一个测试信号
-         */
-        function wait(id: number, handler?: IHandler): void;
-
-        /**
-         * 发射信号
-         */
-        function emit(id: number, args?: any): void;
-
-        /**
-         * 点击按钮
-         * @event: 默认为：Laya.Event.CLICK
-         * 说明：
-         * 1. 按钮的点击会延时500毫秒执行
-         */
-        function click(btnId: number, event?: string | Laya.Event): void;
-
-        /**
-         * 注册按钮
-         * @id: 按钮编号，若为-1则清除所有按钮
-         * @once: 一次性的按钮，默认为：true
-         */
-        function regButton(id: number, button?: any, once?: boolean): void;
     }
 }
