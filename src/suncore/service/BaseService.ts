@@ -25,7 +25,7 @@ module suncore {
             }
             this.$running = true;
             this.$onRun();
-            // 禁止注册ENTER_FRAME事件，因为其回调可能会在stop执行后依然被响应
+            // 使用$frameLoop来替代ENTER_FRAME事件来保证执行顺序
             if (this.facade.hasObserver(NotifyKey.ENTER_FRAME, null, this) === true) {
                 throw Error(`请重写$frameLoop方法来替代ENTER_FRAME事件`);
             }
