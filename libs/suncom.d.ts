@@ -559,6 +559,21 @@ declare module suncom {
         function r2d(a: number): number;
 
         /**
+         * 获取绝对值
+         */
+        function abs(a: number): number;
+
+        /**
+         * 获取较小值
+         */
+        function min(a: number, b: number): number;
+
+        /**
+         * 获取较大值
+         */
+        function max(a: number, b: number): number;
+
+        /**
          * 将value限制于min和max之间
          */
         function clamp(value: number, min: number, max: number): number;
