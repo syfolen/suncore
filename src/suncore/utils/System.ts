@@ -105,7 +105,7 @@ module suncore {
                     groupId = createTaskGroupId();
                 }
                 else if (groupId > 1000) {
-                    throw Error(`自定义的Task GroupId不允许超过1000`);
+                    suncom.Test.notExpected(`自定义的Task GroupId不允许超过1000`);
                 }
                 const message: IMessage = {
                     mod: mod,

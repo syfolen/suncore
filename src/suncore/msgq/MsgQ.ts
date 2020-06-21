@@ -76,8 +76,8 @@ module suncore {
          * 校验消息ID的合法性
          */
         function check(mod: MsgQModEnum, id: MsgQIdEnum): boolean {
-            // 校验id的范围
-            let min: number, max: number;
+            let min: number = suncom.Common.MIN_SAFE_INTEGER;
+            let max: number = suncom.Common.MAX_SAFE_INTEGER;
             if (mod === MsgQModEnum.MMI) {
                 min = MsgQIdEnum.MMI_MSG_ID_BEGIN;
                 max = MsgQIdEnum.MMI_MSG_ID_END;
@@ -99,7 +99,7 @@ module suncore {
                 max = MsgQIdEnum.NSL_MSG_ID_END;
             }
             else {
-                throw Error(`未知的消息范围 mod:${mod}`);
+                suncom.Test.notExpected(`未知的消息范围 mod:${mod}`);
             }
             return id >= min && id < max;
         }

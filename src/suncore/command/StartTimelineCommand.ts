@@ -13,9 +13,7 @@ module suncore {
          */
         execute(mod: ModuleEnum, pause: boolean): void {
             // 由于此命令是公开的，所以不应当为参数指定默认值
-            if (pause === void 0) {
-                throw Error(`应当为参数 pause 指定有效值`);
-            }
+            suncom.Test.expect(pause).interpret(`应当为参数 pause 指定有效值`).toBeBoolean();
             if (System.isModulePaused(mod) === false) {
                 suncom.Logger.error(suncom.DebugMode.ANY, `模块 ${ModuleEnum[mod]} 己经启动！！！`);
                 return;
