@@ -42,7 +42,7 @@ var suncom;
         EventSystem.prototype.dispatchEvent = function (type, args, cancelable) {
             if (cancelable === void 0) { cancelable = false; }
             if (Common.isStringInvalidOrEmpty(type) === true) {
-                throw Error("派发无效事件！！！");
+                throw Error("\u6D3E\u53D1\u65E0\u6548\u4E8B\u4EF6\uFF01\uFF01\uFF01");
             }
             var list = this.$events[type] || null;
             if (list === null) {
@@ -80,7 +80,7 @@ var suncom;
             if (receiveOnce === void 0) { receiveOnce = false; }
             if (priority === void 0) { priority = EventPriorityEnum.LOW; }
             if (Common.isStringInvalidOrEmpty(type) === true) {
-                throw Error("注册无效事件！！！");
+                throw Error("\u6CE8\u518C\u65E0\u6548\u4E8B\u4EF6\uFF01\uFF01\uFF01");
             }
             if (method === void 0 || method === null) {
                 throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u4E8B\u4EF6\u56DE\u8C03\uFF01\uFF01\uFF01");
@@ -119,7 +119,7 @@ var suncom;
         };
         EventSystem.prototype.removeEventListener = function (type, method, caller) {
             if (Common.isStringInvalidOrEmpty(type) === true) {
-                throw Error("移除无效的事件！！！");
+                throw Error("\u79FB\u9664\u65E0\u6548\u7684\u4E8B\u4EF6\uFF01\uFF01\uFF01");
             }
             if (method === void 0 || method === null) {
                 throw Error("\u79FB\u9664\u65E0\u6548\u7684\u4E8B\u4EF6\u56DE\u8C03\uFF01\uFF01\uFF01");
@@ -1278,7 +1278,8 @@ var suncom;
         var $M = 32767;
         function seed(value) {
             if (value < 1) {
-                throw Error("随机种子不允许小于1");
+                value = 1;
+                Logger.warn(DebugMode.ANY, "\u968F\u673A\u79CD\u5B50\u4E0D\u5141\u8BB8\u5C0F\u4E8E1");
             }
             $r = value;
         }

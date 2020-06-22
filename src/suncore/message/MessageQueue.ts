@@ -305,7 +305,7 @@ module suncore {
         cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void {
             for (let id: number = 0; id < this.$tasks.length; id++) {
                 const tasks: IMessage[] = this.$tasks[id];
-                if (tasks[0].groupId === groupId) {
+                if (tasks.length > 0 && tasks[0].groupId === groupId) {
                     while (tasks.length > 0) {
                         tasks.shift().task.done = true;
                     }
