@@ -110,7 +110,7 @@ var suncore;
             this.$running = true;
             this.$onRun();
             suncom.Test.assertTrue(this.$running);
-            suncom.Test.assertTrue(this.facade.hasObserver(NotifyKey.ENTER_FRAME, null, this), "\u8BF7\u91CD\u5199$frameLoop\u65B9\u6CD5\u6765\u66FF\u4EE3ENTER_FRAME\u4E8B\u4EF6");
+            suncom.Test.assertFalse(this.facade.hasObserver(NotifyKey.ENTER_FRAME, null, this), "\u8BF7\u91CD\u5199$frameLoop\u65B9\u6CD5\u6765\u66FF\u4EE3ENTER_FRAME\u4E8B\u4EF6");
             if (this.$frameLoop !== BaseService.prototype.$frameLoop) {
                 this.facade.registerObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this, false, suncom.EventPriorityEnum.EGL);
             }
