@@ -76,8 +76,8 @@ module suncore {
          * 校验消息ID的合法性
          */
         function check(mod: MsgQModEnum, id: MsgQIdEnum): boolean {
-            let min: number = suncom.Common.MIN_SAFE_INTEGER;
-            let max: number = suncom.Common.MAX_SAFE_INTEGER;
+            let min: number = suncom.Mathf.MIN_SAFE_INTEGER;
+            let max: number = suncom.Mathf.MAX_SAFE_INTEGER;
             if (mod === MsgQModEnum.MMI) {
                 min = MsgQIdEnum.MMI_MSG_ID_BEGIN;
                 max = MsgQIdEnum.MMI_MSG_ID_END;

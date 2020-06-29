@@ -453,10 +453,6 @@ var suncom;
     suncom.HashMap = HashMap;
     var Common;
     (function (Common) {
-        Common.PI = Math.PI;
-        Common.PI2 = Math.PI * 2;
-        Common.MAX_SAFE_INTEGER = 9007199254740991;
-        Common.MIN_SAFE_INTEGER = -9007199254740991;
         var $hashId = 0;
         function createHashId() {
             $hashId++;
@@ -503,16 +499,33 @@ var suncom;
             return null;
         }
         Common.convertEnumToString = convertEnumToString;
-        function isNumber(str) {
-            if (typeof str === "number") {
-                return true;
+        function trim(str) {
+            if (str === void 0) { str = null; }
+            if (str === null) {
+                return null;
             }
-            if (typeof str === "string" && isNaN(Number(str)) === false) {
-                return true;
+            var chrs = ["\r", "\n", "\t", " "];
+            while (str.length > 0) {
+                var length_1 = str.length;
+                for (var i = 0; i < chrs.length; i++) {
+                    var chr = chrs[i];
+                    if (str.charAt(0) === chr) {
+                        str = str.substr(1);
+                        break;
+                    }
+                    var index = str.length - 1;
+                    if (str.charAt(index) === chr) {
+                        str = str.substr(0, index);
+                        break;
+                    }
+                }
+                if (str.length === length_1) {
+                    break;
+                }
             }
-            return false;
+            return str;
         }
-        Common.isNumber = isNumber;
+        Common.trim = trim;
         function isStringInvalidOrEmpty(str) {
             if (typeof str === "number") {
                 return false;
@@ -566,131 +579,11 @@ var suncom;
             return str;
         }
         Common.formatString$ = formatString$;
-        function d2r(d) {
-            return d * Math.PI / 180;
-        }
-        Common.d2r = d2r;
-        function r2d(a) {
-            return a * 180 / Math.PI;
-        }
-        Common.r2d = r2d;
-        function abs(a) {
-            if (a < 0) {
-                return -a;
-            }
-            else {
-                return a;
-            }
-        }
-        Common.abs = abs;
-        function min(a, b) {
-            if (a < b) {
-                return a;
-            }
-            else {
-                return b;
-            }
-        }
-        Common.min = min;
-        function max(a, b) {
-            if (a > b) {
-                return a;
-            }
-            else {
-                return b;
-            }
-        }
-        Common.max = max;
-        function clamp(value, min, max) {
-            if (value < min) {
-                return min;
-            }
-            else if (value > max) {
-                return max;
-            }
-            return value;
-        }
-        Common.clamp = clamp;
-        function round(value, n) {
-            if (n === void 0) { n = 0; }
-            var str = value.toString();
-            var dotIndex = str.indexOf(".");
-            if (dotIndex === -1) {
-                return value;
-            }
-            var integerDotLength = dotIndex + 1;
-            if (str.length - integerDotLength <= n) {
-                return value;
-            }
-            var s0 = str.substr(0, dotIndex);
-            var s1 = str.substr(integerDotLength, n);
-            var s2 = str.substr(integerDotLength + n, 2);
-            var a = s2.length === 1 ? s2 : s2.charAt(0);
-            var b = s2.length === 1 ? "0" : s2.charAt(1);
-            var intValue = parseInt(s0 + s1);
-            var floatValue = parseInt(a + b);
-            if (intValue < 0 && floatValue > 0) {
-                intValue -= 1;
-                floatValue = 100 - floatValue;
-            }
-            var s3 = floatValue.toString();
-            var reg0 = parseInt(s3.charAt(0));
-            var reg1 = parseInt(s3.charAt(1));
-            if (reg0 > 5) {
-                intValue += 1;
-            }
-            else if (reg0 === 5) {
-                if (reg1 > 0) {
-                    intValue++;
-                }
-                else {
-                    var modValue = intValue % 2;
-                    if (modValue === 1 || modValue === -1) {
-                        intValue += 1;
-                    }
-                }
-            }
-            var newValue = intValue.toString();
-            var newDotIndex = newValue.length - n;
-            var retValue = newValue.substr(0, newDotIndex) + "." + newValue.substr(newDotIndex);
-            var retValueF = parseFloat(retValue);
-            return retValueF;
-        }
-        Common.round = round;
-        function $round(value, n) {
-            if (n === void 0) { n = 0; }
-            Logger.warn(DebugMode.ANY, "\u6B64\u63A5\u53E3\u5DF1\u5F03\u7528\uFF1Asuncom.Common.$round(value: number, n: number = 0);");
-            var tmpValue = Math.floor(value * Math.pow(10, n + 2));
-            var floatValue = tmpValue % 100;
-            var intValue = (tmpValue - floatValue) / 100;
-            if (floatValue < 0 && floatValue > 0) {
-                intValue -= 1;
-                floatValue += 100;
-            }
-            var a = floatValue % 10;
-            var b = (floatValue - a) / 10;
-            if (b > 5) {
-                intValue += 1;
-            }
-            else if (b === 5) {
-                var modValue = a % 2;
-                if (modValue === 1 || modValue === -1) {
-                    intValue += 1;
-                }
-            }
-            return intValue / Math.pow(10, n);
-        }
-        Common.$round = $round;
-        function random(min, max) {
-            var value = Random.random() * (max - min);
-            return Math.floor(value) + min;
-        }
-        Common.random = random;
         function convertToDate(date) {
             if (date instanceof Date) {
                 return date;
             }
-            if (Common.isNumber(date) === true) {
+            if (Mathf.isNumber(date) === true) {
                 return new Date(date);
             }
             if (typeof date === "string") {
@@ -1027,11 +920,11 @@ var suncom;
             for (var i = 0; i < length; i++) {
                 var s0 = array[i];
                 var s1 = array2[i];
-                if (Common.isNumber(s0) === false) {
+                if (Mathf.isNumber(s0) === false) {
                     error |= 0x01;
                     array[i] = "0";
                 }
-                if (Common.isNumber(s1) === false) {
+                if (Mathf.isNumber(s1) === false) {
                     error |= 0x02;
                     array2[i] = "0";
                 }
@@ -1216,6 +1109,143 @@ var suncom;
         }
         Logger.trace = trace;
     })(Logger = suncom.Logger || (suncom.Logger = {}));
+    var Mathf;
+    (function (Mathf) {
+        Mathf.PI = Math.PI;
+        Mathf.PI2 = Math.PI * 2;
+        Mathf.MAX_SAFE_INTEGER = 9007199254740991;
+        Mathf.MIN_SAFE_INTEGER = -9007199254740991;
+        function d2r(d) {
+            return d * Math.PI / 180;
+        }
+        Mathf.d2r = d2r;
+        function r2d(a) {
+            return a * 180 / Math.PI;
+        }
+        Mathf.r2d = r2d;
+        function abs(a) {
+            if (a < 0) {
+                return -a;
+            }
+            else {
+                return a;
+            }
+        }
+        Mathf.abs = abs;
+        function min(a, b) {
+            if (a < b) {
+                return a;
+            }
+            else {
+                return b;
+            }
+        }
+        Mathf.min = min;
+        function max(a, b) {
+            if (a > b) {
+                return a;
+            }
+            else {
+                return b;
+            }
+        }
+        Mathf.max = max;
+        function clamp(value, min, max) {
+            if (value < min) {
+                return min;
+            }
+            else if (value > max) {
+                return max;
+            }
+            return value;
+        }
+        Mathf.clamp = clamp;
+        function round(value, n) {
+            if (n === void 0) { n = 0; }
+            var str = value.toString();
+            var dotIndex = str.indexOf(".");
+            if (dotIndex === -1) {
+                return value;
+            }
+            var integerDotLength = dotIndex + 1;
+            if (str.length - integerDotLength <= n) {
+                return value;
+            }
+            var s0 = str.substr(0, dotIndex);
+            var s1 = str.substr(integerDotLength, n);
+            var s2 = str.substr(integerDotLength + n, 2);
+            var a = s2.length === 1 ? s2 : s2.charAt(0);
+            var b = s2.length === 1 ? "0" : s2.charAt(1);
+            var intValue = parseInt(s0 + s1);
+            var floatValue = parseInt(a + b);
+            if (intValue < 0 && floatValue > 0) {
+                intValue -= 1;
+                floatValue = 100 - floatValue;
+            }
+            var s3 = floatValue.toString();
+            var reg0 = parseInt(s3.charAt(0));
+            var reg1 = parseInt(s3.charAt(1));
+            if (reg0 > 5) {
+                intValue += 1;
+            }
+            else if (reg0 === 5) {
+                if (reg1 > 0) {
+                    intValue++;
+                }
+                else {
+                    var modValue = intValue % 2;
+                    if (modValue === 1 || modValue === -1) {
+                        intValue += 1;
+                    }
+                }
+            }
+            var newValue = intValue.toString();
+            var newDotIndex = newValue.length - n;
+            var retValue = newValue.substr(0, newDotIndex) + "." + newValue.substr(newDotIndex);
+            var retValueF = parseFloat(retValue);
+            return retValueF;
+        }
+        Mathf.round = round;
+        function $round(value, n) {
+            if (n === void 0) { n = 0; }
+            Logger.warn(DebugMode.ANY, "\u6B64\u63A5\u53E3\u5DF1\u5F03\u7528\uFF1Asuncom.Common.$round(value: number, n: number = 0);");
+            var tmpValue = Math.floor(value * Math.pow(10, n + 2));
+            var floatValue = tmpValue % 100;
+            var intValue = (tmpValue - floatValue) / 100;
+            if (floatValue < 0 && floatValue > 0) {
+                intValue -= 1;
+                floatValue += 100;
+            }
+            var a = floatValue % 10;
+            var b = (floatValue - a) / 10;
+            if (b > 5) {
+                intValue += 1;
+            }
+            else if (b === 5) {
+                var modValue = a % 2;
+                if (modValue === 1 || modValue === -1) {
+                    intValue += 1;
+                }
+            }
+            return intValue / Math.pow(10, n);
+        }
+        Mathf.$round = $round;
+        function random(min, max) {
+            var value = Random.random() * (max - min);
+            return Math.floor(value) + min;
+        }
+        Mathf.random = random;
+        function isNumber(str) {
+            if (typeof str === "number") {
+                return true;
+            }
+            if (typeof str === "string" && isNaN(Number(str)) === false) {
+                return true;
+            }
+            return false;
+        }
+        Mathf.isNumber = isNumber;
+    })(Mathf = suncom.Mathf || (suncom.Mathf = {}));
     var Pool;
     (function (Pool) {
         var $pool = {};

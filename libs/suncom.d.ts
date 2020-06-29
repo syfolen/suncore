@@ -486,25 +486,6 @@ declare module suncom {
      * 常用库（纯JS方法）
      */
     namespace Common {
-        /**
-         * PI
-         */
-        const PI: number;
-
-        /**
-         * 2PI
-         */
-        const PI2: number;
-
-        /**
-         * 整数的最大安全值
-         */
-        const MAX_SAFE_INTEGER: number;
-
-        /**
-         * 整数的最小安全值
-         */
-        const MIN_SAFE_INTEGER: number;
 
         /**
          * 获取全局唯一的哈希值
@@ -529,9 +510,9 @@ declare module suncom {
         function getMethodName(method: Function, caller?: Object): string;
 
         /**
-         * 判断是否为数字
+         * 去除字符串的头尾空格
          */
-        function isNumber(str: string | number): boolean;
+        function trim(str?: string): string;
 
         /**
          * 判断字符串是否为空
@@ -547,48 +528,6 @@ declare module suncom {
          * 格式化字符串
          */
         function formatString$(str: string, args: any[]): string;
-
-        /**
-         * 角度换算为弧度
-         */
-        function d2r(d: number): number;
-
-        /**
-         * 弧度换算为角度
-         */
-        function r2d(a: number): number;
-
-        /**
-         * 获取绝对值
-         */
-        function abs(a: number): number;
-
-        /**
-         * 获取较小值
-         */
-        function min(a: number, b: number): number;
-
-        /**
-         * 获取较大值
-         */
-        function max(a: number, b: number): number;
-
-        /**
-         * 将value限制于min和max之间
-         */
-        function clamp(value: number, min: number, max: number): number;
-
-        /**
-         * 返回近似值
-         * @n: 需要保留小数位数，默认为0
-         * 1. 因各个平台实现的版本可能不一致，故自定义了此方法
-         */
-        function round(value: number, n?: number): number;
-
-        /**
-         * 返回>=min且<max的随机整数
-         */
-        function random(min: number, max: number): number;
 
         /**
          * 将参数转化为 Date
@@ -799,6 +738,78 @@ declare module suncom {
          * 调用追踪日志
          */
         function trace(mod: DebugMode, ...args: any[]): void;
+    }
+
+    /**
+     * 常用数学函数
+     */
+    namespace Mathf {
+        /**
+         * PI
+         */
+        const PI: number;
+
+        /**
+         * 2PI
+         */
+        const PI2: number;
+
+        /**
+         * 整数的最大安全值
+         */
+        const MAX_SAFE_INTEGER: number;
+
+        /**
+         * 整数的最小安全值
+         */
+        const MIN_SAFE_INTEGER: number;
+
+        /**
+         * 角度换算为弧度
+         */
+        function d2r(d: number): number;
+
+        /**
+         * 弧度换算为角度
+         */
+        function r2d(a: number): number;
+
+        /**
+         * 获取绝对值
+         */
+        function abs(a: number): number;
+
+        /**
+         * 获取较小值
+         */
+        function min(a: number, b: number): number;
+
+        /**
+         * 获取较大值
+         */
+        function max(a: number, b: number): number;
+
+        /**
+         * 将value限制于min和max之间
+         */
+        function clamp(value: number, min: number, max: number): number;
+
+        /**
+         * 返回近似值
+         * @n: 需要保留小数位数，默认为0
+         * 1. 因各个平台实现的版本可能不一致，故自定义了此方法
+         */
+        function round(value: number, n?: number): number;
+
+        /**
+         * 返回>=min且<max的随机整数
+         */
+        function random(min: number, max: number): number;
+
+        /**
+         * 判断是否为数字
+         */
+        function isNumber(str: string | number): boolean;
     }
 
     /**

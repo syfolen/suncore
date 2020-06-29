@@ -640,7 +640,7 @@ var suncore;
                                 timer.count++;
                             }
                             else {
-                                timer.count = suncom.Common.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
+                                timer.count = suncom.Mathf.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
                             }
                         }
                         if (timer.active === false || (timer.loops > 0 && timer.count >= timer.loops)) {
@@ -799,8 +799,8 @@ var suncore;
         }
         MsgQ.fetch = fetch;
         function check(mod, id) {
-            var min = suncom.Common.MIN_SAFE_INTEGER;
-            var max = suncom.Common.MAX_SAFE_INTEGER;
+            var min = suncom.Mathf.MIN_SAFE_INTEGER;
+            var max = suncom.Mathf.MAX_SAFE_INTEGER;
             if (mod === MsgQModEnum.MMI) {
                 min = MsgQIdEnum.MMI_MSG_ID_BEGIN;
                 max = MsgQIdEnum.MMI_MSG_ID_END;

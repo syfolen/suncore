@@ -61,7 +61,7 @@ module suncore {
                             }
                             // 否则计算当前理论上的响应次数
                             else {
-                                timer.count = suncom.Common.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
+                                timer.count = suncom.Mathf.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
                             }
                         }
 
