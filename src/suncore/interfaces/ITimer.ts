@@ -22,12 +22,17 @@ module suncore {
         /**
          * 回调函数
          */
-        method: (count: number, loops: number) => void;
+        method: Function;
 
         /**
          * 回调对象
          */
         caller: Object;
+
+        /**
+         * 参数列表
+         */
+        args: any[];
 
         /**
          * 统计真实响应次数

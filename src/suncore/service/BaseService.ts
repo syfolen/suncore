@@ -25,12 +25,6 @@ module suncore {
             }
             this.$running = true;
             this.$onRun();
-            suncom.Test.assertTrue(this.$running);
-            // 使用$frameLoop来替代ENTER_FRAME事件来保证执行顺序
-            suncom.Test.assertFalse(this.facade.hasObserver(NotifyKey.ENTER_FRAME, null, this), `请重写$frameLoop方法来替代ENTER_FRAME事件`);
-            if (this.$frameLoop !== BaseService.prototype.$frameLoop) {
-                this.facade.registerObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this, false, suncom.EventPriorityEnum.EGL);
-            }
         }
 
         /**
@@ -44,27 +38,6 @@ module suncore {
             }
             this.$running = false;
             this.$onStop();
-            suncom.Test.assertFalse(this.$running);
-            if (this.$frameLoop !== BaseService.prototype.$frameLoop) {
-                this.facade.removeObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
-            }
-        }
-
-        /**
-         * 帧事件回调
-         */
-        private $onEnterFrame(): void {
-            if (this.$running === true) {
-                this.$frameLoop();
-            }
-        }
-
-        /**
-         * 帧循环事件（请重写此方法来替代ENTER_FRAME事件）
-         * export
-         */
-        protected $frameLoop(): void {
-
         }
 
         /**

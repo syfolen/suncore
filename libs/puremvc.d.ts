@@ -10,6 +10,21 @@
  */
 declare module puremvc {
     /**
+     * 消息关心的模块ID
+     */
+    enum CareModuleID {
+        /**
+         * CUSTOM
+         */
+        CUSTOM = 0x20000,
+
+        /**
+         * TIMELINE
+         */
+        TIMELINE = 0x30000
+    }
+
+    /**
      * 控制器接口
      */
     interface IController {
@@ -23,9 +38,13 @@ declare module puremvc {
         /**
          * 注册观察者
          * @receiveOnce: 是否只响应一次，默认为：false
-         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.LOW
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.MID
+         * @option: 可选参数
+         * 1. 为number时表示回调函数的响应间隔延时，默认为：1
+         * 2. 为CareModuleID时表示消息所关心的系统模块，默认为：SYSTEM
+         * 3. 为数组时代表执行回调函数时的默认参数
          */
-        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum): IObserver;
+        registerObserver(name: string, method: Function, caller?: any, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): IObserver;
 
         /**
          * 移除观察者
@@ -39,9 +58,13 @@ declare module puremvc {
 
         /**
          * 注册命令
-         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.LOW
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.MID
+         * @option: 可选参数
+         * 1. 为number时表示回调函数的响应间隔延时，默认为：1
+         * 2. 为CareModuleID时表示消息所关心的系统模块，默认为：SYSTEM
+         * 3. 为数组时代表执行回调函数时的默认参数
          */
-        registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum): void;
+        registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): void;
 
         /**
          * 移除命令
@@ -95,9 +118,13 @@ declare module puremvc {
 
         /**
          * 派发命令通知
-         * @cancelable: 事件是否允许取消，默认为：false
+         * @args: 参数列表，允许为任意类型的数据
+         * @cancelable: 通知是否允许取消，默认为：false
+         * @sys: 此事件是否由系统派发，默认为：true
+         * 说明：
+         * 1. 有些事件关心模块状态，在模块未激活的情况下，将sys设为false时，可以强制响应这类事件
          */
-        sendNotification(name: string, args?: any, cancelable?: boolean): void;
+        sendNotification(name: string, args?: any, cancelable?: boolean, sys?: boolean): void;
 
         /**
          * 取消当前命令的派发
@@ -129,6 +156,26 @@ declare module puremvc {
      * 观察者对象接口
      */
     interface IObserver {
+    }
+
+    /**
+     * 注册事件时的可选参数
+     */
+    interface IOption {
+        /**
+         * 消息关心的模块，默认：无
+         */
+        careStatMod?: suncore.ModuleEnum;
+
+        /**
+         * 消息响应间隔，最小为：1，默认为：1
+         */
+        delay?: number;
+
+        /**
+         * 参数列表
+         */
+        args?: any[];
     }
 
     /**
@@ -252,11 +299,20 @@ declare module puremvc {
         protected $regMsgQCmd(msgQMod: suncore.MsgQModEnum, prefix: string): void;
 
         /**
+         * 关心模块状态的命令
+         */
+        protected $setCareStatForCmd(cmd: string): void;
+
+        /**
          * 注册观察者
          * @receiveOnce: 是否只响应一次，默认为：false
-         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.LOW
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.MID
+         * @option: 可选参数
+         * 1. 为number时表示回调函数的响应间隔延时，默认为：1
+         * 2. 为CareModuleID时表示消息所关心的系统模块，默认为：SYSTEM
+         * 3. 为数组时代表执行回调函数时的默认参数
          */
-        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum): IObserver;
+        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum, option?: IOption): IObserver;
 
         /**
          * 移除观察者
@@ -270,9 +326,13 @@ declare module puremvc {
 
         /**
          * 注册命令
-         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.LOW
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.MID
+         * @option: 可选参数
+         * 1. 为number时表示回调函数的响应间隔延时，默认为：1
+         * 2. 为CareModuleID时表示消息所关心的系统模块，默认为：SYSTEM
+         * 3. 为数组时代表执行回调函数时的默认参数
          */
-        registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum): void;
+        registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): void;
 
         /**
          * 移除命令
@@ -326,9 +386,13 @@ declare module puremvc {
 
         /**
          * 派发命令通知
-         * @cancelable: 事件是否允许取消，默认为：false
+         * @args: 参数列表，允许为任意类型的数据
+         * @cancelable: 通知是否允许取消，默认为：false
+         * @sys: 此事件是否由系统派发，默认为：true
+         * 说明：
+         * 1. 有些事件关心模块状态，在模块未激活的情况下，将sys设为false时，可以强制响应这类事件
          */
-        sendNotification(name: string, args?: any, cancelable?: boolean): void;
+        sendNotification(name: string, args?: any, cancelable?: boolean, sys?: boolean): void;
 
         /**
          * 取消当前命令的派发
@@ -470,9 +534,13 @@ declare module puremvc {
 
         /**
          * 注册事件回调
-         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.LOW
+         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.MID
+         * @option: 可选参数
+         * 1. 为number时表示回调函数的响应间隔延时，默认为：1
+         * 2. 为CareModuleID时表示消息所关心的系统模块，默认为：SYSTEM
+         * 3. 为数组时代表执行回调函数时的默认参数
          */
-        protected $handleNotification(name: string, method: Function, priority?: suncom.EventPriorityEnum): void;
+        protected $handleNotification(name: string, method: Function, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): void;
     }
 
     /**

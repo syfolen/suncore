@@ -87,15 +87,15 @@ declare module suncom {
         /**
          * 最低
          */
-        LAZY = 0,
+        LOWEST = 0,
 
         /**
-         * 低（默认）
+         * 低
          */
         LOW,
 
         /**
-         * 中
+         * 中（默认）
          */
         MID,
 
@@ -103,6 +103,11 @@ declare module suncom {
          * 高
          */
         HIGH,
+
+        /**
+         * 最高
+         */
+        HIGHEST,
 
         /**
          * 框架级别
@@ -146,7 +151,7 @@ declare module suncom {
         /**
          * 事件注册
          * @receiveOnce: 是否只响应一次，默认为false
-         * @priority: 事件优先级，优先级高的先被执行，默认为：EventPriorityEnum.LOW
+         * @priority: 事件优先级，优先级高的先被执行，默认为：EventPriorityEnum.MID
          */
         addEventListener(type: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: EventPriorityEnum): void;
 
@@ -387,7 +392,7 @@ declare module suncom {
         /**
          * 事件注册
          * @receiveOnce: 是否只响应一次，默认为false
-         * @priority: 事件优先级，优先级高的先被执行，默认为：EventPriorityEnum.LOW
+         * @priority: 事件优先级，优先级高的先被执行，默认为：EventPriorityEnum.MID
          */
         addEventListener(type: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: EventPriorityEnum): void;
 

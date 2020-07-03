@@ -170,16 +170,17 @@ module suncore {
         /**
          * 添加自定义定时器
          * @mod: 所属模块
-         * @delay: 响应延时
-         * @method: 回调函数
+         * @delay: 响应间隔，若为数组，则第二个参数表示首次响应延时，且默认为：0，若首次响应延时为0，则定时器会立即执行一次
+         * @method: 回调函数，默认参数：{ count: number, loops: number }
          * @caller: 回调对象
+         * @args[]: 参数列表
          * @loops: 响应次数，默认为1
          * @real: 是否计算真实次数，默认为false
          * export
          */
-        export function addTimer(mod: ModuleEnum, delay: number, method: (count: number, loops: number) => void, caller: Object, loops: number = 1, real: boolean = false): number {
+        export function addTimer(mod: ModuleEnum, delay: number | number[], method: Function, caller: Object, args?: any[], loops: number = 1, real: boolean = false): number {
             if (System.isModuleStopped(mod) === false) {
-                return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
+                return M.timerManager.addTimer(mod, delay, method, caller, args, loops, real);
             }
             else {
                 suncom.Logger.error(suncom.DebugMode.ANY, `尝试添加定时器，但模块 ${ModuleEnum[mod]} 己停止！！！`);

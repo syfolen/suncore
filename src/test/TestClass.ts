@@ -7,7 +7,7 @@ module test {
 
         run(): boolean {
             // 测试场景定时器
-            this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.CUSTOM, 500, this.$onTimerHandler, this, 0);
+            this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.CUSTOM, 500, this.$onTimerHandler, this, void 0, 0);
             for (let i: number = 0; i < 20; i++) {
                 suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_0, suncom.Handler.create(this, (index) => {
                     console.log("PRIORITY_0 " + index);

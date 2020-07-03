@@ -13,6 +13,12 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var puremvc;
 (function (puremvc) {
+    var CareModuleID;
+    (function (CareModuleID) {
+        CareModuleID[CareModuleID["NONE"] = 65536] = "NONE";
+        CareModuleID[CareModuleID["CUSTOM"] = 131072] = "CUSTOM";
+        CareModuleID[CareModuleID["TIMELINE"] = 196608] = "TIMELINE";
+    })(CareModuleID = puremvc.CareModuleID || (puremvc.CareModuleID = {}));
     var Controller = (function () {
         function Controller() {
             this.$commands = {};
@@ -34,7 +40,7 @@ var puremvc;
                 command.execute.call(command, args);
             }
         };
-        Controller.prototype.registerCommand = function (name, cls, priority) {
+        Controller.prototype.registerCommand = function (name, cls, priority, option) {
             if (name === void 0) {
                 throw Error("注册无效的命令");
             }
@@ -42,7 +48,7 @@ var puremvc;
                 throw Error("重复注册命令：" + name);
             }
             this.$commands[name] = cls;
-            View.inst.registerObserver(name, this.executeCommand, this, false, priority);
+            View.inst.registerObserver(name, this.executeCommand, this, false, priority, option);
         };
         Controller.prototype.removeCommand = function (name) {
             if (this.hasCommand(name) === false) {
@@ -106,9 +112,12 @@ var puremvc;
             MutexLocker.msgQMap[prefix] = msgQMod;
             MutexLocker.msgQCmd[msgQMod] = prefix;
         };
-        Facade.prototype.registerObserver = function (name, method, caller, receiveOnce, priority) {
+        Facade.prototype.$setCareStatForCmd = function (cmd) {
+            this.$view.setCareStatForCmd(cmd);
+        };
+        Facade.prototype.registerObserver = function (name, method, caller, receiveOnce, priority, option) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            var observer = this.$view.registerObserver(name, method, caller, receiveOnce, priority);
+            var observer = this.$view.registerObserver(name, method, caller, receiveOnce, priority, option);
             MutexLocker.deactive();
             return observer;
         };
@@ -121,9 +130,9 @@ var puremvc;
             MutexLocker.deactive();
             return this.$view.hasObserver(name, method, caller);
         };
-        Facade.prototype.registerCommand = function (name, cls, priority) {
+        Facade.prototype.registerCommand = function (name, cls, priority, option) {
             MutexLocker.deactive();
-            this.$controller.registerCommand(name, cls, priority);
+            this.$controller.registerCommand(name, cls, priority, option);
         };
         Facade.prototype.removeCommand = function (name) {
             MutexLocker.deactive();
@@ -173,9 +182,9 @@ var puremvc;
             MutexLocker.deactive();
             return this.$view.hasMediator(name);
         };
-        Facade.prototype.sendNotification = function (name, args, cancelable) {
+        Facade.prototype.sendNotification = function (name, args, cancelable, sys) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            this.$view.notifyObservers(name, args, cancelable);
+            this.$view.notifyObservers(name, args, cancelable, sys);
             MutexLocker.deactive();
         };
         Facade.prototype.notifyCancel = function () {
@@ -493,15 +502,34 @@ var puremvc;
             this.$observers = {};
             this.$isCanceled = false;
             this.$onceObservers = [];
+            this.$scModStatMap = {};
+            this.$careStatCmds = {};
             if (View.inst !== null) {
                 throw Error(View.SINGLETON_MSG);
             }
             View.inst = this;
+            this.registerObserver(suncore.NotifyKey.START_TIMELINE, this.$onStartTimeline, this);
+            this.registerObserver(suncore.NotifyKey.PAUSE_TIMELINE, this.$onPauseTimeline, this);
         }
-        View.prototype.registerObserver = function (name, method, caller, receiveOnce, priority) {
+        View.prototype.$onStartTimeline = function (mod, pause) {
+            if (pause === false) {
+                this.$scModStatMap[mod] = true;
+            }
+            else {
+                this.$scModStatMap[mod] = false;
+            }
+        };
+        View.prototype.$onPauseTimeline = function (mod, stop) {
+            this.$scModStatMap[mod] = false;
+        };
+        View.prototype.setCareStatForCmd = function (cmd) {
+            this.$careStatCmds[cmd] = true;
+        };
+        View.prototype.registerObserver = function (name, method, caller, receiveOnce, priority, option) {
             if (caller === void 0) { caller = null; }
             if (receiveOnce === void 0) { receiveOnce = false; }
-            if (priority === void 0) { priority = suncom.EventPriorityEnum.LOW; }
+            if (priority === void 0) { priority = suncom.EventPriorityEnum.MID; }
+            if (option === void 0) { option = 1; }
             if (name === void 0) {
                 throw Error("注册无效的监听");
             }
@@ -530,10 +558,17 @@ var puremvc;
                 }
             }
             MutexLocker.create(name, caller);
+            option = this.$createOption(option);
+            if (option.delay === void 0) {
+                option.delay = 1;
+            }
+            suncom.Test.expect(option.delay).toBeGreaterThan(0);
+            option.counter = 0;
             var observer = {
                 name: name,
                 method: method,
                 caller: caller,
+                option: option,
                 priority: priority,
                 receiveOnce: receiveOnce
             };
@@ -544,6 +579,35 @@ var puremvc;
                 observers.splice(index, 0, observer);
             }
             return observer;
+        };
+        View.prototype.$createOption = function (data) {
+            if (typeof data === "number") {
+                if (data < CareModuleID.NONE) {
+                    return {
+                        delay: data
+                    };
+                }
+                else {
+                    if (data === CareModuleID.CUSTOM) {
+                        return {
+                            careStatMod: suncore.ModuleEnum.CUSTOM
+                        };
+                    }
+                    else if (data === CareModuleID.TIMELINE) {
+                        return {
+                            careStatMod: suncore.ModuleEnum.TIMELINE
+                        };
+                    }
+                }
+            }
+            else if (data instanceof Array) {
+                return {
+                    args: data
+                };
+            }
+            else {
+                return data;
+            }
         };
         View.prototype.removeObserver = function (name, method, caller) {
             if (caller === void 0) { caller = null; }
@@ -609,8 +673,9 @@ var puremvc;
         View.prototype.notifyCancel = function () {
             this.$isCanceled = true;
         };
-        View.prototype.notifyObservers = function (name, args, cancelable) {
+        View.prototype.notifyObservers = function (name, args, cancelable, sys) {
             if (cancelable === void 0) { cancelable = false; }
+            if (sys === void 0) { sys = true; }
             if (name === void 0) {
                 throw Error("派发无效的通知");
             }
@@ -624,6 +689,12 @@ var puremvc;
             this.$isCanceled = false;
             for (var i = 1; i < observers.length; i++) {
                 var observer = observers[i];
+                var option = observer.option;
+                if (this.$careStatCmds[name] === true && sys === true) {
+                    if (option.careStatMod !== void 0 && this.$scModStatMap[option.careStatMod] === false) {
+                        continue;
+                    }
+                }
                 if (observer.receiveOnce === true) {
                     this.$onceObservers.push(observer);
                 }
@@ -635,6 +706,14 @@ var puremvc;
                         console.warn("\u5BF9\u8C61\u5DF1\u9500\u6BC1\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
                     }
                     continue;
+                }
+                option.counter++;
+                if (option.counter < option.delay) {
+                    continue;
+                }
+                option.counter = 0;
+                if (option.args !== void 0) {
+                    args = option.args.concat(args);
                 }
                 if (observer.caller === Controller.inst) {
                     observer.method.call(observer.caller, name, args);
@@ -736,10 +815,8 @@ var puremvc;
             if (name === void 0) {
                 throw Error("无效的Mediator名字");
             }
-            _this.$mediatorName = name;
-            if (viewComponent !== void 0) {
-                _this.$viewComponent = viewComponent;
-            }
+            _this.$mediatorName = name || null;
+            _this.$viewComponent = viewComponent || null;
             return _this;
         }
         Mediator.prototype.onRegister = function () {
@@ -747,10 +824,10 @@ var puremvc;
         Mediator.prototype.onRemove = function () {
         };
         Mediator.prototype.getMediatorName = function () {
-            return this.$mediatorName || null;
+            return this.$mediatorName;
         };
         Mediator.prototype.getViewComponent = function () {
-            return this.$viewComponent || null;
+            return this.$viewComponent;
         };
         Mediator.prototype.setViewComponent = function (view) {
             this.$viewComponent = view || null;
@@ -763,9 +840,9 @@ var puremvc;
                 this.facade.removeObserver(observer.name, observer.method, observer.caller);
             }
         };
-        Mediator.prototype.$handleNotification = function (name, method, priority) {
-            if (priority === void 0) { priority = suncom.EventPriorityEnum.LOW; }
-            var observer = this.facade.registerObserver(name, method, this, void 0, priority);
+        Mediator.prototype.$handleNotification = function (name, method, priority, option) {
+            if (priority === void 0) { priority = suncom.EventPriorityEnum.MID; }
+            var observer = this.facade.registerObserver(name, method, this, void 0, priority, option);
             observer && this.$notificationInterests.push(observer);
         };
         return Mediator;

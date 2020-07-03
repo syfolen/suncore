@@ -70,12 +70,17 @@ module suncore {
                             delete this.$timerMap[timer.timerId];
                         }
                         else {
-                            this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.count);
+                            this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.args, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.count);
                         }
                         timers.shift();
 
                         if (timer.active === true) {
-                            timer.method.call(timer.caller, timer.count, timer.loops);
+                            if (timer.args === null) {
+                                timer.method.call(timer.caller, timer.count, timer.loops);
+                            }
+                            else {
+                                timer.method.apply(timer.caller, timer.args.concat(timer.count, timer.loops));
+                            }
                         }
                     }
                 }
@@ -85,9 +90,10 @@ module suncore {
         /**
          * 添加游戏定时器
          * @mod: 所属模块
-         * @delay: 响应延时
-         * @method: 回调函数
+         * @delay: 响应间隔，若为数组，则第个参数表示首次响应延时，若首次响应延时为0，则定时器会立即执行一次
+         * @method: 回调函数，默认参数：{ count: number, loops: number }
          * @caller: 回调对象
+         * @args[]: 参数列表
          * @loops: 循环设定次数
          * @real: 是否计算真实次数
          * @timerId: 定时器编号，请勿擅自传入此参数，防止定时器工作出错
@@ -95,7 +101,7 @@ module suncore {
          * @timeout: 定时器上次响应时间，请勿擅自传入此参数，防止定时器工作出错
          * @count: 当前重复次数
          */
-        addTimer(mod: ModuleEnum, delay: number, method: (count: number, loops: number) => void, caller: Object, loops: number = 1, real: boolean = false, timerId: number = 0, timestamp: number = -1, timeout: number = -1, count: number = 0): number {
+        addTimer(mod: ModuleEnum, delay: number | number[], method: Function, caller: Object, args: any[] = null, loops: number = 1, real: boolean = false, timerId: number = 0, timestamp: number = -1, timeout: number = -1, count: number = 0): number {
             const currentTimestamp: number = System.getModuleTimestamp(mod);
 
             // 若编号未指定，则生成新的定时器
@@ -109,6 +115,15 @@ module suncore {
             // 若上次响应时间未指定，则默认为系统时间
             if (timeout === -1) {
                 timeout = currentTimestamp;
+            }
+
+            let firstDelay: number;
+            if (typeof delay === "number") {
+                firstDelay = delay;
+            }
+            else {
+                firstDelay = delay[1] || 0;
+                delay = delay[0];
             }
 
             // 定时器执行间隔不得小于 1 毫秒
@@ -141,6 +156,21 @@ module suncore {
             // 修正超时时间
             timeout = currentTimestamp + delay - dev;
 
+            // 立即执行一次
+            if (firstDelay === 0) {
+                if (args === null) {
+                    method.call(caller, 0, loops);
+                }
+                else {
+                    method.apply(caller, args.concat(0, loops));
+                }
+            }
+            // 修正首次响应时间
+            else if (firstDelay < delay) {
+                const offset: number = delay - firstDelay;
+                timeout = suncom.Mathf.clamp(timeout - offset, currentTimestamp + 1, timeout);
+            }
+
             // 对定时器进行实例化
             const timer: ITimer = {
                 mod: mod,
@@ -148,6 +178,7 @@ module suncore {
                 delay: delay,
                 method: method,
                 caller: caller,
+                args: args,
                 real: real,
                 count: count,
                 loops: loops,

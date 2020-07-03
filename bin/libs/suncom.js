@@ -22,13 +22,14 @@ var suncom;
     })(EnvMode = suncom.EnvMode || (suncom.EnvMode = {}));
     var EventPriorityEnum;
     (function (EventPriorityEnum) {
-        EventPriorityEnum[EventPriorityEnum["LAZY"] = 0] = "LAZY";
+        EventPriorityEnum[EventPriorityEnum["LOWEST"] = 0] = "LOWEST";
         EventPriorityEnum[EventPriorityEnum["LOW"] = 1] = "LOW";
         EventPriorityEnum[EventPriorityEnum["MID"] = 2] = "MID";
         EventPriorityEnum[EventPriorityEnum["HIGH"] = 3] = "HIGH";
-        EventPriorityEnum[EventPriorityEnum["FWL"] = 4] = "FWL";
-        EventPriorityEnum[EventPriorityEnum["EGL"] = 5] = "EGL";
-        EventPriorityEnum[EventPriorityEnum["OSL"] = 6] = "OSL";
+        EventPriorityEnum[EventPriorityEnum["HIGHEST"] = 4] = "HIGHEST";
+        EventPriorityEnum[EventPriorityEnum["FWL"] = 5] = "FWL";
+        EventPriorityEnum[EventPriorityEnum["EGL"] = 6] = "EGL";
+        EventPriorityEnum[EventPriorityEnum["OSL"] = 7] = "OSL";
     })(EventPriorityEnum = suncom.EventPriorityEnum || (suncom.EventPriorityEnum = {}));
     var EventSystem = (function () {
         function EventSystem() {
@@ -78,7 +79,7 @@ var suncom;
         };
         EventSystem.prototype.addEventListener = function (type, method, caller, receiveOnce, priority) {
             if (receiveOnce === void 0) { receiveOnce = false; }
-            if (priority === void 0) { priority = EventPriorityEnum.LOW; }
+            if (priority === void 0) { priority = EventPriorityEnum.MID; }
             if (Common.isStringInvalidOrEmpty(type) === true) {
                 throw Error("\u6CE8\u518C\u65E0\u6548\u4E8B\u4EF6\uFF01\uFF01\uFF01");
             }
@@ -462,7 +463,7 @@ var suncom;
         function getClassName(cls) {
             var classString = cls.toString().trim();
             var index = classString.indexOf("(");
-            return classString.substring(9, index);
+            return cls.name || classString.substring(9, index);
         }
         Common.getClassName = getClassName;
         function getQualifiedClassName(obj) {
@@ -729,6 +730,9 @@ var suncom;
                 path = path.substr(index + 1);
             }
             var suffix = Common.getFileExtension(path);
+            if (suffix === null) {
+                return path;
+            }
             return path.substr(0, path.length - suffix.length - 1);
         }
         Common.getFileName = getFileName;
