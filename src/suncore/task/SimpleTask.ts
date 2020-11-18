@@ -8,12 +8,12 @@ module suncore {
         /**
          * 任务逻辑Handler
          */
-        private $handler: suncom.IHandler;
+        private $handler: suncom.Handler;
 
         /**
          * export
          */
-        constructor(handler: suncom.IHandler) {
+        constructor(handler: suncom.Handler) {
             super();
             this.$handler = handler;
         }

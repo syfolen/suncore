@@ -99,20 +99,19 @@ module suncore {
          * 1. 自定义的groupId的值不允许超过1000
          * export
          */
-        export function addTask(mod: ModuleEnum, groupId: number, task: ITask): number {
+        export function addTask(mod: ModuleEnum, groupId: number, task: AbstractTask): number {
             if (System.isModuleStopped(mod) === false) {
                 if (groupId === -1) {
                     groupId = createTaskGroupId();
                 }
                 else if (groupId > 1000) {
-                    suncom.Test.notExpected(`自定义的Task GroupId不允许超过1000`);
+                    throw Error(`自定义的Task GroupId不允许超过1000`);
                 }
-                const message: IMessage = {
-                    mod: mod,
-                    task: task,
-                    groupId: groupId,
-                    priority: MessagePriorityEnum.PRIORITY_TASK
-                };
+                const message: Message = Message.create();
+                message.mod = mod;
+                message.task = task;
+                message.groupId = groupId;
+                message.priority = MessagePriorityEnum.PRIORITY_TASK;
                 M.messageManager.putMessage(message);
             }
             else {
@@ -134,14 +133,13 @@ module suncore {
          * 添加触发器
          * export
          */
-        export function addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void {
+        export function addTrigger(mod: ModuleEnum, delay: number, handler: suncom.Handler): void {
             if (System.isModuleStopped(mod) === false) {
-                const message: IMessage = {
-                    mod: mod,
-                    handler: handler,
-                    timeout: System.getModuleTimestamp(mod) + delay,
-                    priority: MessagePriorityEnum.PRIORITY_TRIGGER
-                };
+                const message: Message = Message.create();
+                message.mod = mod;
+                message.handler = handler;
+                message.timeout = System.getModuleTimestamp(mod) + delay;
+                message.priority = MessagePriorityEnum.PRIORITY_TRIGGER;
                 M.messageManager.putMessage(message);
             }
             else {
@@ -153,13 +151,12 @@ module suncore {
          * 添加消息
          * export
          */
-        export function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler): void {
+        export function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.Handler): void {
             if (System.isModuleStopped(mod) === false) {
-                const message: IMessage = {
-                    mod: mod,
-                    handler: handler,
-                    priority: priority
-                };
+                const message: Message = Message.create();
+                message.mod = mod;
+                message.handler = handler;
+                message.priority = priority;
                 M.messageManager.putMessage(message);
             }
             else {

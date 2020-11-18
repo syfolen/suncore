@@ -5,6 +5,11 @@ module suncore {
      */
     export class TimerManager {
         /**
+         * 回收站
+         */
+        private $pool: Timer[] = [];
+
+        /**
          * 定时器种子
          */
         private $seedId: number = 0;
@@ -12,12 +17,12 @@ module suncore {
         /**
          * 定时器列表
          */
-        private $timers: ITimer[][] = [];
+        private $timers: Timer[][] = [];
 
         /**
          * 定时器集合
          */
-        private $timerMap: { [id: number]: ITimer } = {};
+        private $timerMap: { [id: number]: Timer } = {};
 
         constructor() {
             for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
@@ -42,12 +47,12 @@ module suncore {
                 // 当前模块未暂停
                 if (System.isModulePaused(mod) === false) {
                     // 获取模块中的所有定时器
-                    const timers: ITimer[] = this.$timers[mod];
+                    const timers: Timer[] = this.$timers[mod];
                     // 获取当前时间戳
                     const timestamp: number = System.getModuleTimestamp(mod);
                     // 对模块中的所有定时器进行遍历
                     while (timers.length > 0) {
-                        const timer: ITimer = timers[0];
+                        const timer: Timer = timers[0];
 
                         // 若定时器有效
                         if (timer.active === true) {
@@ -61,13 +66,14 @@ module suncore {
                             }
                             // 否则计算当前理论上的响应次数
                             else {
-                                timer.count = suncom.Mathf.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
+                                timer.count = Math.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
                             }
                         }
 
+                        let recycle: boolean = false;
                         // 移除无效定时器
                         if (timer.active === false || (timer.loops > 0 && timer.count >= timer.loops)) {
-                            delete this.$timerMap[timer.timerId];
+                            recycle = true;
                         }
                         else {
                             this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.args, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.count);
@@ -82,6 +88,7 @@ module suncore {
                                 timer.method.apply(timer.caller, timer.args.concat(timer.count, timer.loops));
                             }
                         }
+                        recycle === true && this.$recover(timer);
                     }
                 }
             }
@@ -172,23 +179,22 @@ module suncore {
             }
 
             // 对定时器进行实例化
-            const timer: ITimer = {
-                mod: mod,
-                active: true,
-                delay: delay,
-                method: method,
-                caller: caller,
-                args: args,
-                real: real,
-                count: count,
-                loops: loops,
-                timerId: timerId,
-                timestamp: timestamp,
-                timeout: timeout
-            };
+            const timer: Timer = this.$pool.length > 0 ? this.$pool.pop() : new Timer();
+            timer.mod = mod;
+            timer.active = true;
+            timer.delay = delay;
+            timer.method = method;
+            timer.caller = caller;
+            timer.args = args;
+            timer.real = real;
+            timer.count = count;
+            timer.loops = loops;
+            timer.timerId = timerId;
+            timer.timestamp = timestamp;
+            timer.timeout = timeout;
 
             // 获取对应模块的定时器列表
-            const timers: ITimer[] = this.$timers[mod];
+            const timers: Timer[] = this.$timers[mod];
 
             let index: number = -1;
 
@@ -242,9 +248,20 @@ module suncore {
          * 清除指定模块下的所有定时器
          */
         clearTimer(mod: ModuleEnum): void {
-            const timers: ITimer[] = this.$timers[mod];
+            const timers: Timer[] = this.$timers[mod];
             while (timers.length > 0) {
-                const timer: ITimer = timers.pop();
+                const timer: Timer = timers.pop();
+                this.$timerMap[timer.timerId] !== void 0 && this.$recover(timer);
+            }
+        }
+
+        /**
+         * 回收定时器对象
+         */
+        private $recover(timer: Timer): void {
+            if (timer.timerId > 0) {
+                timer.timerId = 0;
+                this.$pool.push(timer);
                 delete this.$timerMap[timer.timerId];
             }
         }

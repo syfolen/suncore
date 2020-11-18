@@ -13,7 +13,9 @@ module suncore {
          */
         execute(mod: ModuleEnum, stop: boolean): void {
             // 由于此命令是公开的，所以不应当为参数指定默认值
-            suncom.Test.expect(stop).interpret(`应当为参数 stop 指定有效值`).toBeBoolean();
+            if (stop !== true && stop !== false) {
+                throw Error(`参数stop应当为布尔值`);
+            }
             if (stop === true) {
                 if (System.isModuleStopped(mod) === true) {
                     suncom.Logger.error(suncom.DebugMode.ANY, `模块 ${ModuleEnum[mod]} 己经停止！！！`);
@@ -42,8 +44,7 @@ module suncore {
 
             if (mod === ModuleEnum.SYSTEM) {
                 if (System.isModuleStopped(ModuleEnum.TIMELINE) === false || System.isModuleStopped(ModuleEnum.CUSTOM) === false) {
-                    suncom.Test.notExpected(`SYSTEM 不能停止因为 CUSTOM 或 TIMELINE 依然在运行`);
-                    return;
+                    suncom.Logger.error(suncom.DebugMode.ANY, `SYSTEM 不能停止因为 CUSTOM 或 TIMELINE 依然在运行`);
                 }
             }
 

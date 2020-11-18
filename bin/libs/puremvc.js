@@ -2,7 +2,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -15,44 +15,37 @@ var puremvc;
 (function (puremvc) {
     var CareModuleID;
     (function (CareModuleID) {
-        CareModuleID[CareModuleID["NONE"] = 65536] = "NONE";
-        CareModuleID[CareModuleID["CUSTOM"] = 131072] = "CUSTOM";
-        CareModuleID[CareModuleID["TIMELINE"] = 196608] = "TIMELINE";
+        CareModuleID[CareModuleID["NONE"] = 65535] = "NONE";
+        CareModuleID[CareModuleID["CUSTOM"] = 65536] = "CUSTOM";
+        CareModuleID[CareModuleID["TIMELINE"] = 65537] = "TIMELINE";
     })(CareModuleID = puremvc.CareModuleID || (puremvc.CareModuleID = {}));
     var Controller = (function () {
         function Controller() {
             this.$commands = {};
             if (Controller.inst !== null) {
-                throw Error(Controller.SINGLETON_MSG);
+                throw Error("\u91CD\u590D\u6784\u5EFA\u63A7\u5236\u7C7B\uFF01\uFF01\uFF01");
             }
             Controller.inst = this;
         }
         Controller.prototype.executeCommand = function (name, args) {
-            var cls = this.$commands[name];
-            var command = new cls();
-            if (args === void 0) {
-                command.execute.call(command);
-            }
-            else if (args instanceof Array) {
-                command.execute.apply(command, args);
+            var cmd = new this.$commands[name]();
+            if (args instanceof Array) {
+                cmd.execute.apply(cmd, args);
             }
             else {
-                command.execute.call(command, args);
+                cmd.execute.call(cmd, args);
             }
         };
         Controller.prototype.registerCommand = function (name, cls, priority, option) {
-            if (name === void 0) {
-                throw Error("注册无效的命令");
-            }
             if (this.hasCommand(name) === true) {
-                throw Error("重复注册命令：" + name);
+                throw Error("\u91CD\u590D\u6CE8\u518C\u547D\u4EE4\uFF1A" + name);
             }
             this.$commands[name] = cls;
             View.inst.registerObserver(name, this.executeCommand, this, false, priority, option);
         };
         Controller.prototype.removeCommand = function (name) {
             if (this.hasCommand(name) === false) {
-                throw Error("移除不存在的命令：" + name);
+                throw Error("\u79FB\u9664\u4E0D\u5B58\u5728\u7684\u547D\u4EE4\uFF1A" + name);
             }
             delete this.$commands[name];
             View.inst.removeObserver(name, this.executeCommand, this);
@@ -61,9 +54,8 @@ var puremvc;
             return this.$commands[name] || null;
         };
         Controller.prototype.hasCommand = function (name) {
-            return this.retrieveCommand(name) != null;
+            return this.$commands[name] !== void 0;
         };
-        Controller.SINGLETON_MSG = "Controller singleton already constructed!";
         Controller.inst = null;
         return Controller;
     }());
@@ -74,7 +66,7 @@ var puremvc;
             this.$model = new Model();
             this.$controller = new Controller();
             if (Facade.inst !== null) {
-                throw Error(Facade.SINGLETON_MSG);
+                throw Error("\u91CD\u590D\u6784\u5EFAPureMVC\u5916\u89C2\u7C7B\uFF01\uFF01\uFF01");
             }
             Facade.inst = this;
             this.$initializeFacade();
@@ -182,16 +174,15 @@ var puremvc;
             MutexLocker.deactive();
             return this.$view.hasMediator(name);
         };
-        Facade.prototype.sendNotification = function (name, args, cancelable, sys) {
+        Facade.prototype.sendNotification = function (name, args, cancelable, force) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            this.$view.notifyObservers(name, args, cancelable, sys);
+            this.$view.notifyObservers(name, args, cancelable, force);
             MutexLocker.deactive();
         };
         Facade.prototype.notifyCancel = function () {
             MutexLocker.deactive();
             this.$view.notifyCancel();
         };
-        Facade.SINGLETON_MSG = "Facade singleton already constructed!";
         Facade.inst = null;
         return Facade;
     }());
@@ -200,35 +191,29 @@ var puremvc;
         function Model() {
             this.$proxies = {};
             if (Model.inst !== null) {
-                throw Error(Model.SINGLETON_MSG);
+                throw Error("\u91CD\u590D\u6784\u5EFA\u6A21\u578B\u7C7B\uFF01\uFF01\uFF01");
             }
             Model.inst = this;
         }
         Model.prototype.registerProxy = function (proxy) {
             var name = proxy.getProxyName();
-            if (name === null) {
-                throw Error("注册无效的Proxy");
+            if (isStringNullOrEmpty(name) === true) {
+                throw Error("\u6CE8\u518C\u65E0\u6548\u7684Proxy");
             }
             if (this.hasProxy(name) === true) {
-                throw Error("重复注册Proxy：" + name);
-            }
-            if (MutexLocker.enableMMIAction() === false) {
-                throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
+                throw Error("\u91CD\u590D\u6CE8\u518CProxy\uFF1A" + name);
             }
             this.$proxies[name] = proxy;
             proxy.onRegister();
         };
         Model.prototype.removeProxy = function (name) {
-            if (name === void 0) {
-                throw Error("移除无效的Proxy");
+            if (isStringNullOrEmpty(name) === true) {
+                throw Error("\u79FB\u9664\u65E0\u6548\u7684Proxy");
             }
-            var proxy = this.retrieveProxy(name);
-            if (proxy === null) {
-                throw Error("重复移除Proxy：" + name);
+            if (this.hasProxy(name) === false) {
+                throw Error("\u79FB\u9664\u4E0D\u5B58\u5728\u7684Proxy\uFF1A" + name);
             }
-            if (MutexLocker.enableMMIAction() === false) {
-                throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
-            }
+            var proxy = this.$proxies[name];
             delete this.$proxies[name];
             proxy.onRemove();
         };
@@ -242,9 +227,8 @@ var puremvc;
             if (MutexLocker.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
-            return this.retrieveProxy(name) != null;
+            return this.$proxies[name] !== void 0;
         };
-        Model.SINGLETON_MSG = "Model singleton already constructed!";
         Model.inst = null;
         return Model;
     }());
@@ -418,7 +402,7 @@ var puremvc;
             get: function () {
                 return this.$curMsgQMod;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         MutexScope.MUTEX_PREFIX_KEY = "puremvc$mutex$prefix";
@@ -445,45 +429,63 @@ var puremvc;
                 MutexLocker.active(this.$msgQMod);
                 return this.$facade;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Notifier.prototype, "msgQMod", {
             get: function () {
                 return this.$msgQMod;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Notifier.prototype, "destroyed", {
             get: function () {
                 return this.$destroyed;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Notifier;
     }());
     puremvc.Notifier = Notifier;
+    var Observer = (function () {
+        function Observer() {
+            this.name = null;
+            this.caller = null;
+            this.method = null;
+            this.option = null;
+            this.priority = suncom.EventPriorityEnum.MID;
+            this.receiveOnce = false;
+        }
+        return Observer;
+    }());
+    puremvc.Observer = Observer;
     var Proxy = (function (_super) {
         __extends(Proxy, _super);
         function Proxy(name, data) {
             var _this = _super.call(this) || this;
-            if (name === void 0) {
-                throw Error("无效的Proxy名字");
+            _this.$proxyName = null;
+            _this.$data = void 0;
+            if (isStringNullOrEmpty(name) === true) {
+                throw Error("\u65E0\u6548\u7684Proxy\u540D\u5B57");
             }
+            _this.$data = data;
             _this.$proxyName = name;
-            if (data !== void 0) {
-                _this.$data = data;
-            }
             return _this;
         }
+        Proxy.prototype.getProxyName = function () {
+            return this.$proxyName || null;
+        };
         Proxy.prototype.onRegister = function () {
         };
         Proxy.prototype.onRemove = function () {
         };
-        Proxy.prototype.getProxyName = function () {
-            return this.$proxyName || null;
+        Proxy.prototype.getData = function () {
+            return this.$data;
+        };
+        Proxy.prototype.setData = function (data) {
+            this.$data = data;
         };
         return Proxy;
     }(Notifier));
@@ -498,14 +500,16 @@ var puremvc;
     puremvc.SimpleCommand = SimpleCommand;
     var View = (function () {
         function View() {
+            this.$pool = [];
             this.$mediators = {};
+            this.$workings = {};
             this.$observers = {};
             this.$isCanceled = false;
             this.$onceObservers = [];
-            this.$scModStatMap = {};
+            this.$modStatMap = {};
             this.$careStatCmds = {};
             if (View.inst !== null) {
-                throw Error(View.SINGLETON_MSG);
+                throw Error("\u91CD\u590D\u6784\u5EFA\u89C6\u56FE\u7C7B\uFF01\uFF01\uFF01");
             }
             View.inst = this;
             this.registerObserver(suncore.NotifyKey.START_TIMELINE, this.$onStartTimeline, this);
@@ -513,44 +517,61 @@ var puremvc;
         }
         View.prototype.$onStartTimeline = function (mod, pause) {
             if (pause === false) {
-                this.$scModStatMap[mod] = true;
+                this.$modStatMap[mod] = true;
             }
             else {
-                this.$scModStatMap[mod] = false;
+                this.$modStatMap[mod] = false;
             }
         };
         View.prototype.$onPauseTimeline = function (mod, stop) {
-            this.$scModStatMap[mod] = false;
+            this.$modStatMap[mod] = false;
         };
         View.prototype.setCareStatForCmd = function (cmd) {
             this.$careStatCmds[cmd] = true;
         };
         View.prototype.registerObserver = function (name, method, caller, receiveOnce, priority, option) {
-            if (caller === void 0) { caller = null; }
             if (receiveOnce === void 0) { receiveOnce = false; }
             if (priority === void 0) { priority = suncom.EventPriorityEnum.MID; }
             if (option === void 0) { option = 1; }
-            if (name === void 0) {
-                throw Error("注册无效的监听");
+            if (isStringNullOrEmpty(name) === true) {
+                throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u76D1\u542C");
             }
-            if (method === void 0) {
-                throw Error("注册无效的监听回调");
+            if (method === void 0 || method === null) {
+                throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u76D1\u542C\u56DE\u8C03\uFF1A" + name);
             }
-            if (caller && caller.destroyed === true) {
-                throw Error("对象己销毁");
+            if (caller === void 0) {
+                caller = null;
             }
             var observers = this.$observers[name];
             if (observers === void 0) {
-                observers = this.$observers[name] = [false];
+                observers = this.$observers[name] = [];
             }
-            else if (observers[0] === true) {
-                observers = this.$observers[name] = observers.concat();
-                observers[0] = false;
+            else if (this.$workings[name] === true) {
+                this.$workings[name] = false;
+                this.$observers[name] = observers = observers.slice();
             }
+            option = this.$createOption(option);
+            if (option.delay === void 0) {
+                option.delay = 1;
+            }
+            if (option.delay < 1) {
+                throw Error("\u4E8B\u4EF6\u54CD\u5E94\u95F4\u9694\u5E94\u5F53\u5927\u4E8E0");
+            }
+            option.counter = 0;
             var index = -1;
-            for (var i = 1; i < observers.length; i++) {
+            for (var i = 0; i < observers.length; i++) {
                 var observer_1 = observers[i];
                 if (observer_1.method === method && observer_1.caller === caller) {
+                    option.counter = observer_1.option.counter;
+                    observer_1.option = option;
+                    var b0 = observer_1.priority === priority;
+                    var b1 = observer_1.receiveOnce === receiveOnce;
+                    if (b0 === false || b1 === false) {
+                        var s0 = b0 === true ? "" : "priority:" + priority;
+                        var s1 = b1 === true ? "" : "receiveOnce:" + receiveOnce;
+                        var s2 = s0 === "" || s1 === "" ? "" : ", ";
+                        console.warn("\u91CD\u590D\u6CE8\u518C\u4E8B\u4EF6\uFF0C\u4E2A\u522B\u53C2\u6570\u672A\u66F4\u65B0\uFF1A" + s0 + s2 + s1);
+                    }
                     return null;
                 }
                 if (index === -1 && observer_1.priority < priority) {
@@ -558,20 +579,13 @@ var puremvc;
                 }
             }
             MutexLocker.create(name, caller);
-            option = this.$createOption(option);
-            if (option.delay === void 0) {
-                option.delay = 1;
-            }
-            suncom.Test.expect(option.delay).toBeGreaterThan(0);
-            option.counter = 0;
-            var observer = {
-                name: name,
-                method: method,
-                caller: caller,
-                option: option,
-                priority: priority,
-                receiveOnce: receiveOnce
-            };
+            var observer = this.$pool.length > 0 ? this.$pool.pop() : new Observer();
+            observer.name = name;
+            observer.caller = caller;
+            observer.method = method;
+            observer.option = option;
+            observer.priority = priority;
+            observer.receiveOnce = receiveOnce;
             if (index < 0) {
                 observers.push(observer);
             }
@@ -610,40 +624,46 @@ var puremvc;
             }
         };
         View.prototype.removeObserver = function (name, method, caller) {
-            if (caller === void 0) { caller = null; }
-            if (name === void 0) {
-                throw Error("移除无效的监听");
+            if (isStringNullOrEmpty(name) === true) {
+                throw Error("\u79FB\u9664\u65E0\u6548\u7684\u76D1\u542C");
             }
-            if (method === void 0) {
-                throw Error("移除无效的监听回调");
+            if (method === void 0 || method === null) {
+                throw Error("\u79FB\u9664\u65E0\u6548\u7684\u76D1\u542C\u56DE\u8C03\uFF1A" + name);
             }
-            var observers = this.$observers[name] || null;
-            if (observers === null || observers.length === 1) {
+            if (caller === void 0) {
+                caller = null;
+            }
+            var observers = this.$observers[name];
+            if (observers === void 0) {
                 return;
             }
-            if (observers[0] === true) {
-                observers = this.$observers[name] = observers.concat();
-                observers[0] = false;
+            if (this.$workings[name] === true) {
+                this.$workings[name] = false;
+                this.$observers[name] = observers = observers.slice();
             }
-            for (var i = 1; i < observers.length; i++) {
+            for (var i = 0; i < observers.length; i++) {
                 var observer = observers[i];
                 if (observer.method === method && observer.caller === caller) {
                     observers.splice(i, 1);
+                    this.$pool.push(observer);
                     MutexLocker.release(name, caller);
                     break;
                 }
             }
-            if (observers.length === 1) {
+            if (observers.length === 0) {
+                delete this.$workings[name];
                 delete this.$observers[name];
             }
         };
         View.prototype.hasObserver = function (name, method, caller) {
-            if (caller === void 0) { caller = null; }
-            if (name === void 0) {
-                throw Error("查询无效的监听");
-            }
             if (method === void 0) {
-                throw Error("查询无效的监听回调");
+                method = null;
+            }
+            if (caller === void 0) {
+                caller = null;
+            }
+            if (isStringNullOrEmpty(name) === true) {
+                throw Error("\u67E5\u8BE2\u65E0\u6548\u7684\u76D1\u542C");
             }
             if (method === null && caller === null) {
                 throw Error("method\u548Ccaller\u4E0D\u5141\u8BB8\u540C\u65F6\u4E3A\u7A7A");
@@ -652,7 +672,7 @@ var puremvc;
             if (observers === void 0) {
                 return false;
             }
-            for (var i = 1; i < observers.length; i++) {
+            for (var i = 0; i < observers.length; i++) {
                 var observer = observers[i];
                 if (method === null) {
                     if (observer.caller === caller) {
@@ -673,32 +693,32 @@ var puremvc;
         View.prototype.notifyCancel = function () {
             this.$isCanceled = true;
         };
-        View.prototype.notifyObservers = function (name, args, cancelable, sys) {
-            if (cancelable === void 0) { cancelable = false; }
-            if (sys === void 0) { sys = true; }
-            if (name === void 0) {
-                throw Error("派发无效的通知");
+        View.prototype.notifyObservers = function (name, args, cancelable, force) {
+            if (cancelable === void 0) { cancelable = true; }
+            if (force === void 0) { force = false; }
+            if (isStringNullOrEmpty(name) === true) {
+                throw Error("\u6D3E\u53D1\u65E0\u6548\u7684\u901A\u77E5");
             }
-            var observers = this.$observers[name] || null;
-            if (observers === null || observers.length === 1) {
+            var observers = this.$observers[name];
+            if (observers === void 0) {
                 return;
             }
-            observers[0] = true;
+            this.$workings[name] = true;
             MutexLocker.lock(name);
             var isCanceled = this.$isCanceled;
             this.$isCanceled = false;
-            for (var i = 1; i < observers.length; i++) {
+            for (var i = 0; i < observers.length; i++) {
                 var observer = observers[i];
                 var option = observer.option;
-                if (this.$careStatCmds[name] === true && sys === true) {
-                    if (option.careStatMod !== void 0 && this.$scModStatMap[option.careStatMod] === false) {
+                if (this.$careStatCmds[name] === true && force === false) {
+                    if (option.careStatMod !== void 0 && this.$modStatMap[option.careStatMod] !== true) {
                         continue;
                     }
                 }
                 if (observer.receiveOnce === true) {
                     this.$onceObservers.push(observer);
                 }
-                if (observer.caller && observer.caller.destroyed === true) {
+                if (observer.caller !== null && observer.caller.destroyed === true) {
                     if (suncom && suncom["Common"]) {
                         console.warn("\u5BF9\u8C61[" + suncom["Common"].getQualifiedClassName(observer.caller) + "]\u5DF1\u9500\u6BC1\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
                     }
@@ -712,27 +732,26 @@ var puremvc;
                     continue;
                 }
                 option.counter = 0;
-                if (option.args !== void 0) {
-                    args = option.args.concat(args);
-                }
+                var params = option.args ? option.args.concat(args) : args;
                 if (observer.caller === Controller.inst) {
-                    observer.method.call(observer.caller, name, args);
+                    observer.method.call(observer.caller, name, params);
                 }
-                else if (args === void 0) {
-                    observer.method.call(observer.caller);
-                }
-                else if (args instanceof Array) {
-                    observer.method.apply(observer.caller, args);
+                else if (params instanceof Array) {
+                    observer.method.apply(observer.caller, params);
                 }
                 else {
-                    observer.method.call(observer.caller, args);
+                    observer.method.call(observer.caller, params);
                 }
-                if (cancelable === true && this.$isCanceled) {
-                    break;
+                if (this.$isCanceled) {
+                    if (cancelable === true) {
+                        break;
+                    }
+                    console.error("\u5C1D\u8BD5\u53D6\u6D88\u4E0D\u53EF\u88AB\u53D6\u6D88\u7684\u547D\u4EE4\uFF1A" + name);
+                    this.$isCanceled = false;
                 }
             }
             this.$isCanceled = isCanceled;
-            observers[0] = false;
+            this.$workings[name] = false;
             MutexLocker.unlock(name);
             while (this.$onceObservers.length > 0) {
                 var observer = this.$onceObservers.pop();
@@ -741,30 +760,24 @@ var puremvc;
         };
         View.prototype.registerMediator = function (mediator) {
             var name = mediator.getMediatorName();
-            if (name === null) {
-                throw Error("注册无效的Mediator");
+            if (isStringNullOrEmpty(name) === true) {
+                throw Error("\u6CE8\u518C\u65E0\u6548\u7684Mediator");
             }
             if (this.hasMediator(name) === true) {
-                throw Error("重复注册Mediator " + name);
-            }
-            if (MutexLocker.enableMMIAction() === false) {
-                throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
+                throw Error("\u91CD\u590D\u6CE8\u518CMediator" + name);
             }
             this.$mediators[name] = mediator;
             mediator.listNotificationInterests();
             mediator.onRegister();
         };
         View.prototype.removeMediator = function (name) {
-            if (name === void 0) {
-                throw Error("移除无效的Mediator");
+            if (isStringNullOrEmpty(name) === true) {
+                throw Error("\u79FB\u9664\u65E0\u6548\u7684Mediator");
             }
-            var mediator = this.retrieveMediator(name);
-            if (mediator === null) {
-                throw Error("移除不存在的Mediator " + name);
+            if (this.hasMediator(name) === false) {
+                throw Error("\u79FB\u9664\u4E0D\u5B58\u5728\u7684Mediator" + name);
             }
-            if (MutexLocker.enableMMIAction() === false) {
-                throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
-            }
+            var mediator = this.$mediators[name];
             delete this.$mediators[name];
             mediator.removeNotificationInterests();
             mediator.onRemove();
@@ -779,9 +792,8 @@ var puremvc;
             if (MutexLocker.enableMMIAction() === false) {
                 throw Error("\u975EMMI\u6A21\u5757\u7981\u7528\u63A5\u53E3");
             }
-            return this.retrieveMediator(name) != null;
+            return this.$mediators[name] !== void 0;
         };
-        View.SINGLETON_MSG = "View singleton already constructed!";
         View.inst = null;
         return View;
     }());
@@ -799,9 +811,8 @@ var puremvc;
         };
         MacroCommand.prototype.execute = function () {
             for (var i = 0; i < this.$commands.length; i++) {
-                var cls = this.$commands[i];
-                var command = new cls();
-                command.execute.apply(command, arguments);
+                var cmd = new this.$commands[i]();
+                cmd.execute.apply(cmd, arguments);
             }
         };
         return MacroCommand;
@@ -811,39 +822,41 @@ var puremvc;
         __extends(Mediator, _super);
         function Mediator(name, viewComponent) {
             var _this = _super.call(this) || this;
+            _this.$mediatorName = null;
             _this.$notificationInterests = [];
-            if (name === void 0) {
-                throw Error("无效的Mediator名字");
+            _this.$viewComponent = null;
+            if (isStringNullOrEmpty(name) === true) {
+                throw Error("\u65E0\u6548\u7684Mediator\u540D\u5B57");
             }
-            _this.$mediatorName = name || null;
+            _this.$mediatorName = name;
             _this.$viewComponent = viewComponent || null;
             return _this;
         }
-        Mediator.prototype.onRegister = function () {
-        };
-        Mediator.prototype.onRemove = function () {
-        };
         Mediator.prototype.getMediatorName = function () {
             return this.$mediatorName;
-        };
-        Mediator.prototype.getViewComponent = function () {
-            return this.$viewComponent;
-        };
-        Mediator.prototype.setViewComponent = function (view) {
-            this.$viewComponent = view || null;
         };
         Mediator.prototype.listNotificationInterests = function () {
         };
         Mediator.prototype.removeNotificationInterests = function () {
             for (var i = 0; i < this.$notificationInterests.length; i++) {
                 var observer = this.$notificationInterests[i];
-                this.facade.removeObserver(observer.name, observer.method, observer.caller);
+                View.inst.removeObserver(observer.name, observer.method, observer.caller);
             }
         };
         Mediator.prototype.$handleNotification = function (name, method, priority, option) {
             if (priority === void 0) { priority = suncom.EventPriorityEnum.MID; }
             var observer = this.facade.registerObserver(name, method, this, void 0, priority, option);
             observer && this.$notificationInterests.push(observer);
+        };
+        Mediator.prototype.onRegister = function () {
+        };
+        Mediator.prototype.onRemove = function () {
+        };
+        Mediator.prototype.getViewComponent = function () {
+            return this.$viewComponent;
+        };
+        Mediator.prototype.setViewComponent = function (view) {
+            this.$viewComponent = view || null;
         };
         return Mediator;
     }(Notifier));
@@ -955,4 +968,9 @@ var puremvc;
         }
         MutexLocker.restore = restore;
     })(MutexLocker = puremvc.MutexLocker || (puremvc.MutexLocker = {}));
+    function isStringNullOrEmpty(str) {
+        return str === void 0 || str === null || str === "";
+    }
+    puremvc.isStringNullOrEmpty = isStringNullOrEmpty;
 })(puremvc || (puremvc = {}));
+//# sourceMappingURL=puremvc.js.map

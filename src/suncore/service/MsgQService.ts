@@ -33,7 +33,7 @@ module suncore {
          * 1. 这样做能提高网络消息响应的及时性
          */
         private $onMsgQBusiness(mod: MsgQModEnum): void {
-            let msg: IMsgQMsg = null;
+            let msg: MsgQMsg = null;
             // 非指定模块不响应指定的业务
             if (mod === void 0 || mod === this.msgQMod) {
                 while (true) {
@@ -49,7 +49,8 @@ module suncore {
                     if (msg === null) {
                         break;
                     }
-                    this.$dealMsgQMsg(msg);
+                    this.$dealMsgQMsg(msg.id, msg.data);
+                    msg.recover();
                 }
                 // 更新消息序列号
                 MsgQ.seqId++;
@@ -60,6 +61,6 @@ module suncore {
          * 处理MsgQ消息
          * export
          */
-        protected abstract $dealMsgQMsg(msg: IMsgQMsg): void;
+        protected abstract $dealMsgQMsg(id: number, data: any): void;
     }
 }

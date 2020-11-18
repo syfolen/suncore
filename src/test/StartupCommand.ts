@@ -11,7 +11,7 @@ module test {
             this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.CUSTOM, false]);
             this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.TIMELINE, false]);
 
-            const handler: suncom.IHandler = suncom.Handler.create(this, this.$onStartup);
+            const handler: suncom.Handler = suncom.Handler.create(this, this.$onStartup);
             suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, handler);
         }
 

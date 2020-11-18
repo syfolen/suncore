@@ -18,7 +18,7 @@ module suncore {
         /**
          * 添加消息
          */
-        putMessage(message: IMessage): void {
+        putMessage(message: Message): void {
             this.$queues[message.mod].putMessage(message);
         }
 

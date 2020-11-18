@@ -8,7 +8,7 @@ module suncore {
      * 3. Task对象有自己的生命周期管理机制，故不建议在外部持有
      * export
      */
-    export abstract class AbstractTask extends puremvc.Notifier implements ITask {
+    export abstract class AbstractTask extends puremvc.Notifier {
         /**
          * 任务是否己经完成（内置属性，请勿操作）
          * export

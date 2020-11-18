@@ -7,7 +7,7 @@ module suncore {
      * 2. 服务被设计用来处理与表现层无关的有状态业务。
      * export
      */
-    export abstract class BaseService extends puremvc.Notifier implements IService {
+    export abstract class BaseService extends puremvc.Notifier {
         /**
          * 服务是否己启动（内置属性，请勿操作）
          * export

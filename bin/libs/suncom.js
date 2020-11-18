@@ -31,71 +31,46 @@ var suncom;
         EventPriorityEnum[EventPriorityEnum["EGL"] = 6] = "EGL";
         EventPriorityEnum[EventPriorityEnum["OSL"] = 7] = "OSL";
     })(EventPriorityEnum = suncom.EventPriorityEnum || (suncom.EventPriorityEnum = {}));
+    var EventInfo = (function () {
+        function EventInfo() {
+            this.type = null;
+            this.caller = null;
+            this.method = null;
+            this.priority = EventPriorityEnum.MID;
+            this.receiveOnce = false;
+        }
+        return EventInfo;
+    }());
+    suncom.EventInfo = EventInfo;
     var EventSystem = (function () {
         function EventSystem() {
             this.$events = {};
+            this.$workings = {};
             this.$onceList = [];
             this.$isCanceled = false;
         }
-        EventSystem.prototype.dispatchCancel = function () {
-            this.$isCanceled = true;
-        };
-        EventSystem.prototype.dispatchEvent = function (type, args, cancelable) {
-            if (cancelable === void 0) { cancelable = false; }
-            if (Common.isStringInvalidOrEmpty(type) === true) {
-                throw Error("\u6D3E\u53D1\u65E0\u6548\u4E8B\u4EF6\uFF01\uFF01\uFF01");
-            }
-            var list = this.$events[type] || null;
-            if (list === null) {
-                return;
-            }
-            list[0] = true;
-            var isCanceled = this.$isCanceled;
-            this.$isCanceled = false;
-            for (var i = 1; i < list.length; i++) {
-                var event_1 = list[i];
-                if (event_1.receiveOnce === true) {
-                    this.$onceList.push(event_1);
-                }
-                if (args === void 0) {
-                    event_1.method.call(event_1.caller);
-                }
-                else if (args instanceof Array) {
-                    event_1.method.apply(event_1.caller, args);
-                }
-                else {
-                    event_1.method.call(event_1.caller, args);
-                }
-                if (cancelable === true && this.$isCanceled) {
-                    break;
-                }
-            }
-            this.$isCanceled = isCanceled;
-            list[0] = false;
-            while (this.$onceList.length > 0) {
-                var event_2 = this.$onceList.pop();
-                this.removeEventListener(event_2.type, event_2.method, event_2.caller);
-            }
-        };
         EventSystem.prototype.addEventListener = function (type, method, caller, receiveOnce, priority) {
             if (receiveOnce === void 0) { receiveOnce = false; }
             if (priority === void 0) { priority = EventPriorityEnum.MID; }
-            if (Common.isStringInvalidOrEmpty(type) === true) {
+            if (Common.isStringNullOrEmpty(type) === true) {
                 throw Error("\u6CE8\u518C\u65E0\u6548\u4E8B\u4EF6\uFF01\uFF01\uFF01");
             }
             if (method === void 0 || method === null) {
                 throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u4E8B\u4EF6\u56DE\u8C03\uFF01\uFF01\uFF01");
             }
-            var list = this.$events[type] || null;
-            if (list === null) {
-                list = this.$events[type] = [false];
+            if (caller === void 0) {
+                caller = null;
             }
-            else if (list[0] === true) {
-                list = this.$events[type] = list.slice(0);
-                list[0] = false;
+            var list = this.$events[type];
+            if (list === void 0) {
+                list = this.$events[type] = [];
+            }
+            else if (this.$workings[type] === true) {
+                this.$events[type] = list = list.slice(0);
+                this.$workings[type] = false;
             }
             var index = -1;
-            for (var i = 1; i < list.length; i++) {
+            for (var i = 0; i < list.length; i++) {
                 var item = list[i];
                 if (item.method === method && item.caller === caller) {
                     return;
@@ -104,13 +79,12 @@ var suncom;
                     index = i;
                 }
             }
-            var event = {
-                type: type,
-                method: method,
-                caller: caller,
-                priority: priority,
-                receiveOnce: receiveOnce
-            };
+            var event = Laya.Pool.getItemByClass("suncom.EventInfo", EventInfo);
+            event.type = type;
+            event.caller = caller;
+            event.method = method;
+            event.priority = priority;
+            event.receiveOnce = receiveOnce;
             if (index < 0) {
                 list.push(event);
             }
@@ -119,29 +93,75 @@ var suncom;
             }
         };
         EventSystem.prototype.removeEventListener = function (type, method, caller) {
-            if (Common.isStringInvalidOrEmpty(type) === true) {
+            if (Common.isStringNullOrEmpty(type) === true) {
                 throw Error("\u79FB\u9664\u65E0\u6548\u7684\u4E8B\u4EF6\uFF01\uFF01\uFF01");
             }
             if (method === void 0 || method === null) {
                 throw Error("\u79FB\u9664\u65E0\u6548\u7684\u4E8B\u4EF6\u56DE\u8C03\uFF01\uFF01\uFF01");
             }
-            var list = this.$events[type] || null;
-            if (list === null) {
+            if (caller === void 0) {
+                caller = null;
+            }
+            var list = this.$events[type];
+            if (list === void 0) {
                 return;
             }
-            if (list[0] === true) {
-                list = this.$events[type] = list.slice(0);
-                list[0] = false;
+            if (this.$workings[type] === true) {
+                this.$events[type] = list = list.slice(0);
+                this.$workings[type] = false;
             }
             for (var i = 0; i < list.length; i++) {
-                var event_3 = list[i];
-                if (event_3.method === method && event_3.caller === caller) {
+                var event_1 = list[i];
+                if (event_1.method === method && event_1.caller === caller) {
                     list.splice(i, 1);
+                    Laya.Pool.recover("suncom.EventInfo", event_1);
                     break;
                 }
             }
-            if (list.length === 1) {
+            if (list.length === 0) {
                 delete this.$events[type];
+                delete this.$workings[type];
+            }
+        };
+        EventSystem.prototype.dispatchCancel = function () {
+            this.$isCanceled = true;
+        };
+        EventSystem.prototype.dispatchEvent = function (type, args, cancelable) {
+            if (cancelable === void 0) { cancelable = true; }
+            if (Common.isStringNullOrEmpty(type) === true) {
+                throw Error("\u6D3E\u53D1\u65E0\u6548\u4E8B\u4EF6\uFF01\uFF01\uFF01");
+            }
+            var list = this.$events[type];
+            if (list === void 0) {
+                return;
+            }
+            this.$workings[type] = true;
+            var isCanceled = this.$isCanceled;
+            this.$isCanceled = false;
+            for (var i = 0; i < list.length; i++) {
+                var event_2 = list[i];
+                if (event_2.receiveOnce === true) {
+                    this.$onceList.push(event_2);
+                }
+                if (args instanceof Array) {
+                    event_2.method.apply(event_2.caller, args);
+                }
+                else {
+                    event_2.method.call(event_2.caller, args);
+                }
+                if (this.$isCanceled) {
+                    if (cancelable === true) {
+                        break;
+                    }
+                    console.error("\u5C1D\u8BD5\u53D6\u6D88\u4E0D\u53EF\u88AB\u53D6\u6D88\u7684\u4E8B\u4EF6\uFF1A" + type);
+                    this.$isCanceled = false;
+                }
+            }
+            this.$isCanceled = isCanceled;
+            this.$workings[type] = false;
+            while (this.$onceList.length > 0) {
+                var event_3 = this.$onceList.pop();
+                this.removeEventListener(event_3.type, event_3.method, event_3.caller);
             }
         };
         return EventSystem;
@@ -150,6 +170,7 @@ var suncom;
     var Expect = (function () {
         function Expect(description) {
             if (description === void 0) { description = null; }
+            this.$value = void 0;
             this.$asNot = false;
             this.$interpretation = null;
             if (Global.debugMode & DebugMode.TEST) {
@@ -313,57 +334,93 @@ var suncom;
                 this.$asNot = true;
                 return this;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Expect;
     }());
     suncom.Expect = Expect;
     var Handler = (function () {
-        function Handler(caller, method, args) {
-            this.$args = args;
-            this.$caller = caller;
-            this.$method = method;
+        function Handler() {
+            this.$id = 0;
+            this.$args = void 0;
+            this.$caller = null;
+            this.$method = null;
+            this.$once = false;
         }
-        Handler.prototype.run = function () {
-            if (this.$args === void 0) {
-                return this.$method.call(this.$caller);
+        Handler.prototype.setTo = function (caller, method, args, once) {
+            if (once === void 0) { once = true; }
+            if (this.$id === -1) {
+                throw Error("Handler\u5DF1\u88AB\u56DE\u6536");
             }
-            return this.$method.apply(this.$caller, this.$args);
+            this.$id = ++Handler.$gid;
+            this.$caller = caller || null;
+            this.$method = method || null;
+            this.$args = args;
+            this.$once = once;
+            return this;
+        };
+        Handler.prototype.run = function () {
+            var id = this.$id;
+            var res = this.$method.apply(this.$caller, this.$args);
+            id === this.$id && this.$once === true && this.recover();
+            return res;
         };
         Handler.prototype.runWith = function (args) {
-            if (this.$args === void 0) {
-                if (args instanceof Array) {
-                    return this.$method.apply(this.$caller, args);
-                }
-                return this.$method.call(this.$caller, args);
+            var id = this.$id;
+            var res;
+            if (this.$args !== void 0) {
+                res = this.$method.apply(this.$caller, this.$args.concat(args));
             }
-            return this.$method.apply(this.$caller, this.$args.concat(args));
+            else if (args instanceof Array) {
+                res = this.$method.apply(this.$caller, args);
+            }
+            else {
+                res = this.$method.call(this.$caller, args);
+            }
+            id === this.$id && this.$once === true && this.recover();
+            return res;
+        };
+        Handler.prototype.recover = function () {
+            if (this.$id > -1) {
+                this.$id = -1;
+                this.$method = null;
+                Handler.$pool.push(this);
+            }
         };
         Object.defineProperty(Handler.prototype, "caller", {
             get: function () {
                 return this.$caller;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Handler.prototype, "method", {
             get: function () {
                 return this.$method;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
-        Handler.create = function (caller, method, args) {
-            return new Handler(caller, method, args);
+        Handler.create = function (caller, method, args, once) {
+            var handler = this.$pool.length > 0 ? this.$pool.pop() : new Handler();
+            handler.$id = 0;
+            handler.setTo(caller, method, args, once);
+            return handler;
         };
+        Handler.$gid = 0;
+        Handler.$pool = [];
         return Handler;
     }());
     suncom.Handler = Handler;
     var HashMap = (function () {
         function HashMap(primaryKey) {
+            this.$primaryKey = null;
             this.source = [];
             this.dataMap = {};
+            if (typeof primaryKey === "number") {
+                primaryKey = primaryKey + "";
+            }
             if (typeof primaryKey !== "string") {
                 throw Error("\u975E\u6CD5\u7684\u4E3B\u952E\u5B57\u6BB5\u540D\uFF1A" + primaryKey);
             }
@@ -393,7 +450,7 @@ var suncom;
         };
         HashMap.prototype.put = function (data) {
             var value = data[this.$primaryKey];
-            if (Common.isStringInvalidOrEmpty(value) === true) {
+            if (Common.isStringNullOrEmpty(value) === true) {
                 throw Error("\u65E0\u6548\u7684\u4E3B\u952E\u7684\u503C\uFF0Ctype:" + typeof value + ", value:" + value);
             }
             if (this.getByPrimaryValue(value) === null) {
@@ -527,7 +584,7 @@ var suncom;
             return str;
         }
         Common.trim = trim;
-        function isStringInvalidOrEmpty(str) {
+        function isStringNullOrEmpty(str) {
             if (typeof str === "number") {
                 return false;
             }
@@ -536,7 +593,7 @@ var suncom;
             }
             return true;
         }
-        Common.isStringInvalidOrEmpty = isStringInvalidOrEmpty;
+        Common.isStringNullOrEmpty = isStringNullOrEmpty;
         function formatString(str, args) {
             var signs = ["%d", "%s"];
             var index = 0;
@@ -555,7 +612,7 @@ var suncom;
                     }
                 }
                 if (indexOfReplace === -1) {
-                    Logger.warn(DebugMode.ANY, "\u5B57\u7B26\u4E32\u66FF\u6362\u672A\u5B8C\u6210 str:" + str);
+                    Logger.warn(DebugMode.ANY, "字符串替换未完成 " + ("str:" + str));
                     break;
                 }
                 var suffix = str.substr(indexOfReplace + key.length);
@@ -570,7 +627,7 @@ var suncom;
             while (args.length > 0) {
                 var indexOfSign = str.indexOf("{$}", index);
                 if (index === -1) {
-                    Logger.warn(DebugMode.ANY, "\u5B57\u7B26\u4E32\u66FF\u6362\u672A\u5B8C\u6210 str:" + str);
+                    Logger.warn(DebugMode.ANY, "字符串替换未完成 " + ("str:" + str));
                     break;
                 }
                 var suffix = str.substr(indexOfSign + 3);
@@ -781,12 +838,6 @@ var suncom;
             }
         }
         Common.removeItemsFromArray = removeItemsFromArray;
-        function createPrefab(json) {
-            var prefab = new Laya.Prefab();
-            prefab.json = Laya.loader.getRes(json);
-            return prefab.create();
-        }
-        Common.createPrefab = createPrefab;
         function copy(data, deep) {
             if (deep === void 0) { deep = false; }
             if (data instanceof Array) {
@@ -835,7 +886,7 @@ var suncom;
                     newData[key] = null;
                 }
                 else {
-                    throw Error("\u514B\u9686\u610F\u5916\u7684\u6570\u636E\u7C7B\u578B\uFF1A" + value);
+                    throw Error("克隆意外的数据类型：" + value);
                 }
             }
             return newData;
@@ -904,11 +955,11 @@ var suncom;
         Common.toDisplayString = toDisplayString;
         function compareVersion(ver) {
             if (typeof ver !== "string") {
-                Logger.error(DebugMode.ANY, "\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548");
+                Logger.error(DebugMode.ANY, "参数版本号无效");
                 return 0;
             }
             if (typeof Global.VERSION !== "string") {
-                Logger.error(DebugMode.ANY, "\u7248\u672C\u53F7\u672A\u8BBE\u7F6E");
+                Logger.error(DebugMode.ANY, "版本号未设置");
                 return 0;
             }
             var array = ver.split(".");
@@ -934,10 +985,10 @@ var suncom;
                 }
             }
             if (error & 0x1) {
-                Logger.error(DebugMode.ANY, "\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548 ver:" + ver);
+                Logger.error(DebugMode.ANY, "参数版本号无效 " + ("ver:" + ver));
             }
             if (error & 0x2) {
-                Logger.error(DebugMode.ANY, "\u5F53\u524D\u7248\u672C\u53F7\u65E0\u6548 ver:" + Global.VERSION);
+                Logger.error(DebugMode.ANY, "当前版本号无效 " + ("ver:" + Global.VERSION));
             }
             if (error > 0) {
                 return 0;
@@ -961,7 +1012,7 @@ var suncom;
         var $id = 0;
         DBService.$table = {};
         function get(name) {
-            return DBService.$table[name.toString()];
+            return DBService.$table[name];
         }
         DBService.get = get;
         function put(name, data) {
@@ -970,17 +1021,19 @@ var suncom;
                 DBService.$table["auto_" + $id] = data;
             }
             else {
-                DBService.$table[name.toString()] = data;
+                DBService.$table[name] = data;
             }
             return data;
         }
         DBService.put = put;
         function exist(name) {
-            return DBService.$table[name.toString()] !== void 0;
+            return DBService.$table[name] !== void 0;
         }
         DBService.exist = exist;
         function drop(name) {
-            delete DBService.$table[name.toString()];
+            var data = DBService.get(name);
+            delete DBService.$table[name];
+            return data;
         }
         DBService.drop = drop;
     })(DBService = suncom.DBService || (suncom.DBService = {}));
@@ -1127,33 +1180,6 @@ var suncom;
             return a * 180 / Math.PI;
         }
         Mathf.r2d = r2d;
-        function abs(a) {
-            if (a < 0) {
-                return -a;
-            }
-            else {
-                return a;
-            }
-        }
-        Mathf.abs = abs;
-        function min(a, b) {
-            if (a < b) {
-                return a;
-            }
-            else {
-                return b;
-            }
-        }
-        Mathf.min = min;
-        function max(a, b) {
-            if (a > b) {
-                return a;
-            }
-            else {
-                return b;
-            }
-        }
-        Mathf.max = max;
         function clamp(value, min, max) {
             if (value < min) {
                 return min;
@@ -1243,8 +1269,11 @@ var suncom;
             if (typeof str === "number") {
                 return true;
             }
-            if (typeof str === "string" && isNaN(Number(str)) === false) {
-                return true;
+            if (typeof str === "string") {
+                if (str === "") {
+                    return false;
+                }
+                return isNaN(+str) === false;
             }
             return false;
         }
@@ -1254,8 +1283,8 @@ var suncom;
     (function (Pool) {
         var $pool = {};
         function getItem(sign) {
-            var array = $pool[sign] || null;
-            if (array === null || array.length === 0) {
+            var array = $pool[sign];
+            if (array === void 0 || array.length === 0) {
                 return null;
             }
             var item = array.pop();
@@ -1267,7 +1296,9 @@ var suncom;
             var item = Pool.getItem(sign);
             if (item === null) {
                 if (Laya.Prefab !== void 0 && cls === Laya.Prefab) {
-                    item = Common.createPrefab(args);
+                    var prefab = new Laya.Prefab();
+                    prefab.json = args;
+                    item = prefab.create();
                 }
                 else {
                     item = {};
@@ -1288,8 +1319,8 @@ var suncom;
                 return;
             }
             item["__suncom__$__inPool__"] = true;
-            var array = $pool[sign] || null;
-            if (array === null) {
+            var array = $pool[sign];
+            if (array === void 0) {
                 $pool[sign] = [item];
             }
             else {
@@ -1344,21 +1375,22 @@ var suncom;
         Test.expect = expect;
         function notExpected(message) {
             if (Global.debugMode & DebugMode.TEST) {
-                suncom.Test.expect(true).interpret("Test.notExpected \u671F\u671B\u4E4B\u5916\u7684").toBe(false);
+                Test.expect(true).interpret("Test.notExpected \u671F\u671B\u4E4B\u5916\u7684").toBe(false);
             }
         }
         Test.notExpected = notExpected;
         function assertTrue(value, message) {
             if (Global.debugMode & DebugMode.TEST) {
-                suncom.Test.expect(value).interpret(message || "Test.assertTrue error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(true);
+                Test.expect(value).interpret(message || "Test.assertTrue error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(true);
             }
         }
         Test.assertTrue = assertTrue;
         function assertFalse(value, message) {
             if (Global.debugMode & DebugMode.TEST) {
-                suncom.Test.expect(value).interpret(message || "Test.assertFalse error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(false);
+                Test.expect(value).interpret(message || "Test.assertFalse error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(false);
             }
         }
         Test.assertFalse = assertFalse;
     })(Test = suncom.Test || (suncom.Test = {}));
 })(suncom || (suncom = {}));
+//# sourceMappingURL=suncom.js.map

@@ -12,7 +12,7 @@ module suncore {
         /**
          * 消息列表
          */
-        const $queues: { [mod: number]: IMsgQMsg[] } = {};
+        const $queues: { [mod: number]: MsgQMsg[] } = {};
 
         /**
          * 模块状态
@@ -37,31 +37,25 @@ module suncore {
                 suncom.Logger.warn(suncom.DebugMode.ANY, `消息发送失败，消息ID非法 mod:${dst}, id:${id}`);
                 return;
             }
-            let array: IMsgQMsg[] = $queues[dst] || null;
-            if (array === null) {
+            let array: MsgQMsg[] = $queues[dst];
+            if (array === void 0) {
                 array = $queues[dst] = [];
             }
-            const msg: IMsgQMsg = {
-                dst: dst,
-                seqId: seqId,
-                id: id,
-                data: data
-            };
-            array.push(msg);
+            array.push(MsgQMsg.create().setTo(dst, seqId, id, data));
         }
 
         /**
          * 获取消息
          * @id: 只获取指定ID的消息，若为void 0则不校验
          */
-        export function fetch(mod: MsgQModEnum, id?: number): IMsgQMsg {
-            const queue: IMsgQMsg[] = $queues[mod] || null;
+        export function fetch(mod: MsgQModEnum, id?: number): MsgQMsg {
+            const queue: MsgQMsg[] = $queues[mod];
             // 消息队列为空
-            if (queue === null || queue.length === 0) {
+            if (queue === void 0 || queue.length === 0) {
                 return null;
             }
             for (let i: number = 0; i < queue.length; i++) {
-                const msg: IMsgQMsg = queue[i];
+                const msg: MsgQMsg = queue[i];
                 if (mod === MsgQModEnum.NSL || msg.seqId < seqId) {
                     if (id === void 0 || msg.id === id) {
                         queue.splice(i, 1);
@@ -99,7 +93,7 @@ module suncore {
                 max = MsgQIdEnum.NSL_MSG_ID_END;
             }
             else {
-                suncom.Test.notExpected(`未知的消息范围 mod:${mod}`);
+                throw Error(`未知的消息范围 mod:${mod}`);
             }
             return id >= min && id < max;
         }
@@ -117,6 +111,10 @@ module suncore {
         export function setModuleActive(mod: MsgQModEnum, active: boolean): void {
             $modStats[mod] = active;
             if (active === false) {
+                const array: MsgQMsg[] = $queues[mod] || [];
+                while (array.length > 0) {
+                    array.pop().recover();
+                }
                 delete $queues[mod];
             }
         }
