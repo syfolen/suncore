@@ -39,7 +39,6 @@ module suncore {
                 return;
             }
             super.destroy();
-
             Laya.timer.clear(this, this.$onFrameLoop);
         }
 
