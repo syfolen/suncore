@@ -86,7 +86,6 @@ module suncore {
 
             // 定时器不属于帧逻辑
             M.timerManager.executeTimer();
-
             // 始终派发帧相关事件
             this.facade.sendNotification(NotifyKey.ENTER_FRAME);
 
@@ -97,7 +96,6 @@ module suncore {
 
             // 始终派发帧相关事件
             this.facade.sendNotification(NotifyKey.LATER_FRAME);
-
             // 处理MsgQ业务
             this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS);
         }
