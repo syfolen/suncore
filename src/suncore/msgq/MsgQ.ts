@@ -20,9 +20,9 @@ module suncore {
         const $modStats: { [mod: number]: boolean } = {};
 
         /**
-         * MsgQ消息序号
+         * 批次编号
          */
-        export let seqId: number = 1;
+        export let batchIndex: number = 1;
 
         /**
          * 发送消息（异步）
@@ -41,7 +41,8 @@ module suncore {
             if (array === void 0) {
                 array = $queues[dst] = [];
             }
-            array.push(MsgQMsg.create().setTo(dst, seqId, id, data));
+            const msg: MsgQMsg = suncom.Pool.getItemByClass<MsgQMsg>("suncore.MsgQMsg", MsgQMsg);
+            array.push(msg.setTo(dst, id, data, batchIndex));
         }
 
         /**
@@ -56,7 +57,7 @@ module suncore {
             }
             for (let i: number = 0; i < queue.length; i++) {
                 const msg: MsgQMsg = queue[i];
-                if (mod === MsgQModEnum.NSL || msg.seqId < seqId) {
+                if (mod === MsgQModEnum.NSL || msg.batchIndex < batchIndex) {
                     if (id === void 0 || msg.id === id) {
                         queue.splice(i, 1);
                         return msg;
@@ -113,7 +114,7 @@ module suncore {
             if (active === false) {
                 const array: MsgQMsg[] = $queues[mod] || [];
                 while (array.length > 0) {
-                    array.pop().recover();
+                    suncom.Pool.recover("suncore.MsgQMsg", array.pop());
                 }
                 delete $queues[mod];
             }

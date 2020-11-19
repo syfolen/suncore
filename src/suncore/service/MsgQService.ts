@@ -50,10 +50,10 @@ module suncore {
                         break;
                     }
                     this.$dealMsgQMsg(msg.id, msg.data);
-                    msg.recover();
+                    suncom.Pool.recover("suncore.MsgQMsg", msg);
                 }
-                // 更新消息序列号
-                MsgQ.seqId++;
+                // 更新批次编号
+                MsgQ.batchIndex++;
             }
         }
 

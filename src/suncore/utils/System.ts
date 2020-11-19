@@ -107,7 +107,8 @@ module suncore {
                 else if (groupId > 1000) {
                     throw Error(`自定义的Task GroupId不允许超过1000`);
                 }
-                const message: Message = Message.create();
+                const message: Message = suncom.Pool.getItemByClass<Message>("suncore.Message", Message);
+                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
                 message.task = task;
                 message.groupId = groupId;
@@ -135,7 +136,8 @@ module suncore {
          */
         export function addTrigger(mod: ModuleEnum, delay: number, handler: suncom.Handler): void {
             if (System.isModuleStopped(mod) === false) {
-                const message: Message = Message.create();
+                const message: Message = suncom.Pool.getItemByClass<Message>("suncore.Message", Message);
+                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
                 message.handler = handler;
                 message.timeout = System.getModuleTimestamp(mod) + delay;
@@ -153,7 +155,8 @@ module suncore {
          */
         export function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.Handler): void {
             if (System.isModuleStopped(mod) === false) {
-                const message: Message = Message.create();
+                const message: Message = suncom.Pool.getItemByClass<Message>("suncore.Message", Message);
+                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
                 message.handler = handler;
                 message.priority = priority;

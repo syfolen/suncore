@@ -23,12 +23,12 @@ module suncore {
         /**
          * 本地时间
          */
-        private $localTime: number = new Date().valueOf();
+        private $localTime: number = Date.now();
 
         constructor() {
             super(MsgQModEnum.KAL);
-            // 注册帧事件
             Laya.timer.frameLoop(1, this, this.$onFrameLoop);
+            suncom.Pool.setKeyValue("suncore.MsgQMsg", "batchIndex", -1, 0);
         }
 
         /**
@@ -50,7 +50,7 @@ module suncore {
             // 本地历史时间
             const oldTime: number = this.$localTime;
             // 本地当前时间
-            this.$localTime = new Date().valueOf();
+            this.$localTime = Date.now();
 
             // 帧间隔时间
             this.$delta = this.$localTime - oldTime;

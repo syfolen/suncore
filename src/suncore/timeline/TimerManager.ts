@@ -5,16 +5,6 @@ module suncore {
      */
     export class TimerManager {
         /**
-         * 回收站
-         */
-        private $pool: Timer[] = [];
-
-        /**
-         * 定时器种子
-         */
-        private $seedId: number = 0;
-
-        /**
          * 定时器列表
          */
         private $timers: Timer[][] = [];
@@ -28,14 +18,7 @@ module suncore {
             for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
                 this.$timers[mod] = [];
             }
-        }
-
-        /**
-         * 生成新的定时器索引
-         */
-        private $createNewTimerId(): number {
-            this.$seedId++;
-            return this.$seedId;
+            suncom.Pool.setKeyValue("suncore.Timer", "timerId", -1, 0);
         }
 
         /**
@@ -73,7 +56,7 @@ module suncore {
                         let recycle: boolean = false;
                         // 移除无效定时器
                         if (timer.active === false || (timer.loops > 0 && timer.count >= timer.loops)) {
-                            recycle = true;
+                            delete this.$timerMap[timer.timerId];
                         }
                         else {
                             this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.args, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.count);
@@ -88,7 +71,7 @@ module suncore {
                                 timer.method.apply(timer.caller, timer.args.concat(timer.count, timer.loops));
                             }
                         }
-                        recycle === true && this.$recover(timer);
+                        suncom.Pool.recover("suncore.Timer", timer);
                     }
                 }
             }
@@ -113,7 +96,7 @@ module suncore {
 
             // 若编号未指定，则生成新的定时器
             if (timerId === 0) {
-                timerId = this.$createNewTimerId();
+                timerId = suncom.Common.createHashId();
             }
             // 若创建时间未指定，则默认为系统时间
             if (timestamp === -1) {
@@ -179,7 +162,7 @@ module suncore {
             }
 
             // 对定时器进行实例化
-            const timer: Timer = this.$pool.length > 0 ? this.$pool.pop() : new Timer();
+            const timer: Timer = suncom.Pool.getItemByClass<Timer>("suncore.Timer", Timer);
             timer.mod = mod;
             timer.active = true;
             timer.delay = delay;
@@ -251,18 +234,8 @@ module suncore {
             const timers: Timer[] = this.$timers[mod];
             while (timers.length > 0) {
                 const timer: Timer = timers.pop();
-                this.$timerMap[timer.timerId] !== void 0 && this.$recover(timer);
-            }
-        }
-
-        /**
-         * 回收定时器对象
-         */
-        private $recover(timer: Timer): void {
-            if (timer.timerId > 0) {
-                timer.timerId = 0;
-                this.$pool.push(timer);
                 delete this.$timerMap[timer.timerId];
+                suncom.Pool.recover("suncore.Timer", timer);
             }
         }
     }

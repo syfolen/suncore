@@ -5,16 +5,6 @@ module suncore {
      */
     export class Message {
         /**
-         * 种子
-         */
-        static $seed: number = 0;
-
-        /**
-         * 对象池
-         */
-        static $pool: Message[] = [];
-
-        /**
          * 编号
          */
         hashId: number = 0;
@@ -60,21 +50,5 @@ module suncore {
          * 超时时间
          */
         timeout: number = 0;
-
-        recover(): void {
-            if (this.hashId > 0) {
-                this.hashId = 0;
-                Message.$pool.push(this);
-            }
-            else {
-                throw Error(`对象己被回收，若很久未报错，则可移除 if 以提升性能`);
-            }
-        }
-
-        static create(): Message {
-            const msg: Message = this.$pool.length > 0 ? this.$pool.pop() : new Message();
-            msg.hashId = ++this.$seed;
-            return msg;
-        }
     }
 }

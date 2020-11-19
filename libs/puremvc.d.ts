@@ -11,21 +11,29 @@
 declare module puremvc {
     /**
      * 消息关心的模块ID
+     * 说明：
+     * 1. 当你在非系统模块中监听了系统消息，但又不希望在该模块未激活时响应消息时，则可在监听消息时指定消息关心的模块ID来达到此目的
      */
     enum CareModuleID {
         /**
-         * CUSTOM
+         * suncore.ModuleEnum.CUSTOM
          */
         CUSTOM,
 
         /**
-         * TIMELINE
+         * suncore.ModuleEnum.TIMELINE
          */
         TIMELINE
     }
 
+    /**
+     * 命令接口，实现此接口的对象允许通过registerCommand注册
+     */
     interface ICommand {
 
+        /**
+         * 命令执行接口
+         */
         execute(...args: any[]): void;
     }
 
@@ -39,7 +47,7 @@ declare module puremvc {
         careStatMod?: suncore.ModuleEnum;
 
         /**
-         * 消息响应间隔，最小为：1，默认为：1
+         * 消息响应间隔，最小为：1
          */
         delay?: number;
 
@@ -49,18 +57,38 @@ declare module puremvc {
         args?: any[];
     }
 
+    /**
+     * PureMVC外观类
+     */
     class Facade {
-
+        /**
+         * 单例
+         */
         static inst: Facade;
 
+        /**
+         * 获取单例对象
+         */
         static getInstance(): Facade;
 
+        /**
+         * 初始化MsgQ配置（优先于模型类）
+         */
         protected $initMsgQ(): void;
 
+        /**
+         * 初始化模型类（优先于控制类）
+         */
         protected $initializeModel(): void;
 
+        /**
+         * 初始化视图类
+         */
         protected $initializeView(): void;
 
+        /**
+         * 初始化控制类（优先于视图类）
+         */
         protected $initializeController(): void;
 
         /**
@@ -72,42 +100,48 @@ declare module puremvc {
 
         /**
          * 注册MsgQ模块的命令前缀
+         * 说明：
+         * 1. 通过消息前缀来限制消息在模块内传递
+         * 2. 每个模块仅允许注册一次
          */
         protected $regMsgQCmd(msgQMod: suncore.MsgQModEnum, prefix: string): void;
 
         /**
-         * 关心模块状态的命令
+         * 指定关心模块状态的命令
          */
         protected $setCareStatForCmd(cmd: string): void;
 
         /**
-         * @receiveOnce: 是否只响应一次，默认为：false
-         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.MID
-         * @option: 可选参数
-         * 1. 为number时表示回调函数的响应间隔延时，最小为：1，默认为：1
+         * 注册监听
+         * @receiveOnce: 是否为一次性监听，默认为: false
+         * @priority: 响应优先级，值越大，优先级越高，默认为：suncom.EventPriorityEnum.MID
+         * @option: 可选参数，默认为：1
+         * 1. 为number时表示回调函数的响应间隔延时，最小为：1
          * 2. 为CareModuleID时表示消息所关心的系统模块
          * 3. 为数组时代表执行回调函数时的默认参数
+         * 说明：
+         * 1. 若需覆盖参数，请先调用removeObserver移除监听后再重新注册
          */
         registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): Observer;
 
         /**
-         * 移除观察者
+         * 移除监听
          */
         removeObserver(name: string, method: Function, caller: Object): void;
 
         /**
          * 查询是否存在观察者
+         * @method: 若为null，则只校验caller
+         * @caller: 若为null，则只校验method
          */
         hasObserver(name: string, method: Function, caller?: Object): boolean;
 
         /**
          * 注册命令
-         * @receiveOnce: 是否只响应一次，默认为：false
-         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.MID
-         * @option: 可选参数
-         * 1. 为number时表示回调函数的响应间隔延时，最小为：1，默认为：1
-         * 2. 为CareModuleID时表示消息所关心的系统模块
-         * 3. 为数组时代表执行回调函数时的默认参数
+         * @cls: 命令被响应时，会构建cls实例并执行其execute方法
+         * @其余参数请参考registerObserver接口
+         * 说明：
+         * 1. 命令不可重复注册
          */
         registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): void;
 
@@ -117,66 +151,79 @@ declare module puremvc {
         removeCommand(name: string): void;
 
         /**
-         * 查询是否存在指定命令
+         * 查询是否存在命令
          */
         hasCommand(name: string): boolean;
 
         /**
-         * 注册模型代理
+         * 注册数据代理类实例
+         * 说明：
+         * 1. 同一类型的实例不可重复注册
          */
-        registerProxy(proxy: Proxy): void;
+        registerProxy(proxy: Proxy<any>): void;
 
         /**
-         * 移除模型代理
+         * 移除数据代理类实例
          */
         removeProxy(name: string): void;
 
         /**
-         * 获取模型代理
+         * 获取数据代理类实例
+         * 说明：
+         * 1. 若实例不存在，则会返回: null
          */
-        retrieveProxy(name: string): Proxy;
+        retrieveProxy(name: string): Proxy<any>;
 
         /**
-         * 查询是否存在指定模型代理
+         * 查询是否存在数据代理类实例
          */
         hasProxy(name: string): boolean;
 
         /**
-         * 注册视图中介者对象
+         * 注册视图中介者实例
+         * 说明：
+         * 1. 同一类型的实例不可重复注册
          */
-        registerMediator(mediator: Mediator): void;
+        registerMediator(mediator: Mediator<any>): void;
 
         /**
-         * 移除视图中介者对象
+         * 移除视图中介者实例
          */
         removeMediator(name: string): void;
 
         /**
-         * 获取视图中介者对象
+         * 获取视图中介者实例
+         * 说明：
+         * 1. 若实例不存在，则会返回: null
          */
-        retrieveMediator(name: string): Mediator;
+        retrieveMediator(name: string): Mediator<any>;
 
         /**
-         * 查询是否存在指定视图中介者对象
+         * 查询是否存在视图中介者实例
          */
         hasMediator(name: string): boolean;
 
         /**
-         * 派发命令通知
-         * @args: 参数列表，允许为任意类型的数据
-         * @cancelable: 通知是否允许取消，默认为：true
+         * 派发通知
+         * @data: 参数对象，允许为任意类型的数据，传递多个参数时可指定其为数组，若需要传递的data本身就是数组，则需要传递[data]
+         * @cancelable: 通知是否允许被取消，默认为: true
          * @force: 强制响应，默认为：false
          * 说明：
          * 1. 有些事件关心模块状态，在模块未激活的情况下，将force设为true可以强制响应这类事件
          */
-        sendNotification(name: string, args?: any, cancelable?: boolean, force?: boolean): void;
+        sendNotification(name: string, data?: any, cancelable?: boolean, force?: boolean): void;
 
         /**
-         * 取消当前命令的派发
+         * 通知取消
+         * 说明：
+         * 1. 未响应的回调都将不再执行
          */
         notifyCancel(): void;
     }
 
+    /**
+     * 通知派发者
+     */
     class Notifier {
         /**
          * 是否己销毁
@@ -206,16 +253,22 @@ declare module puremvc {
         readonly destroyed: boolean;
     }
 
+    /**
+     * 观察者对象（内置对象，请勿在外部持有）
+     */
     class Observer {
     }
 
-    class Proxy extends Notifier {
+    /**
+     * 数据代理类
+     */
+    class Proxy<T> extends Notifier {
         /**
-         * 未初始化时值为：void 0
+         * 数据模型，未初始化时值为：void 0
          */
-        protected $data: any;
+        protected $data: T;
 
-        constructor(name: string, data?: any);
+        constructor(name: string, data?: T);
 
         /**
          * 注册回调（此时己注册）
@@ -227,40 +280,65 @@ declare module puremvc {
          */
         onRemove(): void;
 
-        getData(): any;
+        /**
+         * 获取数据模型
+         */
+        getData(): T;
 
-        setData(data: any): void;
+        /**
+         * 指定数据模型
+         */
+        setData(data: T): void;
     }
 
+    /**
+     * 简易命令
+     */
     abstract class SimpleCommand extends Notifier implements ICommand {
 
         abstract execute(...args: any[]): void;
     }
 
+    /**
+     * 复合命令
+     */
     abstract class MacroCommand extends Notifier implements ICommand {
 
+        /**
+         * 初始化复合命令
+         * 说明：
+         * 1. 一个复合命令通常由多个简易命令组成
+         */
         protected abstract $initializeMacroCommand(): void;
 
+        /**
+         * 添加子命令
+         * 说明：
+         * 1. 当复合命令被执行时，子命令将按照被添加的顺序先后执行
+         */
         protected $addSubCommand(cls: new () => ICommand): void;
 
         execute(): void;
     }
 
-    class Mediator extends Notifier {
+    /**
+     * 视图中介者
+     */
+    class Mediator<T> extends Notifier {
         /**
-         * 未初始化时值为：null
+         * 视图组件实例，未初始化时值为：null
          */
-        protected $viewComponent: any;
+        protected $viewComponent: T;
 
-        constructor(name: string, viewComponent?: any);
+        constructor(name: string, viewComponent?: T);
 
         /**
-         * 注册事件回调
-         * @priority: 优先级，优先响应级别高的消息，值越大，级别越高，默认为：suncom.EventPriorityEnum.MID
-         * @option: 可选参数
-         * 1. 为number时表示回调函数的响应间隔延时，最小为：1，默认为：1
-         * 2. 为CareModuleID时表示消息所关心的系统模块
-         * 3. 为数组时代表执行回调函数时的默认参数
+         * 列举感兴趣的通知
+         */
+        listNotificationInterests(): void;
+
+        /**
+         * 指定通知处理函数，接口说明请参考: Facade.registerObserver
          */
         protected $handleNotification(name: string, method: Function, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): void;
 
@@ -274,9 +352,15 @@ declare module puremvc {
          */
         onRemove(): void;
 
-        getViewComponent(): any;
+        /**
+         * 获取视图组件实例
+         */
+        getViewComponent(): T;
 
-        setViewComponent(view: any): void;
+        /**
+         * 指定视图组件实例
+         */
+        setViewComponent(view: T): void;
     }
 
     /**

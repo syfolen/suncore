@@ -79,7 +79,7 @@ module suncore {
                     for (let id: number = this.$tasks.length - 1; id > -1; id--) {
                         const tasks: Message[] = this.$tasks[id];
                         if (tasks.length > 0 && this.$dealTaskMessage(tasks[0]) === true) {
-                            tasks.shift().recover();
+                            suncom.Pool.recover("suncore.Message", tasks.shift());
                             dealCount++;
                         }
                         if (tasks.length > 1) {
@@ -94,7 +94,7 @@ module suncore {
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     // 返回true时应当移除触发器
                     while (queue.length > 0 && this.$dealTriggerMessage(queue[0]) === true) {
-                        queue.shift().recover();
+                        suncom.Pool.recover("suncore.Message", queue.shift());
                         if (this.$out.canceled === false) {
                             dealCount++;
                         }
@@ -113,7 +113,7 @@ module suncore {
                         if (this.$dealCustomMessage(message) === false) {
                             okCount--;
                         }
-                        message.recover();
+                        suncom.Pool.recover("suncore.Message", message);
                     }
 
                     // 总处理条数累加
@@ -131,7 +131,7 @@ module suncore {
                     const message: Message = queue.shift();
                     this.$dealCustomMessage(message);
                     dealCount++;
-                    message.recover();
+                    suncom.Pool.recover("suncore.Message", message);
                 }
             }
         }
@@ -303,7 +303,7 @@ module suncore {
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
                 message.task.done = true;
             }
-            message.recover();
+            suncom.Pool.recover("suncore.Message", message);
         }
 
         /**
@@ -316,7 +316,7 @@ module suncore {
                     while (messages.length > 0) {
                         const message = messages.shift();
                         message.task.done = true;
-                        message.recover();
+                        suncom.Pool.recover("suncore.Message", message);
                     }
                     break;
                 }

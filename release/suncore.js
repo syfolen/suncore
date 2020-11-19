@@ -134,8 +134,9 @@ var suncore;
             var _this = _super.call(this, MsgQModEnum.KAL) || this;
             _this.$delta = 0;
             _this.$runTime = 0;
-            _this.$localTime = new Date().valueOf();
+            _this.$localTime = Date.now();
             Laya.timer.frameLoop(1, _this, _this.$onFrameLoop);
+            suncom.Pool.setKeyValue("suncore.MsgQMsg", "batchIndex", -1, 0);
             return _this;
         }
         Engine.prototype.destroy = function () {
@@ -147,7 +148,7 @@ var suncore;
         };
         Engine.prototype.$onFrameLoop = function () {
             var oldTime = this.$localTime;
-            this.$localTime = new Date().valueOf();
+            this.$localTime = Date.now();
             this.$delta = this.$localTime - oldTime;
             if (this.$delta > 0) {
                 this.$runTime += this.$delta;
@@ -192,28 +193,13 @@ var suncore;
             this.caller = null;
             this.timeout = 0;
         }
-        Message.prototype.recover = function () {
-            if (this.hashId > 0) {
-                this.hashId = 0;
-                Message.$pool.push(this);
-            }
-            else {
-                throw Error("\u5BF9\u8C61\u5DF1\u88AB\u56DE\u6536\uFF0C\u82E5\u5F88\u4E45\u672A\u62A5\u9519\uFF0C\u5219\u53EF\u79FB\u9664 if \u4EE5\u63D0\u5347\u6027\u80FD");
-            }
-        };
-        Message.create = function () {
-            var msg = this.$pool.length > 0 ? this.$pool.pop() : new Message();
-            msg.hashId = ++this.$seed;
-            return msg;
-        };
-        Message.$seed = 0;
-        Message.$pool = [];
         return Message;
     }());
     suncore.Message = Message;
     var MessageManager = (function () {
         function MessageManager() {
             this.$queues = [];
+            suncom.Pool.setKeyValue("suncore.Message", "hashId", -1, 0);
             for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
                 this.$queues[mod] = new MessageQueue(mod);
             }
@@ -276,7 +262,7 @@ var suncore;
                     for (var id = this.$tasks.length - 1; id > -1; id--) {
                         var tasks = this.$tasks[id];
                         if (tasks.length > 0 && this.$dealTaskMessage(tasks[0]) === true) {
-                            tasks.shift().recover();
+                            suncom.Pool.recover("suncore.Message", tasks.shift());
                             dealCount++;
                         }
                         if (tasks.length > 1) {
@@ -289,7 +275,7 @@ var suncore;
                 }
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     while (queue.length > 0 && this.$dealTriggerMessage(queue[0]) === true) {
-                        queue.shift().recover();
+                        suncom.Pool.recover("suncore.Message", queue.shift());
                         if (this.$out.canceled === false) {
                             dealCount++;
                         }
@@ -303,7 +289,7 @@ var suncore;
                         if (this.$dealCustomMessage(message) === false) {
                             okCount--;
                         }
-                        message.recover();
+                        suncom.Pool.recover("suncore.Message", message);
                     }
                     dealCount += okCount;
                 }
@@ -315,7 +301,7 @@ var suncore;
                     var message = queue.shift();
                     this.$dealCustomMessage(message);
                     dealCount++;
-                    message.recover();
+                    suncom.Pool.recover("suncore.Message", message);
                 }
             }
         };
@@ -436,7 +422,7 @@ var suncore;
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
                 message.task.done = true;
             }
-            message.recover();
+            suncom.Pool.recover("suncore.Message", message);
         };
         MessageQueue.prototype.cancelTaskByGroupId = function (mod, groupId) {
             for (var id = 0; id < this.$tasks.length; id++) {
@@ -445,7 +431,7 @@ var suncore;
                     while (messages.length > 0) {
                         var message = messages.shift();
                         message.task.done = true;
-                        message.recover();
+                        suncom.Pool.recover("suncore.Message", message);
                     }
                     break;
                 }
@@ -457,30 +443,17 @@ var suncore;
     var MsgQMsg = (function () {
         function MsgQMsg() {
             this.dst = MsgQModEnum.ANY;
-            this.seqId = 0;
             this.id = 0;
             this.data = null;
+            this.batchIndex = 0;
         }
-        MsgQMsg.prototype.setTo = function (dst, seqId, id, data) {
+        MsgQMsg.prototype.setTo = function (dst, id, data, batchIndex) {
             this.id = id;
             this.dst = dst;
             this.data = data;
-            this.seqId = seqId;
+            this.batchIndex = batchIndex;
             return this;
         };
-        MsgQMsg.prototype.recover = function () {
-            if (this.seqId > 0) {
-                this.seqId = 0;
-                MsgQMsg.$pool.push(this);
-            }
-            else {
-                throw Error("\u5BF9\u8C61\u5DF1\u88AB\u56DE\u6536\uFF0C\u82E5\u5F88\u4E45\u672A\u62A5\u9519\uFF0C\u5219\u53EF\u79FB\u9664 if \u4EE5\u63D0\u5347\u6027\u80FD");
-            }
-        };
-        MsgQMsg.create = function () {
-            return this.$pool.length > 0 ? this.$pool.pop() : new MsgQMsg();
-        };
-        MsgQMsg.$pool = [];
         return MsgQMsg;
     }());
     suncore.MsgQMsg = MsgQMsg;
@@ -514,9 +487,9 @@ var suncore;
                         break;
                     }
                     this.$dealMsgQMsg(msg.id, msg.data);
-                    msg.recover();
+                    suncom.Pool.recover("suncore.MsgQMsg", msg);
                 }
-                MsgQ.seqId++;
+                MsgQ.batchIndex++;
             }
         };
         return MsgQService;
@@ -688,18 +661,13 @@ var suncore;
     suncore.Timer = Timer;
     var TimerManager = (function () {
         function TimerManager() {
-            this.$pool = [];
-            this.$seedId = 0;
             this.$timers = [];
             this.$timerMap = {};
             for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
                 this.$timers[mod] = [];
             }
+            suncom.Pool.setKeyValue("suncore.Timer", "timerId", -1, 0);
         }
-        TimerManager.prototype.$createNewTimerId = function () {
-            this.$seedId++;
-            return this.$seedId;
-        };
         TimerManager.prototype.executeTimer = function () {
             for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModulePaused(mod) === false) {
@@ -720,7 +688,7 @@ var suncore;
                         }
                         var recycle = false;
                         if (timer.active === false || (timer.loops > 0 && timer.count >= timer.loops)) {
-                            recycle = true;
+                            delete this.$timerMap[timer.timerId];
                         }
                         else {
                             this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.args, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.count);
@@ -734,7 +702,7 @@ var suncore;
                                 timer.method.apply(timer.caller, timer.args.concat(timer.count, timer.loops));
                             }
                         }
-                        recycle === true && this.$recover(timer);
+                        suncom.Pool.recover("suncore.Timer", timer);
                     }
                 }
             }
@@ -749,7 +717,7 @@ var suncore;
             if (count === void 0) { count = 0; }
             var currentTimestamp = System.getModuleTimestamp(mod);
             if (timerId === 0) {
-                timerId = this.$createNewTimerId();
+                timerId = suncom.Common.createHashId();
             }
             if (timestamp === -1) {
                 timestamp = currentTimestamp;
@@ -788,7 +756,7 @@ var suncore;
                 var offset = delay - firstDelay;
                 timeout = suncom.Mathf.clamp(timeout - offset, currentTimestamp + 1, timeout);
             }
-            var timer = this.$pool.length > 0 ? this.$pool.pop() : new Timer();
+            var timer = suncom.Pool.getItemByClass("suncore.Timer", Timer);
             timer.mod = mod;
             timer.active = true;
             timer.delay = delay;
@@ -843,14 +811,8 @@ var suncore;
             var timers = this.$timers[mod];
             while (timers.length > 0) {
                 var timer = timers.pop();
-                this.$timerMap[timer.timerId] !== void 0 && this.$recover(timer);
-            }
-        };
-        TimerManager.prototype.$recover = function (timer) {
-            if (timer.timerId > 0) {
-                timer.timerId = 0;
-                this.$pool.push(timer);
                 delete this.$timerMap[timer.timerId];
+                suncom.Pool.recover("suncore.Timer", timer);
             }
         };
         return TimerManager;
@@ -868,7 +830,7 @@ var suncore;
     (function (MsgQ) {
         var $queues = {};
         var $modStats = {};
-        MsgQ.seqId = 1;
+        MsgQ.batchIndex = 1;
         function send(dst, id, data) {
             if (isModuleActive(dst) === false) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, "\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6A21\u5757\u5DF1\u6682\u505C mod:" + MsgQModEnum[dst]);
@@ -882,7 +844,8 @@ var suncore;
             if (array === void 0) {
                 array = $queues[dst] = [];
             }
-            array.push(MsgQMsg.create().setTo(dst, MsgQ.seqId, id, data));
+            var msg = suncom.Pool.getItemByClass("suncore.MsgQMsg", MsgQMsg);
+            array.push(msg.setTo(dst, id, data, MsgQ.batchIndex));
         }
         MsgQ.send = send;
         function fetch(mod, id) {
@@ -892,7 +855,7 @@ var suncore;
             }
             for (var i = 0; i < queue.length; i++) {
                 var msg = queue[i];
-                if (mod === MsgQModEnum.NSL || msg.seqId < MsgQ.seqId) {
+                if (mod === MsgQModEnum.NSL || msg.batchIndex < MsgQ.batchIndex) {
                     if (id === void 0 || msg.id === id) {
                         queue.splice(i, 1);
                         return msg;
@@ -939,7 +902,7 @@ var suncore;
             if (active === false) {
                 var array = $queues[mod] || [];
                 while (array.length > 0) {
-                    array.pop().recover();
+                    suncom.Pool.recover("suncore.MsgQMsg", array.pop());
                 }
                 delete $queues[mod];
             }
@@ -1027,7 +990,8 @@ var suncore;
                 else if (groupId > 1000) {
                     throw Error("\u81EA\u5B9A\u4E49\u7684Task GroupId\u4E0D\u5141\u8BB8\u8D85\u8FC71000");
                 }
-                var message = Message.create();
+                var message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
                 message.task = task;
                 message.groupId = groupId;
@@ -1047,7 +1011,8 @@ var suncore;
         System.cancelTaskByGroupId = cancelTaskByGroupId;
         function addTrigger(mod, delay, handler) {
             if (System.isModuleStopped(mod) === false) {
-                var message = Message.create();
+                var message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
                 message.handler = handler;
                 message.timeout = System.getModuleTimestamp(mod) + delay;
@@ -1061,7 +1026,8 @@ var suncore;
         System.addTrigger = addTrigger;
         function addMessage(mod, priority, handler) {
             if (System.isModuleStopped(mod) === false) {
-                var message = Message.create();
+                var message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
                 message.handler = handler;
                 message.priority = priority;
