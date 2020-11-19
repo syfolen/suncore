@@ -162,7 +162,7 @@ module suncore {
             }
 
             // 对定时器进行实例化
-            const timer: Timer = suncom.Pool.getItemByClass<Timer>("suncore.Timer", Timer);
+            const timer: Timer = suncom.Pool.getItemByClass("suncore.Timer", Timer);
             timer.mod = mod;
             timer.active = true;
             timer.delay = delay;

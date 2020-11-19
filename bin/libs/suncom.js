@@ -79,7 +79,7 @@ var suncom;
                     index = i;
                 }
             }
-            var event = Laya.Pool.getItemByClass("suncom.EventInfo", EventInfo);
+            var event = Pool.getItemByClass("suncom.EventInfo", EventInfo);
             event.type = type;
             event.caller = caller;
             event.method = method;
@@ -114,7 +114,7 @@ var suncom;
                 var event_1 = list[i];
                 if (event_1.method === method && event_1.caller === caller) {
                     list.splice(i, 1);
-                    Laya.Pool.recover("suncom.EventInfo", event_1);
+                    Pool.recover("suncom.EventInfo", event_1);
                     break;
                 }
             }

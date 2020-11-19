@@ -728,7 +728,7 @@ declare module suncom {
         /**
          * 根据标识从池中获取对象，获取失败时返回null
          */
-        function getItem<T>(sign: string): T;
+        function getItem(sign: string): any;
 
         /**
          * 根据标识从池中获取对象，获取失败时将创建新的对象
@@ -737,7 +737,7 @@ declare module suncom {
          * 说明：
          * 1. 通过此方法创建的对象，通过setKeyValue指定的属性亦会被重置为defaultValue
          */
-        function getItemByClass<T>(sign: string, cls: any, args?: any): T;
+        function getItemByClass(sign: string, cls: any, args?: any): any;
 
         /**
          * 根据标识回收对象

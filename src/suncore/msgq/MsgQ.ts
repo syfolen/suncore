@@ -41,7 +41,7 @@ module suncore {
             if (array === void 0) {
                 array = $queues[dst] = [];
             }
-            const msg: MsgQMsg = suncom.Pool.getItemByClass<MsgQMsg>("suncore.MsgQMsg", MsgQMsg);
+            const msg: MsgQMsg = suncom.Pool.getItemByClass("suncore.MsgQMsg", MsgQMsg);
             array.push(msg.setTo(dst, id, data, batchIndex));
         }
 
