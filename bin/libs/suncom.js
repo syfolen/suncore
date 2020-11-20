@@ -113,8 +113,7 @@ var suncom;
             for (var i = 0; i < list.length; i++) {
                 var event_1 = list[i];
                 if (event_1.method === method && event_1.caller === caller) {
-                    list.splice(i, 1);
-                    Pool.recover("suncom.EventInfo", event_1);
+                    Pool.recover("suncom.EventInfo", list.splice(i, 1)[0]);
                     break;
                 }
             }
