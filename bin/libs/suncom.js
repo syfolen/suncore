@@ -403,7 +403,9 @@ var suncom;
             configurable: true
         });
         Handler.create = function (caller, method, args, once) {
-            return Pool.getItemByClass("suncom.Handler", Handler).setTo(caller, method, args, once);
+            var handler = Pool.getItemByClass("suncom.Handler", Handler);
+            handler.$id = 0;
+            return handler.setTo(caller, method, args, once);
         };
         return Handler;
     }());
