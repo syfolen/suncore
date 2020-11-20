@@ -10,7 +10,6 @@ module suncore {
         private $queues: MessageQueue[] = [];
 
         constructor() {
-            suncom.Pool.setKeyValue("suncore.Message", "hashId", -1, 0);
             for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
                 this.$queues[mod] = new MessageQueue(mod);
             }

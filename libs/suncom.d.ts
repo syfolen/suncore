@@ -337,7 +337,7 @@ declare module suncom {
         runWith(args: any): any;
 
         /**
-         * 回收对象
+         * 回收到对象池
          */
         recover(): void;
 
@@ -734,8 +734,6 @@ declare module suncom {
          * 根据标识从池中获取对象，获取失败时将创建新的对象
          * @cls: 对象类型，支持Laya.Prefab
          * @args: 构造函数参数列表，若cls为Laya.Prefab，则args应当为字符串
-         * 说明：
-         * 1. 通过此方法创建的对象，通过setKeyValue指定的属性亦会被重置为defaultValue
          */
         function getItemByClass(sign: string, cls: any, args?: any): any;
 
@@ -749,18 +747,6 @@ declare module suncom {
          * 清缓指定标识下的所有己缓存对象
          */
         function clear(sign: string): void;
-
-        /**
-         * 指定对象的键值（此方法可确保池中对象的安全性）
-         * @inPoolValue: 对象在池中的属性值
-         * @defaultValue: 对象出池时的默认属性值
-         * 说明：
-         * 1. 当对象入池时，对象中的指定属性将被设置成指定值
-         * 2. 对象出池前，会对对象中的指定属性进行判断，若不为指定值，则视不安全对象
-         * 3. inPoolValue与defaultValue不可使用相同值
-         * 4. 仅第一次调用时生效
-         */
-        function setKeyValue(sign: string, key: string, inPoolValue: number | string, defaultValue?: number | string): void;
     }
 
     /**

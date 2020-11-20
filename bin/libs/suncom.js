@@ -347,13 +347,12 @@ var suncom;
             this.$caller = null;
             this.$method = null;
             this.$once = false;
-            Pool.setKeyValue("suncom.Handler", "$id", -1, 0);
         }
         Handler.prototype.setTo = function (caller, method, args, once) {
             if (args === void 0) { args = null; }
             if (once === void 0) { once = true; }
             if (this.$id === -1) {
-                throw Error("Handler\u5DF1\u88AB\u56DE\u6536");
+                throw Error("Handler\u5DF1\u88AB\u56DE\u6536\uFF01\uFF01\uFF01");
             }
             this.$id = Common.createHashId();
             this.$caller = caller || null;
@@ -385,6 +384,7 @@ var suncom;
         };
         Handler.prototype.recover = function () {
             if (Pool.recover("suncom.Handler", this) === true) {
+                this.$id = -1;
                 this.$method = null;
             }
         };
@@ -1277,23 +1277,13 @@ var suncom;
     var Pool;
     (function (Pool) {
         var $pool = {};
-        var $inPoolValueMap = {};
         function getItem(sign) {
             var array = $pool[sign];
             if (array === void 0 || array.length === 0) {
                 return null;
             }
             var item = array.pop();
-            var ipv = $inPoolValueMap[sign];
-            if (ipv === void 0) {
-                delete item["__suncom__$__inPool__"];
-            }
-            else if (item[ipv.key] !== ipv.inPoolValue) {
-                throw Error("\u5BF9\u8C61[" + Common.getQualifiedClassName(item) + "]\u7684\u5C5E\u6027{" + ipv.key + "}\u7684\u503C\u5728\u88AB\u5BF9\u8C61\u6C60\u56DE\u6536\u4E4B\u540E\u53D1\u751F\u8FC7\u53D8\u66F4\uFF01");
-            }
-            else {
-                item[ipv.key] = ipv.defaultValue;
-            }
+            delete item["__suncom__$__inPool__"];
             return item;
         }
         Pool.getItem = getItem;
@@ -1315,30 +1305,15 @@ var suncom;
                         cls.call(item, args);
                     }
                 }
-                var ipv = $inPoolValueMap[sign];
-                if (ipv !== void 0 && ipv.defaultValue !== void 0) {
-                    item[ipv.key] = ipv.defaultValue;
-                }
             }
             return item;
         }
         Pool.getItemByClass = getItemByClass;
         function recover(sign, item) {
-            var ipv = $inPoolValueMap[sign];
-            if (ipv === void 0) {
-                if (item["__suncom__$__inPool__"] === true) {
-                    Logger.warn(DebugMode.ANY, "\u5BF9\u8C61\u91CD\u590D\u56DE\u6536\uFF01\uFF01\uFF01");
-                    return false;
-                }
-                item["__suncom__$__inPool__"] = true;
+            if (item["__suncom__$__inPool__"] === true) {
+                return false;
             }
-            else {
-                if (item[ipv.key] === ipv.inPoolValue) {
-                    Logger.warn(DebugMode.ANY, "\u5BF9\u8C61\u91CD\u590D\u56DE\u6536\uFF01\uFF01\uFF01");
-                    return false;
-                }
-                item[ipv.key] = ipv.inPoolValue;
-            }
+            item["__suncom__$__inPool__"] = true;
             var array = $pool[sign];
             if (array === void 0) {
                 $pool[sign] = [item];
@@ -1355,21 +1330,6 @@ var suncom;
             }
         }
         Pool.clear = clear;
-        function setKeyValue(sign, key, inPoolValue, defaultValue) {
-            if ($inPoolValueMap[sign] !== void 0) {
-                return;
-            }
-            if (inPoolValue === defaultValue) {
-                throw Error("\u4E0D\u53EF\u6307\u5B9A\u76F8\u540C\u7684\u5C5E\u6027\u503C");
-            }
-            var ipv = {
-                key: key,
-                inPoolValue: inPoolValue,
-                defaultValue: defaultValue
-            };
-            $inPoolValueMap[sign] = ipv;
-        }
-        Pool.setKeyValue = setKeyValue;
     })(Pool = suncom.Pool || (suncom.Pool = {}));
     var Random;
     (function (Random) {

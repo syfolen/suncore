@@ -2,7 +2,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -136,7 +136,6 @@ var suncore;
             _this.$runTime = 0;
             _this.$localTime = Date.now();
             Laya.timer.frameLoop(1, _this, _this.$onFrameLoop);
-            suncom.Pool.setKeyValue("suncore.MsgQMsg", "batchIndex", -1, 0);
             return _this;
         }
         Engine.prototype.destroy = function () {
@@ -199,7 +198,6 @@ var suncore;
     var MessageManager = (function () {
         function MessageManager() {
             this.$queues = [];
-            suncom.Pool.setKeyValue("suncore.Message", "hashId", -1, 0);
             for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
                 this.$queues[mod] = new MessageQueue(mod);
             }
@@ -666,7 +664,6 @@ var suncore;
             for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
                 this.$timers[mod] = [];
             }
-            suncom.Pool.setKeyValue("suncore.Timer", "timerId", -1, 0);
         }
         TimerManager.prototype.executeTimer = function () {
             for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {

@@ -28,7 +28,6 @@ module suncore {
         constructor() {
             super(MsgQModEnum.KAL);
             Laya.timer.frameLoop(1, this, this.$onFrameLoop);
-            suncom.Pool.setKeyValue("suncore.MsgQMsg", "batchIndex", -1, 0);
         }
 
         /**

@@ -18,7 +18,6 @@ module suncore {
             for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
                 this.$timers[mod] = [];
             }
-            suncom.Pool.setKeyValue("suncore.Timer", "timerId", -1, 0);
         }
 
         /**
