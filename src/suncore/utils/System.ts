@@ -108,7 +108,6 @@ module suncore {
                     throw Error(`自定义的Task GroupId不允许超过1000`);
                 }
                 const message: Message = suncom.Pool.getItemByClass("suncore.Message", Message);
-                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
                 message.task = task;
                 message.groupId = groupId;
@@ -134,12 +133,13 @@ module suncore {
          * 添加触发器
          * export
          */
-        export function addTrigger(mod: ModuleEnum, delay: number, handler: suncom.Handler): void {
+        export function addTrigger(mod: ModuleEnum, delay: number, caller: Object, method: Function, args: any[] = null): void {
             if (System.isModuleStopped(mod) === false) {
                 const message: Message = suncom.Pool.getItemByClass("suncore.Message", Message);
-                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
-                message.handler = handler;
+                message.args = args;
+                message.caller = caller;
+                message.method = method;
                 message.timeout = System.getModuleTimestamp(mod) + delay;
                 message.priority = MessagePriorityEnum.PRIORITY_TRIGGER;
                 M.messageManager.putMessage(message);
@@ -153,12 +153,13 @@ module suncore {
          * 添加消息
          * export
          */
-        export function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.Handler): void {
+        export function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, caller: Object, method: Function, args: any[] = null): void {
             if (System.isModuleStopped(mod) === false) {
                 const message: Message = suncom.Pool.getItemByClass("suncore.Message", Message);
-                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
-                message.handler = handler;
+                message.args = args;
+                message.caller = caller;
+                message.method = method;
                 message.priority = priority;
                 M.messageManager.putMessage(message);
             }

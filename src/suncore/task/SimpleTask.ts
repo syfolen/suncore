@@ -2,20 +2,30 @@
 module suncore {
     /**
      * 简单任务对象
+     * 说明：
      * export
      */
     export class SimpleTask extends AbstractTask {
         /**
-         * 任务逻辑Handler
+         * 回调参数列表
          */
-        private $handler: suncom.Handler;
+        protected $args: any[] = null;
 
         /**
-         * export
+         * 回调方法
          */
-        constructor(handler: suncom.Handler) {
+        protected $method: Function = null;
+
+        /**
+         * 回调对象
+         */
+        protected $caller: Object = null;
+
+        constructor(caller: Object, method: Function, args: any[] = null) {
             super();
-            this.$handler = handler;
+            this.$args = args;
+            this.$caller = caller;
+            this.$method = method;
         }
 
         /**
@@ -24,7 +34,7 @@ module suncore {
          */
         run(): boolean {
             // 执行任务
-            this.$handler.run();
+            this.$method.apply(this.$caller, this.$args);
 
             return true;
         }

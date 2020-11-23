@@ -5,19 +5,19 @@ module suncore {
      */
     export class Message {
         /**
-         * 编号
-         */
-        hashId: number = 0;
-
-        /**
          * 所属模块
          */
         mod: ModuleEnum = ModuleEnum.SYSTEM;
 
         /**
-         * 优先权
+         * 优先级
          */
         priority: MessagePriorityEnum = MessagePriorityEnum.PRIORITY_0;
+
+        /**
+         *承诺权重，权重高的优先处理
+         */
+        weights: number = 0;
 
         /**
          * 挂载的任务
@@ -30,14 +30,14 @@ module suncore {
         groupId: number = -1;
 
         /**
-         * 回调执行器
-         * 说明：
-         * 1. 对于部分优先级的消息来说，返回值是有效的，详见 MessagePriorityEnum 的 PRIORITY_LAZY 说明
+         * 回调参数列表
          */
-        handler: suncom.Handler = null;
+        args: any[] = null;
 
         /**
          * 回调方法
+         * 说明：
+         * 1. 对于部分优先级的消息来说，返回值是有效的，详见 MessagePriorityEnum 的 PRIORITY_LAZY 说明
          */
         method: Function = null;
 

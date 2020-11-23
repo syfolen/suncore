@@ -29,10 +29,10 @@ module test {
 
         run(): boolean {
             suncore.System.cancelTaskByGroupId(suncore.ModuleEnum.CUSTOM, 3);
-            suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, 2000, suncom.Handler.create(this, () => {
+            suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, 2000, this, () => {
                 this.$data.list.push("b");
                 this.done = true;
-            }))
+            });
             return false;
         }
     }
@@ -65,7 +65,7 @@ module test {
             this.$testAllMessageWhetherExecuteInRightTimes();
             this.$testWhetherMessageDoCancelWhenTimelineIsStopped();
 
-            suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, suncom.Handler.create(this, this.$onSystemMission));
+            suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, this, this.$onSystemMission);
         }
 
         private $testWhetherMessageDoCancelWhenTimelineIsStopped(): void {
@@ -84,29 +84,29 @@ module test {
             };
             puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.CUSTOM, false]);
 
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_0, suncom.Handler.create(this, () => {
+            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_0, this, () => {
                 suncom.Test.notExpected();
-            }));
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_HIGH, suncom.Handler.create(this, () => {
+            });
+            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_HIGH, this, () => {
                 suncom.Test.notExpected();
-            }));
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_NOR, suncom.Handler.create(this, () => {
+            });
+            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_NOR, this, () => {
                 suncom.Test.notExpected();
-            }));
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LOW, suncom.Handler.create(this, () => {
+            });
+            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LOW, this, () => {
                 suncom.Test.notExpected();
-            }));
+            });
             const testCancelTaskData: IData = { msg: 0, list: [] };
             suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 1, new TestCancelTask(testCancelTaskData));
-            suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, 1000, suncom.Handler.create(this, () => {
+            suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, 1000, this, () => {
                 suncom.Test.notExpected();
-            }));
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
+            });
+            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, () => {
                 suncom.Test.notExpected();
-            }));
+            });
             puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
             puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.CUSTOM, false]);
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
+            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, () => {
                 suncom.Test.expect(testCancelTaskData.msg).interpret(`task被取消了，但是没有执行cancel方法`).toBe(1);
                 suncom.Test.assertTrue(
                     res.is_priority_0_canceled === true ||
@@ -117,33 +117,33 @@ module test {
                     res.is_priority_trigger_canceled === true ||
                     res.is_priority_lazy_canceled === true
                     , `有任务未取消`);
-            }));
+            });
 
             // const data: IData = { msg: 0, list: [] };
             // suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 5, new TestTask(data));
             // puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, false]);
 
             // let exeCnt: number = 0;
-            // suncore.System.addTrigger(suncore.ModuleEnum.SYSTEM, 3000, suncom.Handler.create(this, () => {
+            // suncore.System.addTrigger(suncore.ModuleEnum.SYSTEM, 3000, this, () => {
             //     suncom.Test.expect(exeCnt).note(`时间轴暂停，但task依然执行了`).toBe(0);
             //     exeCnt++;
             //     puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
-            // }));
+            // });
 
-            // suncore.System.addTrigger(suncore.ModuleEnum.SYSTEM, 6000, suncom.Handler.create(this, () => {
+            // suncore.System.addTrigger(suncore.ModuleEnum.SYSTEM, 6000, this, () => {
             //     suncom.Test.expect(exeCnt).note(`时间轴停止，但task没有执行取消接口`).toBe(1);
             //     exeCnt++;
-            // }));
+            // });
 
-            // suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
+            // suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, () => {
             //     suncom.Test.expect(exeCnt).note(`系统任务没有完全执行`).toBe(2);
             //     console.log("message test complete");
             //     puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.SYSTEM, true]);
-            // }));
+            // });
 
-            // suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
+            // suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, () => {
             //     suncom.Test.notExpected();
-            // }));
+            // });
         }
 
         private $testAllMessageWhetherExecuteInRightTimes(): void {
@@ -162,48 +162,44 @@ module test {
             };
 
             for (let i = 0; i < 50; i++) {
-                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_0, suncom.Handler.create(this, () => {
+                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_0, this, () => {
                     counter.priority_0++;
-                }));
+                });
             }
 
             for (let i = 0; i < 50; i++) {
-                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_HIGH, suncom.Handler.create(this, () => {
+                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_HIGH, this, () => {
                     counter.priority_high++;
-                }));
+                });
             }
 
             for (let i = 0; i < 9; i++) {
-                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_NOR, suncom.Handler.create(this, () => {
+                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_NOR, this, () => {
                     counter.priority_nor++;
-                }));
+                });
             }
 
             for (let i = 0; i < 5; i++) {
-                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LOW, suncom.Handler.create(this, () => {
+                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LOW, this, () => {
                     counter.priority_low++;
-                }));
+                });
             }
 
             for (let i = 0; i < 10; i++) {
-                suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, (i + 1) * 500, suncom.Handler.create(this, () => {
+                suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, (i + 1) * 500, this, () => {
                     counter.priority_trigger++;
-                }));
+                });
             }
 
-            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 1, new suncore.SimpleTask(
-                suncom.Handler.create(this, () => {
-                    counter.priority_task++;
-                })
-            ));
+            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 1, new suncore.SimpleTask(this, () => {
+                counter.priority_task++;
+            }));
 
-            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 3, new suncore.SimpleTask(
-                suncom.Handler.create(this, () => {
-                    counter.priority_task++;
-                })
-            ));
+            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 3, new suncore.SimpleTask(this, () => {
+                counter.priority_task++;
+            }));
 
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
+            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, () => {
                 suncom.Test.expect(counter.priority_0).interpret(`priority_0 执行次数不正确，若者lazy过早执行`).toBe(50);
                 suncom.Test.expect(counter.priority_high).interpret(`priority_high 执行次数不正确，若者lazy过早执行`).toBe(50);
                 suncom.Test.expect(counter.priority_nor).interpret(`priority_nor 执行次数不正确，若者lazy过早执行`).toBe(9);
@@ -211,15 +207,15 @@ module test {
                 suncom.Test.expect(counter.priority_trigger).interpret(`priority_trigger 执行次数不正确，若者lazy过早执行`).toBe(10);
                 suncom.Test.expect(counter.priority_task).interpret(`priority_task 执行次数不正确，若者lazy过早执行`).toBe(2);
                 counter.priority_lazy++;
-            }));
+            });
 
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, () => {
+            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, () => {
                 counter.priority_lazy++;
                 puremvc.Facade.getInstance().removeObserver(suncore.NotifyKey.ENTER_FRAME, onEnterFrameCheckMessageExeccuteTimes, null);
                 puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
 
                 suncom.Test.expect(counter.priority_lazy).interpret(`priority_lazy 执行次数不正确`).toBe(2);
-            }));
+            });
 
             function onEnterFrameCheckMessageExeccuteTimes(): void {
                 suncom.Test.assertTrue(counter.priority_0 === 0 || counter.priority_0 === 50, `message priority_0的执行次数不对，当前：${counter.priority_0}, 预期为0或50`);

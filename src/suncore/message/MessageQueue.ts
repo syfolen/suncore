@@ -27,11 +27,14 @@ module suncore {
         private $messages0: Message[] = [];
 
         /**
-         * 触发器执行结果寄存器（输出值）
-         * 说明：
-         * 1. 若触发器执行结果返回false，则应当将寄存器中的canceled的值置为true，否则置为false
+         * 消息是否取消执行
          */
-        private $out: { canceled: boolean } = { canceled: false };
+        private $canceled = false;
+
+        /**
+         * 当前正在处理的消息是否为承诺
+         */
+        private $isDealingPromise: boolean = false;
 
         constructor(mod: ModuleEnum) {
             this.$mod = mod;
@@ -46,6 +49,10 @@ module suncore {
          */
         putMessage(message: Message): void {
             this.$messages0.push(message);
+            // 若新消息为承诺，且当前正在执行承诺，则新的承诺级别应当比当前正在执行的承诺高一级
+            if (message.priority === MessagePriorityEnum.PRIORITY_PROMISE && this.$isDealingPromise === true) {
+                message.weights = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE][0].weights + 1;
+            }
         }
 
         /**
@@ -90,12 +97,16 @@ module suncore {
                         }
                     }
                 }
+                // 承诺
+                else if (priority === MessagePriorityEnum.PRIORITY_PROMISE) {
+                    const message: Message = queue[0];
+                }
                 // 触发器消息
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     // 返回true时应当移除触发器
                     while (queue.length > 0 && this.$dealTriggerMessage(queue[0]) === true) {
                         suncom.Pool.recover("suncore.Message", queue.shift());
-                        if (this.$out.canceled === false) {
+                        if (this.$canceled === false) {
                             dealCount++;
                         }
                     }
@@ -162,7 +173,7 @@ module suncore {
             if (message.timeout > System.getModuleTimestamp(this.$mod)) {
                 return false;
             }
-            this.$out.canceled = message.handler.run() === false;
+            this.$canceled = message.method.apply(message.caller, message.args) === false;
             return true;
         }
 
@@ -171,7 +182,7 @@ module suncore {
          * 执行器的返回值意义请参考 MessagePriorityEnum 的 PRIORITY_LAZY 注释
          */
         private $dealCustomMessage(message: Message): boolean {
-            return message.handler.run() !== false;
+            return message.method.apply(message.caller, message.args) !== false;
         }
 
         /**
@@ -205,9 +216,38 @@ module suncore {
                 else if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
+                else if (message.priority === MessagePriorityEnum.PRIORITY_PROMISE) {
+                    this.$addPromiseMessage(message);
+                }
                 else {
                     this.$queues[message.priority].push(message);
                 }
+            }
+        }
+
+        /**
+         * 添加承诺
+         */
+        private $addPromiseMessage(message: Message): void {
+            const messages: Message[] = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE];
+
+            let index: number = -1;
+            for (let i: number = 0; i < messages.length; i++) {
+                if (i === 0 && this.$isDealingPromise === true) {
+                    continue;
+                }
+                const promise: Message = messages[i];
+                if (promise.weights < message.weights) {
+                    index = -1;
+                    break;
+                }
+            }
+
+            if (index === -1) {
+                messages.push(message);
+            }
+            else {
+                messages.splice(index, 0, message);
             }
         }
 
