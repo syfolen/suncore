@@ -15,7 +15,7 @@ module suncore {
         run(): boolean {
             const method: Function = this.$resolve.bind(this);
             // 执行任务
-            this.$method.apply(this.$caller, this.$args === null ? [method] : this.$args.concat(method));
+            this.$method.apply(this.$caller, this.$args === null ? [method] : [method].concat(this.$args));
 
             return this.done;
         }

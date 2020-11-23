@@ -29,12 +29,12 @@ module suncore {
         /**
          * 消息是否取消执行
          */
-        private $canceled = false;
+        private $canceled: boolean = false;
 
         /**
-         * 当前正在处理的消息是否为承诺
+         * 当前承诺的权重（防止执行队列为空但临时队列不为空时添加承诺时权重出现混乱）
          */
-        private $isDealingPromise: boolean = false;
+        private $weights: number = 0;
 
         constructor(mod: ModuleEnum) {
             this.$mod = mod;
@@ -49,9 +49,29 @@ module suncore {
          */
         putMessage(message: Message): void {
             this.$messages0.push(message);
-            // 若新消息为承诺，且当前正在执行承诺，则新的承诺级别应当比当前正在执行的承诺高一级
-            if (message.priority === MessagePriorityEnum.PRIORITY_PROMISE && this.$isDealingPromise === true) {
-                message.weights = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE][0].weights + 1;
+            // 新消息为承诺
+            if (message.priority === MessagePriorityEnum.PRIORITY_PROMISE) {
+                this.$initPromiseWeights(message);
+            }
+        }
+
+        /**
+         * 初始化承诺的权重
+         */
+        private $initPromiseWeights(message: Message): void {
+            const promises: Message[] = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE];
+            if (promises.length === 0) {
+                message.weights = this.$weights;
+            }
+            else {
+                const promise: Message = promises[0];
+                if (promise.task.running === false) {
+                    message.weights = this.$weights;
+                }
+                else {
+                    // 当前正在执行承诺，故新的承诺级别应当比当前正在执行的承诺高一级
+                    message.weights = this.$weights = promises[0].weights + 1;
+                }
             }
         }
 
@@ -99,7 +119,20 @@ module suncore {
                 }
                 // 承诺
                 else if (priority === MessagePriorityEnum.PRIORITY_PROMISE) {
-                    const message: Message = queue[0];
+                    while (queue.length > 0) {
+                        dealCount++;
+
+                        const promise: Message = queue[0];
+                        if (this.$dealTaskMessage(promise) === false) {
+                            break;
+                        }
+                        suncom.Pool.recover("suncore.Message", queue.shift());
+
+                        if (this.$status > PromiseDealStatus.DEALING) {
+                            break;
+                        }
+                    }
+                    this.$status = PromiseDealStatus.NONE;
                 }
                 // 触发器消息
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
@@ -233,12 +266,9 @@ module suncore {
 
             let index: number = -1;
             for (let i: number = 0; i < messages.length; i++) {
-                if (i === 0 && this.$isDealingPromise === true) {
-                    continue;
-                }
                 const promise: Message = messages[i];
                 if (promise.weights < message.weights) {
-                    index = -1;
+                    index = i;
                     break;
                 }
             }

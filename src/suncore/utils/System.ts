@@ -150,6 +150,23 @@ module suncore {
         }
 
         /**
+         * 添加承诺
+         * export
+         */
+        export function addPromise(mod: ModuleEnum, caller: Object, method: Function, args: any[] = null): void {
+            if (System.isModuleStopped(mod) === false) {
+                const message: Message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                message.mod = mod;
+                message.task = new PromiseTask(caller, method, args);
+                message.priority = MessagePriorityEnum.PRIORITY_PROMISE;
+                M.messageManager.putMessage(message);
+            }
+            else {
+                suncom.Logger.error(suncom.DebugMode.ANY, `尝试添加Promise消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+            }
+        }
+
+        /**
          * 添加消息
          * export
          */

@@ -6,53 +6,77 @@ module test {
         private $timerId: number;
 
         run(): boolean {
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+            suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                 console.log("promise level 0:" + data);
+                resolve();
             }, [0]);
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+            suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                 console.log("promise level 0:" + data);
-                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                setTimeout(() => {
+                    resolve();
+                    suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
+                        console.log("promise level 1:" + data);
+                        resolve();
+                    }, [5]);
+                }, 2000)
+                suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                     console.log("promise level 1:" + data);
+                    resolve();
                 }, [0]);
-                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                     console.log("promise level 1:" + data);
-                    suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                    resolve();
+                    suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                         console.log("promise level 2:" + data);
+                        resolve();
                     }, [0]);
-                    suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                    suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                         console.log("promise level 2:" + data);
-                        suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                        resolve();
+                        suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                             console.log("promise level 3:" + data);
+                            setTimeout(() => {
+                                resolve();
+                            }, 2000)
                         }, [0]);
-                        suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                        suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                             console.log("promise level 3:" + data);
+                            resolve();
                         }, [1]);
-                        suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                        suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                             console.log("promise level 3:" + data);
+                            resolve();
                         }, [2]);
-                        suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                        suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                             console.log("promise level 3:" + data);
+                            resolve();
                         }, [3]);
                     }, [1]);
-                    suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                    suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                         console.log("promise level 2:" + data);
+                        resolve();
                     }, [2]);
-                    suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                    suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                         console.log("promise level 2:" + data);
+                        resolve();
                     }, [3]);
                 }, [1]);
-                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                     console.log("promise level 1:" + data);
+                    resolve();
                 }, [2]);
-                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+                suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                     console.log("promise level 1:" + data);
+                    resolve();
                 }, [3]);
             }, [1]);
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+            suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                 console.log("promise level 0:" + data);
+                resolve();
             }, [2]);
-            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_PROMISE, this, (data: number) => {
+            suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                 console.log("promise level 0:" + data);
+                resolve();
             }, [3]);
 
             // suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 9, new suncore.SimpleTask(this, () => {
