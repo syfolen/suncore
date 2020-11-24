@@ -264,7 +264,7 @@ var puremvc;
         };
         MutexScope.prototype.update = function (target) {
             this.$target = target;
-            if (target instanceof puremvc.Notifier) {
+            if (target instanceof Notifier) {
                 this.$actMsgQMod = target.msgQMod;
             }
             else {
@@ -367,7 +367,7 @@ var puremvc;
         };
         MutexScope.prototype.backup = function (target) {
             var msgQMod = null;
-            if (target instanceof puremvc.Notifier) {
+            if (target instanceof Notifier) {
                 msgQMod = target.msgQMod;
             }
             else {
@@ -921,7 +921,7 @@ var puremvc;
             if (MutexLocker.checkPrefix === false) {
                 return;
             }
-            if (target === null || target === puremvc.Controller.inst || target === puremvc.View.inst) {
+            if (target === null || target === Controller.inst || target === View.inst) {
                 return;
             }
             var prefix = getCommandPrefix(name);
@@ -935,7 +935,7 @@ var puremvc;
             if (MutexLocker.checkPrefix === false) {
                 return;
             }
-            if (target === null || target === puremvc.Controller.inst || target === puremvc.View.inst) {
+            if (target === null || target === Controller.inst || target === View.inst) {
                 return;
             }
             var prefix = getCommandPrefix(name);
