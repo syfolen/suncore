@@ -49,10 +49,10 @@ var suncom;
     suncom.EventInfo = EventInfo;
     var EventSystem = (function () {
         function EventSystem() {
-            this.$_events = {};
-            this.$_lockers = {};
-            this.$_onceList = [];
-            this.$_isCanceled = false;
+            this.$var_events = {};
+            this.$var_lockers = {};
+            this.$var_onceList = [];
+            this.$var_isCanceled = false;
         }
         EventSystem.prototype.addEventListener = function (type, method, caller, receiveOnce, priority) {
             if (receiveOnce === void 0) { receiveOnce = false; }
@@ -66,13 +66,13 @@ var suncom;
             if (caller === void 0) {
                 caller = null;
             }
-            var list = this.$_events[type];
+            var list = this.$var_events[type];
             if (list === void 0) {
-                list = this.$_events[type] = [];
+                list = this.$var_events[type] = [];
             }
-            else if (this.$_lockers[type] === true) {
-                this.$_events[type] = list = list.slice(0);
-                this.$_lockers[type] = false;
+            else if (this.$var_lockers[type] === true) {
+                this.$var_events[type] = list = list.slice(0);
+                this.$var_lockers[type] = false;
             }
             var index = -1;
             for (var i = 0; i < list.length; i++) {
@@ -107,13 +107,13 @@ var suncom;
             if (caller === void 0) {
                 caller = null;
             }
-            var list = this.$_events[type];
+            var list = this.$var_events[type];
             if (list === void 0) {
                 return;
             }
-            if (this.$_lockers[type] === true) {
-                this.$_events[type] = list = list.slice(0);
-                this.$_lockers[type] = false;
+            if (this.$var_lockers[type] === true) {
+                this.$var_events[type] = list = list.slice(0);
+                this.$var_lockers[type] = false;
             }
             for (var i = 0; i < list.length; i++) {
                 var event_1 = list[i];
@@ -123,8 +123,8 @@ var suncom;
                 }
             }
             if (list.length === 0) {
-                delete this.$_events[type];
-                delete this.$_lockers[type];
+                delete this.$var_events[type];
+                delete this.$var_lockers[type];
             }
         };
         EventSystem.prototype.dispatchEvent = function (type, data, cancelable) {
@@ -132,17 +132,17 @@ var suncom;
             if (Common.isStringNullOrEmpty(type) === true) {
                 throw Error("\u6D3E\u53D1\u65E0\u6548\u4E8B\u4EF6\uFF01\uFF01\uFF01");
             }
-            var list = this.$_events[type];
+            var list = this.$var_events[type];
             if (list === void 0) {
                 return;
             }
-            this.$_lockers[type] = true;
-            var isCanceled = this.$_isCanceled;
-            this.$_isCanceled = false;
+            this.$var_lockers[type] = true;
+            var isCanceled = this.$var_isCanceled;
+            this.$var_isCanceled = false;
             for (var i = 0; i < list.length; i++) {
                 var event_2 = list[i];
                 if (event_2.receiveOnce === true) {
-                    this.$_onceList.push(event_2);
+                    this.$var_onceList.push(event_2);
                 }
                 if (data instanceof Array) {
                     event_2.method.apply(event_2.caller, data);
@@ -150,23 +150,23 @@ var suncom;
                 else {
                     event_2.method.call(event_2.caller, data);
                 }
-                if (this.$_isCanceled) {
+                if (this.$var_isCanceled) {
                     if (cancelable === true) {
                         break;
                     }
                     console.error("\u5C1D\u8BD5\u53D6\u6D88\u4E0D\u53EF\u88AB\u53D6\u6D88\u7684\u4E8B\u4EF6\uFF1A" + type);
-                    this.$_isCanceled = false;
+                    this.$var_isCanceled = false;
                 }
             }
-            this.$_isCanceled = isCanceled;
-            this.$_lockers[type] = false;
-            while (this.$_onceList.length > 0) {
-                var event_3 = this.$_onceList.pop();
+            this.$var_isCanceled = isCanceled;
+            this.$var_lockers[type] = false;
+            while (this.$var_onceList.length > 0) {
+                var event_3 = this.$var_onceList.pop();
                 this.removeEventListener(event_3.type, event_3.method, event_3.caller);
             }
         };
         EventSystem.prototype.dispatchCancel = function () {
-            this.$_isCanceled = true;
+            this.$var_isCanceled = true;
         };
         return EventSystem;
     }());
@@ -174,26 +174,26 @@ var suncom;
     var Expect = (function () {
         function Expect(description) {
             if (description === void 0) { description = null; }
-            this.$_value = void 0;
-            this.$_asNot = false;
-            this.$_interpretation = null;
+            this.$var_value = void 0;
+            this.$var_asNot = false;
+            this.$var_interpretation = null;
             if (Global.debugMode & DebugMode.TEST) {
                 description !== null && Logger.log(DebugMode.ANY, description);
             }
         }
         Expect.prototype.expect = function (value) {
-            this.$_value = value;
+            this.$var_value = value;
             return this;
         };
         Expect.prototype.interpret = function (str) {
-            this.$_interpretation = str;
+            this.$var_interpretation = str;
             return this;
         };
         Expect.prototype.test = function (pass, message) {
-            if ((this.$_asNot === false && pass === false) || (this.$_asNot === true && pass === true)) {
+            if ((this.$var_asNot === false && pass === false) || (this.$var_asNot === true && pass === true)) {
                 Test.ASSERT_FAILED = true;
                 message !== null && Logger.error(DebugMode.ANY, message);
-                this.$_interpretation !== null && Logger.error(DebugMode.ANY, this.$_interpretation);
+                this.$var_interpretation !== null && Logger.error(DebugMode.ANY, this.$var_interpretation);
                 if (Test.ASSERT_BREAKPOINT === true) {
                     debugger;
                 }
@@ -202,8 +202,8 @@ var suncom;
         };
         Expect.prototype.anything = function () {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = this.$_value !== null && this.$_value !== void 0;
-                var message = "\u671F\u671B\u503C" + (this.$_asNot === false ? "" : "不为") + "\uFF1Anull or undefined, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$_value);
+                var pass = this.$var_value !== null && this.$var_value !== void 0;
+                var message = "\u671F\u671B\u503C" + (this.$var_asNot === false ? "" : "不为") + "\uFF1Anull or undefined, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
@@ -212,40 +212,40 @@ var suncom;
                 var pass = true;
                 for (var i = 0; i < array.length; i++) {
                     var value = array[i];
-                    if (this.$_value.indexOf(value) < 0) {
+                    if (this.$var_value.indexOf(value) < 0) {
                         pass = false;
                         break;
                     }
                 }
-                var message = "\u671F\u671B" + (this.$_asNot === false ? "" : "不") + "\u5305\u542B\uFF1A" + Common.toDisplayString(array) + ", \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$_value);
+                var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5305\u542B\uFF1A" + Common.toDisplayString(array) + ", \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.stringContaining = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = this.$_value.indexOf(value) > -1;
-                var message = "\u671F\u671B" + (this.$_asNot === false ? "" : "不") + "\u5305\u542B\uFF1A" + value + ", \u5B9E\u9645\u503C\uFF1A" + this.$_value;
+                var pass = this.$var_value.indexOf(value) > -1;
+                var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5305\u542B\uFF1A" + value + ", \u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.stringMatching = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = value.indexOf(this.$_value) > -1;
-                var message = "\u671F\u671B" + (this.$_asNot === false ? "" : "不") + "\u88AB\u5305\u542B\uFF1A" + value + ", \u5B9E\u9645\u503C\uFF1A" + this.$_value;
+                var pass = value.indexOf(this.$var_value) > -1;
+                var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u88AB\u5305\u542B\uFF1A" + value + ", \u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toHaveProperty = function (key, value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = value === void 0 ? this.$_value[key] !== void 0 : this.$_value[key] === value;
-                var message = "\u671F\u671B" + (this.$_asNot === false ? "" : "不") + "\u5B58\u5728\u5C5E\u6027\uFF1A" + key + ", \u5B9E\u9645\u503C\uFF1A" + this.$_value;
+                var pass = value === void 0 ? this.$var_value[key] !== void 0 : this.$var_value[key] === value;
+                var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5B58\u5728\u5C5E\u6027\uFF1A" + key + ", \u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBe = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = this.$_value === value;
-                var message = "\u671F\u671B\u503C" + (this.$_asNot === false ? "" : "不为") + "\uFF1A" + Common.toDisplayString(value) + ", \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$_value);
+                var pass = this.$var_value === value;
+                var message = "\u671F\u671B\u503C" + (this.$var_asNot === false ? "" : "不为") + "\uFF1A" + Common.toDisplayString(value) + ", \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
@@ -257,85 +257,85 @@ var suncom;
         };
         Expect.prototype.toBeBoolean = function () {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = typeof this.$_value === "boolean";
-                var message = "\u671F\u671B" + (this.$_asNot === false ? "为" : "不为") + "\uFF1A\u5E03\u5C14\u7C7B\u578B, \u5B9E\u9645\u4E3A\uFF1A" + typeof this.$_value;
+                var pass = typeof this.$var_value === "boolean";
+                var message = "\u671F\u671B" + (this.$var_asNot === false ? "为" : "不为") + "\uFF1A\u5E03\u5C14\u7C7B\u578B, \u5B9E\u9645\u4E3A\uFF1A" + typeof this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeInstanceOf = function (cls) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = this.$_value instanceof cls;
-                var message = "\u671F\u671B " + Common.getQualifiedClassName(this.$_value) + " \u7684\u7C7B\u578B" + (this.$_asNot === false ? "" : "不") + "\u4E3A " + Common.getClassName(cls);
+                var pass = this.$var_value instanceof cls;
+                var message = "\u671F\u671B " + Common.getQualifiedClassName(this.$var_value) + " \u7684\u7C7B\u578B" + (this.$var_asNot === false ? "" : "不") + "\u4E3A " + Common.getClassName(cls);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeFalsy = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
                 var pass = value ? false : true;
-                var message = "\u671F\u671B " + Common.toDisplayString(value) + " " + (this.$_asNot === false ? "" : "不") + "\u4E3A\u5047, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$_value);
+                var message = "\u671F\u671B " + Common.toDisplayString(value) + " " + (this.$var_asNot === false ? "" : "不") + "\u4E3A\u5047, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeTruthy = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
                 var pass = value ? true : false;
-                var message = "\u671F\u671B " + Common.toDisplayString(value) + " " + (this.$_asNot === false ? "" : "不") + "\u4E3A\u5047, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$_value);
+                var message = "\u671F\u671B " + Common.toDisplayString(value) + " " + (this.$var_asNot === false ? "" : "不") + "\u4E3A\u5047, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeCloseTo = function (value, deviation) {
             if (deviation === void 0) { deviation = 0; }
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = Math.abs(this.$_value - value) <= Math.abs(deviation);
-                var message = "\u671F\u671B\u4E0E" + value + "\u7684\u8BEF\u5DEE" + (this.$_asNot === true ? "" : "不") + "\u8D85\u8FC7" + deviation + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$_value;
+                var pass = Math.abs(this.$var_value - value) <= Math.abs(deviation);
+                var message = "\u671F\u671B\u4E0E" + value + "\u7684\u8BEF\u5DEE" + (this.$var_asNot === true ? "" : "不") + "\u8D85\u8FC7" + deviation + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeGreaterThan = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = this.$_value > value;
-                var message = "\u671F\u671B" + (this.$_asNot === true ? "" : "不") + "\u5927\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$_value;
+                var pass = this.$var_value > value;
+                var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5927\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeGreaterOrEqualThan = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = this.$_value >= value;
-                var message = "\u671F\u671B" + (this.$_asNot === true ? "" : "不") + "\u5927\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$_value;
+                var pass = this.$var_value >= value;
+                var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5927\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeLessThan = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = this.$_value < value;
-                var message = "\u671F\u671B" + (this.$_asNot === true ? "" : "不") + "\u5C0F\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$_value;
+                var pass = this.$var_value < value;
+                var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5C0F\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeLessOrEqualThan = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = this.$_value <= value;
-                var message = "\u671F\u671B" + (this.$_asNot === true ? "" : "不") + "\u5C0F\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$_value;
+                var pass = this.$var_value <= value;
+                var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5C0F\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toEqual = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = Common.isEqual(this.$_value, value, false);
-                var message = "\u671F\u671B\u76F8\u7B49\uFF1A" + Common.toDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$_value);
+                var pass = Common.isEqual(this.$var_value, value, false);
+                var message = "\u671F\u671B\u76F8\u7B49\uFF1A" + Common.toDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toStrictEqual = function (value) {
             if (Global.debugMode & DebugMode.TEST) {
-                var pass = Common.isEqual(this.$_value, value, true);
-                var message = "\u671F\u671B\u76F8\u7B49\uFF1A" + Common.toDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$_value);
+                var pass = Common.isEqual(this.$var_value, value, true);
+                var message = "\u671F\u671B\u76F8\u7B49\uFF1A" + Common.toDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Object.defineProperty(Expect.prototype, "not", {
             get: function () {
-                this.$_asNot = true;
+                this.$var_asNot = true;
                 return this;
             },
             enumerable: false,
@@ -346,71 +346,71 @@ var suncom;
     suncom.Expect = Expect;
     var Handler = (function () {
         function Handler() {
-            this.$_id = 0;
-            this.$_args = null;
-            this.$_caller = null;
-            this.$_method = null;
-            this.$_once = false;
+            this.$var_id = 0;
+            this.$var_args = null;
+            this.$var_caller = null;
+            this.$var_method = null;
+            this.$var_once = false;
         }
         Handler.prototype.setTo = function (caller, method, args, once) {
             if (args === void 0) { args = null; }
             if (once === void 0) { once = true; }
-            if (this.$_id === -1) {
+            if (this.$var_id === -1) {
                 throw Error("Handler\u5DF1\u88AB\u56DE\u6536\uFF01\uFF01\uFF01");
             }
-            this.$_id = Common.createHashId();
-            this.$_caller = caller || null;
-            this.$_method = method || null;
-            this.$_args = args;
-            this.$_once = once;
+            this.$var_id = Common.createHashId();
+            this.$var_caller = caller || null;
+            this.$var_method = method || null;
+            this.$var_args = args;
+            this.$var_once = once;
             return this;
         };
         Handler.prototype.run = function () {
-            var id = this.$_id;
-            var res = this.$_method.apply(this.$_caller, this.$_args);
-            id === this.$_id && this.$_once === true && this.recover();
+            var id = this.$var_id;
+            var res = this.$var_method.apply(this.$var_caller, this.$var_args);
+            id === this.$var_id && this.$var_once === true && this.recover();
             return res;
         };
         Handler.prototype.runWith = function (args) {
-            var id = this.$_id;
+            var id = this.$var_id;
             var res;
-            if (this.$_args !== null) {
-                res = this.$_method.apply(this.$_caller, this.$_args.concat(args));
+            if (this.$var_args !== null) {
+                res = this.$var_method.apply(this.$var_caller, this.$var_args.concat(args));
             }
             else if (args instanceof Array) {
-                res = this.$_method.apply(this.$_caller, args);
+                res = this.$var_method.apply(this.$var_caller, args);
             }
             else {
-                res = this.$_method.call(this.$_caller, args);
+                res = this.$var_method.call(this.$var_caller, args);
             }
-            id === this.$_id && this.$_once === true && this.recover();
+            id === this.$var_id && this.$var_once === true && this.recover();
             return res;
         };
         Handler.prototype.recover = function () {
             if (Pool.recover("suncom.Handler", this) === true) {
-                this.$_id = -1;
-                this.$_args = null;
-                this.$_caller = null;
-                this.$_method = null;
+                this.$var_id = -1;
+                this.$var_args = null;
+                this.$var_caller = null;
+                this.$var_method = null;
             }
         };
         Object.defineProperty(Handler.prototype, "caller", {
             get: function () {
-                return this.$_caller;
+                return this.$var_caller;
             },
             enumerable: false,
             configurable: true
         });
         Object.defineProperty(Handler.prototype, "method", {
             get: function () {
-                return this.$_method;
+                return this.$var_method;
             },
             enumerable: false,
             configurable: true
         });
         Handler.create = function (caller, method, args, once) {
             var handler = Pool.getItemByClass("suncom.Handler", Handler);
-            handler.$_id = 0;
+            handler.$var_id = 0;
             return handler.setTo(caller, method, args, once);
         };
         return Handler;
@@ -418,8 +418,8 @@ var suncom;
     suncom.Handler = Handler;
     var HashMap = (function () {
         function HashMap(primaryKey) {
-            this.$_primaryKey = null;
-            this.$_dataMap = {};
+            this.$var_primaryKey = null;
+            this.$var_dataMap = {};
             this.source = [];
             if (typeof primaryKey === "number") {
                 primaryKey = primaryKey + "";
@@ -430,16 +430,16 @@ var suncom;
             if (primaryKey.length === 0) {
                 throw Error("\u65E0\u6548\u7684\u4E3B\u952E\u5B57\u6BB5\u540D\u5B57\u957F\u5EA6\uFF1A" + primaryKey.length);
             }
-            this.$_primaryKey = primaryKey;
+            this.$var_primaryKey = primaryKey;
         }
-        HashMap.prototype.$_removeByIndex = function (index) {
+        HashMap.prototype.$func_removeByIndex = function (index) {
             var data = this.source[index];
             this.source.splice(index, 1);
-            var value = data[this.$_primaryKey];
-            delete this.$_dataMap[value];
+            var value = data[this.$var_primaryKey];
+            delete this.$var_dataMap[value];
             return data;
         };
-        HashMap.prototype.$_getIndexByValue = function (key, value) {
+        HashMap.prototype.$func_getIndexByValue = function (key, value) {
             if (value === void 0) {
                 return -1;
             }
@@ -452,48 +452,48 @@ var suncom;
             return -1;
         };
         HashMap.prototype.put = function (data) {
-            var value = data[this.$_primaryKey];
+            var value = data[this.$var_primaryKey];
             if (Common.isStringNullOrEmpty(value) === true) {
                 throw Error("\u65E0\u6548\u7684\u4E3B\u952E\u7684\u503C\uFF0Ctype:" + typeof value + ", value:" + value);
             }
             if (this.getByPrimaryValue(value) === null) {
                 this.source.push(data);
-                this.$_dataMap[value] = data;
+                this.$var_dataMap[value] = data;
             }
             else {
-                throw Error("\u91CD\u590D\u7684\u4E3B\u952E\u503C\uFF1A[" + this.$_primaryKey + "]" + value);
+                throw Error("\u91CD\u590D\u7684\u4E3B\u952E\u503C\uFF1A[" + this.$var_primaryKey + "]" + value);
             }
             return data;
         };
         HashMap.prototype.getByValue = function (key, value) {
-            if (key === this.$_primaryKey) {
+            if (key === this.$var_primaryKey) {
                 return this.getByPrimaryValue(value);
             }
-            var index = this.$_getIndexByValue(key, value);
+            var index = this.$func_getIndexByValue(key, value);
             if (index === -1) {
                 return null;
             }
             return this.source[index];
         };
         HashMap.prototype.getByPrimaryValue = function (value) {
-            return this.$_dataMap[value.toString()] || null;
+            return this.$var_dataMap[value.toString()] || null;
         };
         HashMap.prototype.remove = function (data) {
             var index = this.source.indexOf(data);
             if (index === -1) {
                 return data;
             }
-            return this.$_removeByIndex(index);
+            return this.$func_removeByIndex(index);
         };
         HashMap.prototype.removeByValue = function (key, value) {
-            if (key === this.$_primaryKey) {
+            if (key === this.$var_primaryKey) {
                 return this.removeByPrimaryValue(value);
             }
-            var index = this.$_getIndexByValue(key, value);
+            var index = this.$func_getIndexByValue(key, value);
             if (index === -1) {
                 return null;
             }
-            return this.$_removeByIndex(index);
+            return this.$func_removeByIndex(index);
         };
         HashMap.prototype.removeByPrimaryValue = function (value) {
             var data = this.getByPrimaryValue(value);

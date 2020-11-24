@@ -12,12 +12,12 @@ module suncore {
         /**
          * 任务是否己经完成
          */
-        private $_done: boolean = false;
+        private $var_done: boolean = false;
 
         /**
          * 是否正在运行
          */
-        private $_running: boolean = false;
+        private $var_running: boolean = false;
 
         /**
          * 执行函数
@@ -44,14 +44,14 @@ module suncore {
          * export
          */
         get done(): boolean {
-            return this.$_done;
+            return this.$var_done;
         }
         /**
          * depends
          */
         set done(yes: boolean) {
-            if (this.$_done !== yes) {
-                this.$_done = yes;
+            if (this.$var_done !== yes) {
+                this.$var_done = yes;
                 if (yes === true) {
                     this.cancel();
                 }
@@ -63,10 +63,10 @@ module suncore {
          * export
          */
         get running(): boolean {
-            return this.$_running;
+            return this.$var_running;
         }
         set running(yes: boolean) {
-            this.$_running = yes;
+            this.$var_running = yes;
         }
     }
 }

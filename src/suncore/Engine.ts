@@ -26,7 +26,7 @@ module suncore {
         private $localTime: number = Date.now();
 
         constructor() {
-            super(MsgQModEnum.KAL);
+            super(MsgQModEnum.E_KAL);
             Laya.timer.frameLoop(1, this, this.$onFrameLoop);
         }
 

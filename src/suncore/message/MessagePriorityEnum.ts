@@ -87,6 +87,6 @@ module suncore {
         /**
          * 枚举结束
          */
-        MAX
+        E_MAX
     }
 }

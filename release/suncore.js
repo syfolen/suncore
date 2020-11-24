@@ -2,7 +2,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -23,7 +23,7 @@ var suncore;
         MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TRIGGER"] = 5] = "PRIORITY_TRIGGER";
         MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TASK"] = 6] = "PRIORITY_TASK";
         MessagePriorityEnum[MessagePriorityEnum["PRIORITY_PROMISE"] = 7] = "PRIORITY_PROMISE";
-        MessagePriorityEnum[MessagePriorityEnum["MAX"] = 8] = "MAX";
+        MessagePriorityEnum[MessagePriorityEnum["E_MAX"] = 8] = "E_MAX";
     })(MessagePriorityEnum = suncore.MessagePriorityEnum || (suncore.MessagePriorityEnum = {}));
     var ModuleEnum;
     (function (ModuleEnum) {
@@ -47,32 +47,32 @@ var suncore;
     })(MsgQIdEnum = suncore.MsgQIdEnum || (suncore.MsgQIdEnum = {}));
     var MsgQModEnum;
     (function (MsgQModEnum) {
-        MsgQModEnum[MsgQModEnum["NIL"] = -1] = "NIL";
-        MsgQModEnum[MsgQModEnum["KAL"] = 0] = "KAL";
+        MsgQModEnum[MsgQModEnum["E_NIL"] = -1] = "E_NIL";
+        MsgQModEnum[MsgQModEnum["E_KAL"] = 0] = "E_KAL";
         MsgQModEnum[MsgQModEnum["MMI"] = 1] = "MMI";
         MsgQModEnum[MsgQModEnum["L4C"] = 2] = "L4C";
         MsgQModEnum[MsgQModEnum["CUI"] = 3] = "CUI";
         MsgQModEnum[MsgQModEnum["GUI"] = 4] = "GUI";
         MsgQModEnum[MsgQModEnum["NSL"] = 5] = "NSL";
-        MsgQModEnum[MsgQModEnum["ANY"] = 6] = "ANY";
+        MsgQModEnum[MsgQModEnum["E_ANY"] = 6] = "E_ANY";
     })(MsgQModEnum = suncore.MsgQModEnum || (suncore.MsgQModEnum = {}));
     var AbstractTask = (function (_super) {
         __extends(AbstractTask, _super);
         function AbstractTask() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.$_done = false;
-            _this.$_running = false;
+            _this.$var_done = false;
+            _this.$var_running = false;
             return _this;
         }
         AbstractTask.prototype.cancel = function () {
         };
         Object.defineProperty(AbstractTask.prototype, "done", {
             get: function () {
-                return this.$_done;
+                return this.$var_done;
             },
             set: function (yes) {
-                if (this.$_done !== yes) {
-                    this.$_done = yes;
+                if (this.$var_done !== yes) {
+                    this.$var_done = yes;
                     if (yes === true) {
                         this.cancel();
                     }
@@ -83,10 +83,10 @@ var suncore;
         });
         Object.defineProperty(AbstractTask.prototype, "running", {
             get: function () {
-                return this.$_running;
+                return this.$var_running;
             },
             set: function (yes) {
-                this.$_running = yes;
+                this.$var_running = yes;
             },
             enumerable: false,
             configurable: true
@@ -98,28 +98,28 @@ var suncore;
         __extends(BaseService, _super);
         function BaseService() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.$_running = false;
+            _this.$var_running = false;
             return _this;
         }
         BaseService.prototype.run = function () {
-            if (this.$_running === true) {
+            if (this.$var_running === true) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, "\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u5DF1\u8FD0\u884C");
                 return;
             }
-            this.$_running = true;
+            this.$var_running = true;
             this.$onRun();
         };
         BaseService.prototype.stop = function () {
-            if (this.$_running === false) {
+            if (this.$var_running === false) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, "\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u672A\u8FD0\u884C");
                 return;
             }
-            this.$_running = false;
+            this.$var_running = false;
             this.$onStop();
         };
         Object.defineProperty(BaseService.prototype, "running", {
             get: function () {
-                return this.$_running;
+                return this.$var_running;
             },
             enumerable: false,
             configurable: true
@@ -130,7 +130,7 @@ var suncore;
     var Engine = (function (_super) {
         __extends(Engine, _super);
         function Engine() {
-            var _this = _super.call(this, MsgQModEnum.KAL) || this;
+            var _this = _super.call(this, MsgQModEnum.E_KAL) || this;
             _this.$delta = 0;
             _this.$runTime = 0;
             _this.$localTime = Date.now();
@@ -242,7 +242,7 @@ var suncore;
             this.$canceled = false;
             this.$weights = 0;
             this.$mod = mod;
-            for (var priority = 0; priority < MessagePriorityEnum.MAX; priority++) {
+            for (var priority = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
                 this.$queues[priority] = [];
             }
         }
@@ -270,7 +270,7 @@ var suncore;
         MessageQueue.prototype.dealMessage = function () {
             var dealCount = 0;
             var remainCount = 0;
-            for (var priority = 0; priority < MessagePriorityEnum.MAX; priority++) {
+            for (var priority = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
                 var queue = void 0;
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
                     queue = this.$tasks;
@@ -470,7 +470,7 @@ var suncore;
                     this.$cancelMessage(tasks.shift());
                 }
             }
-            for (var priority = 0; priority < MessagePriorityEnum.MAX; priority++) {
+            for (var priority = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
                 var queue = this.$queues[priority];
                 while (queue.length > 0) {
                     this.$cancelMessage(queue.shift());
@@ -501,7 +501,7 @@ var suncore;
     suncore.MessageQueue = MessageQueue;
     var MsgQMsg = (function () {
         function MsgQMsg() {
-            this.dst = MsgQModEnum.ANY;
+            this.dst = MsgQModEnum.E_ANY;
             this.id = 0;
             this.data = null;
             this.batchIndex = 0;
@@ -527,13 +527,13 @@ var suncore;
         }
         MsgQService.prototype.$onRun = function () {
             MsgQ.setModuleActive(this.msgQMod, true);
-            this.facade.registerObserver(NotifyKey.MSG_Q_BUSINESS, this.$_onMsgQBusiness, this);
+            this.facade.registerObserver(NotifyKey.MSG_Q_BUSINESS, this.$func_onMsgQBusiness, this);
         };
         MsgQService.prototype.$onStop = function () {
             MsgQ.setModuleActive(this.msgQMod, false);
-            this.facade.removeObserver(NotifyKey.MSG_Q_BUSINESS, this.$_onMsgQBusiness, this);
+            this.facade.removeObserver(NotifyKey.MSG_Q_BUSINESS, this.$func_onMsgQBusiness, this);
         };
-        MsgQService.prototype.$_onMsgQBusiness = function (mod) {
+        MsgQService.prototype.$func_onMsgQBusiness = function (mod) {
             var msg = null;
             if (mod === void 0 || mod === this.msgQMod) {
                 while (true) {
@@ -620,16 +620,16 @@ var suncore;
         function SimpleTask(caller, method, args) {
             if (args === void 0) { args = null; }
             var _this = _super.call(this) || this;
-            _this.$_args = null;
-            _this.$_method = null;
-            _this.$_caller = null;
-            _this.$_args = args;
-            _this.$_caller = caller;
-            _this.$_method = method;
+            _this.$var_args = null;
+            _this.$var_caller = null;
+            _this.$var_method = null;
+            _this.$var_args = args;
+            _this.$var_caller = caller;
+            _this.$var_method = method;
             return _this;
         }
         SimpleTask.prototype.run = function () {
-            this.$_method.apply(this.$_caller, this.$_args);
+            this.$var_method.apply(this.$var_caller, this.$var_args);
             return true;
         };
         return SimpleTask;
@@ -899,7 +899,7 @@ var suncore;
         }
         PromiseTask.prototype.run = function () {
             var method = this.$resolve.bind(this);
-            this.$_method.apply(this.$_caller, this.$_args === null ? [method] : [method].concat(this.$_args));
+            this.$var_method.apply(this.$var_caller, this.$var_args === null ? [method] : [method].concat(this.$var_args));
             return this.done;
         };
         PromiseTask.prototype.$resolve = function () {

@@ -7,7 +7,7 @@ module suncore {
         /**
          * 响应消息的模块
          */
-        dst: MsgQModEnum = MsgQModEnum.ANY;
+        dst: MsgQModEnum = MsgQModEnum.E_ANY;
 
         /**
          * 消息编号

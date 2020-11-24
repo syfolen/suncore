@@ -13,7 +13,7 @@ module suncore {
         run(): boolean {
             const method: Function = this.$resolve.bind(this);
             // 执行任务
-            this.$_method.apply(this.$_caller, this.$_args === null ? [method] : [method].concat(this.$_args));
+            this.$var_method.apply(this.$var_caller, this.$var_args === null ? [method] : [method].concat(this.$var_args));
 
             return this.done;
         }

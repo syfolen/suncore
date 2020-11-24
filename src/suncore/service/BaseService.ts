@@ -11,18 +11,18 @@ module suncore {
         /**
          * 服务是否己启动
          */
-        private $_running: boolean = false;
+        private $var_running: boolean = false;
 
         /**
          * 服务启动入口
          * export
          */
         run(): void {
-            if (this.$_running === true) {
+            if (this.$var_running === true) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, `服务[${suncom.Common.getQualifiedClassName(this)}]己运行`);
                 return;
             }
-            this.$_running = true;
+            this.$var_running = true;
             this.$onRun();
         }
 
@@ -31,11 +31,11 @@ module suncore {
          * export
          */
         stop(): void {
-            if (this.$_running === false) {
+            if (this.$var_running === false) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, `服务[${suncom.Common.getQualifiedClassName(this)}]未运行`);
                 return;
             }
-            this.$_running = false;
+            this.$var_running = false;
             this.$onStop();
         }
 
@@ -56,7 +56,7 @@ module suncore {
          * export
          */
         get running(): boolean {
-            return this.$_running;
+            return this.$var_running;
         }
     }
 }

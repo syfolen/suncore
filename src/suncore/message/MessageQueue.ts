@@ -39,7 +39,7 @@ module suncore {
         constructor(mod: ModuleEnum) {
             this.$mod = mod;
             // 初始化消息队列
-            for (let priority: MessagePriorityEnum = 0; priority < MessagePriorityEnum.MAX; priority++) {
+            for (let priority: MessagePriorityEnum = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
                 this.$queues[priority] = [];
             }
         }
@@ -85,7 +85,7 @@ module suncore {
             let remainCount: number = 0;
 
             // 执行一般消息
-            for (let priority: MessagePriorityEnum = 0; priority < MessagePriorityEnum.MAX; priority++) {
+            for (let priority: MessagePriorityEnum = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
                 let queue: any[];
 
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
@@ -360,7 +360,7 @@ module suncore {
                     this.$cancelMessage(tasks.shift());
                 }
             }
-            for (let priority: MessagePriorityEnum = 0; priority < MessagePriorityEnum.MAX; priority++) {
+            for (let priority: MessagePriorityEnum = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
                 const queue: Message[] = this.$queues[priority];
                 while (queue.length > 0) {
                     this.$cancelMessage(queue.shift());

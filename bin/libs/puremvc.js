@@ -2,7 +2,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -15,7 +15,7 @@ var puremvc;
 (function (puremvc) {
     var CareModuleID;
     (function (CareModuleID) {
-        CareModuleID[CareModuleID["$_NONE"] = 65535] = "$_NONE";
+        CareModuleID[CareModuleID["E_NONE"] = 65535] = "E_NONE";
         CareModuleID[CareModuleID["CUSTOM"] = 65536] = "CUSTOM";
         CareModuleID[CareModuleID["TIMELINE"] = 65537] = "TIMELINE";
     })(CareModuleID = puremvc.CareModuleID || (puremvc.CareModuleID = {}));
@@ -59,14 +59,14 @@ var puremvc;
     puremvc.Controller = Controller;
     var Facade = (function () {
         function Facade() {
-            this.$_view = new View();
-            this.$_model = new Model();
-            this.$_controller = new Controller();
+            this.$var_view = new View();
+            this.$var_model = new Model();
+            this.$var_controller = new Controller();
             if (Facade.inst !== null) {
                 throw Error("\u91CD\u590D\u6784\u5EFAPureMVC\u5916\u89C2\u7C7B\uFF01\uFF01\uFF01");
             }
             Facade.inst = this;
-            this.$_initializeFacade();
+            this.$func_initializeFacade();
         }
         Facade.getInstance = function () {
             if (Facade.inst === null) {
@@ -74,7 +74,7 @@ var puremvc;
             }
             return Facade.inst;
         };
-        Facade.prototype.$_initializeFacade = function () {
+        Facade.prototype.$func_initializeFacade = function () {
             this.$initMsgQ();
             this.$initializeModel();
             this.$initializeController();
@@ -102,82 +102,82 @@ var puremvc;
             MutexLocker.msgQCmd[msgQMod] = prefix;
         };
         Facade.prototype.$setCareStatForCmd = function (cmd) {
-            this.$_view.setCareStatForCmd(cmd);
+            this.$var_view.setCareStatForCmd(cmd);
         };
         Facade.prototype.registerObserver = function (name, method, caller, receiveOnce, priority, option) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            var observer = this.$_view.registerObserver(name, method, caller, receiveOnce, priority, option);
+            var observer = this.$var_view.registerObserver(name, method, caller, receiveOnce, priority, option);
             MutexLocker.deactive();
         };
         Facade.prototype.removeObserver = function (name, method, caller) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            this.$_view.removeObserver(name, method, caller);
+            this.$var_view.removeObserver(name, method, caller);
             MutexLocker.deactive();
         };
         Facade.prototype.hasObserver = function (name, method, caller) {
             MutexLocker.deactive();
-            return this.$_view.hasObserver(name, method, caller);
+            return this.$var_view.hasObserver(name, method, caller);
         };
         Facade.prototype.registerCommand = function (name, cls, priority, option) {
             MutexLocker.deactive();
-            this.$_controller.registerCommand(name, cls, priority, option);
+            this.$var_controller.registerCommand(name, cls, priority, option);
         };
         Facade.prototype.removeCommand = function (name) {
             MutexLocker.deactive();
-            this.$_controller.removeCommand(name);
+            this.$var_controller.removeCommand(name);
         };
         Facade.prototype.hasCommand = function (name) {
             MutexLocker.deactive();
-            return this.$_controller.hasCommand(name);
+            return this.$var_controller.hasCommand(name);
         };
         Facade.prototype.registerProxy = function (proxy) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            this.$_model.registerProxy(proxy);
+            this.$var_model.registerProxy(proxy);
             MutexLocker.deactive();
         };
         Facade.prototype.removeProxy = function (name) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            this.$_model.removeProxy(name);
+            this.$var_model.removeProxy(name);
             MutexLocker.deactive();
         };
         Facade.prototype.retrieveProxy = function (name) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            var proxy = this.$_model.retrieveProxy(name);
+            var proxy = this.$var_model.retrieveProxy(name);
             MutexLocker.deactive();
             return proxy;
         };
         Facade.prototype.hasProxy = function (name) {
             MutexLocker.deactive();
-            return this.$_model.hasProxy(name);
+            return this.$var_model.hasProxy(name);
         };
         Facade.prototype.registerMediator = function (mediator) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            this.$_view.registerMediator(mediator);
+            this.$var_view.registerMediator(mediator);
             MutexLocker.deactive();
         };
         Facade.prototype.removeMediator = function (name) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            this.$_view.removeMediator(name);
+            this.$var_view.removeMediator(name);
             MutexLocker.deactive();
         };
         Facade.prototype.retrieveMediator = function (name) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            var mediator = this.$_view.retrieveMediator(name);
+            var mediator = this.$var_view.retrieveMediator(name);
             MutexLocker.deactive();
             return mediator;
         };
         Facade.prototype.hasMediator = function (name) {
             MutexLocker.deactive();
-            return this.$_view.hasMediator(name);
+            return this.$var_view.hasMediator(name);
         };
         Facade.prototype.sendNotification = function (name, data, cancelable, force) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            this.$_view.notifyObservers(name, data, cancelable, force);
+            this.$var_view.notifyObservers(name, data, cancelable, force);
             MutexLocker.deactive();
         };
         Facade.prototype.notifyCancel = function () {
             MutexLocker.deactive();
-            this.$_view.notifyCancel();
+            this.$var_view.notifyCancel();
         };
         Facade.DEBUG = true;
         Facade.inst = null;
@@ -193,7 +193,7 @@ var puremvc;
             Model.inst = this;
         }
         Model.prototype.registerProxy = function (proxy) {
-            var name = proxy.$_getProxyName();
+            var name = proxy.func_getProxyName();
             if (isStringNullOrEmpty(name) === true) {
                 throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u6A21\u578B\u7C7B");
             }
@@ -411,11 +411,11 @@ var puremvc;
     puremvc.MutexScope = MutexScope;
     var Notifier = (function () {
         function Notifier(msgQMod) {
-            this.$_facade = Facade.getInstance();
-            this.$_msgQMod = suncore.MsgQModEnum.MMI;
+            this.$var_facade = Facade.getInstance();
+            this.$var_msgQMod = suncore.MsgQModEnum.MMI;
             this.$destroyed = false;
             if (msgQMod !== void 0) {
-                this.$_msgQMod = msgQMod;
+                this.$var_msgQMod = msgQMod;
             }
         }
         Notifier.prototype.destroy = function () {
@@ -423,15 +423,15 @@ var puremvc;
         };
         Object.defineProperty(Notifier.prototype, "facade", {
             get: function () {
-                MutexLocker.active(this.$_msgQMod);
-                return this.$_facade;
+                MutexLocker.active(this.$var_msgQMod);
+                return this.$var_facade;
             },
             enumerable: false,
             configurable: true
         });
         Object.defineProperty(Notifier.prototype, "msgQMod", {
             get: function () {
-                return this.$_msgQMod;
+                return this.$var_msgQMod;
             },
             enumerable: false,
             configurable: true
@@ -462,17 +462,17 @@ var puremvc;
         __extends(Proxy, _super);
         function Proxy(name, data) {
             var _this = _super.call(this) || this;
-            _this.$_proxyName = null;
+            _this.$var_proxyName = null;
             _this.$data = void 0;
             if (isStringNullOrEmpty(name) === true) {
                 throw Error("\u65E0\u6548\u7684\u6A21\u578B\u7C7B\u540D\u5B57");
             }
             _this.$data = data;
-            _this.$_proxyName = name;
+            _this.$var_proxyName = name;
             return _this;
         }
-        Proxy.prototype.$_getProxyName = function () {
-            return this.$_proxyName || null;
+        Proxy.prototype.func_getProxyName = function () {
+            return this.$var_proxyName || null;
         };
         Proxy.prototype.onRegister = function () {
         };
@@ -554,7 +554,7 @@ var puremvc;
             if (option.delay < 1) {
                 throw Error("\u4E8B\u4EF6\u54CD\u5E94\u95F4\u9694\u5E94\u5F53\u5927\u4E8E0");
             }
-            option.$_counter = 0;
+            option.var_counter = 0;
             var index = -1;
             for (var i = 0; i < observers.length; i++) {
                 var observer_1 = observers[i];
@@ -584,7 +584,7 @@ var puremvc;
         };
         View.prototype.$createOption = function (data) {
             if (typeof data === "number") {
-                if (data < CareModuleID.$_NONE) {
+                if (data < CareModuleID.E_NONE) {
                     return {
                         delay: data
                     };
@@ -713,11 +713,11 @@ var puremvc;
                     continue;
                 }
                 if (option.delay > 1) {
-                    option.$_counter++;
-                    if (option.$_counter < option.delay) {
+                    option.var_counter++;
+                    if (option.var_counter < option.delay) {
                         continue;
                     }
-                    option.$_counter = 0;
+                    option.var_counter = 0;
                 }
                 var args = option.args ? option.args.concat(data) : data;
                 if (observer.caller === Controller.inst) {
@@ -749,7 +749,7 @@ var puremvc;
             this.$isCanceled = true;
         };
         View.prototype.registerMediator = function (mediator) {
-            var name = mediator.$_getMediatorName();
+            var name = mediator.func_getMediatorName();
             if (isStringNullOrEmpty(name) === true) {
                 throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u4E2D\u4ECB\u8005\u5BF9\u8C61");
             }
@@ -769,7 +769,7 @@ var puremvc;
             }
             var mediator = this.$mediators[name];
             delete this.$mediators[name];
-            mediator.$_removeNotificationInterests();
+            mediator.func_removeNotificationInterests();
             mediator.onRemove();
         };
         View.prototype.retrieveMediator = function (name) {
@@ -792,16 +792,16 @@ var puremvc;
         __extends(MacroCommand, _super);
         function MacroCommand() {
             var _this = _super.call(this) || this;
-            _this.$_commands = [];
+            _this.$var_commands = [];
             _this.$initializeMacroCommand();
             return _this;
         }
         MacroCommand.prototype.$addSubCommand = function (cls) {
-            this.$_commands.push(cls);
+            this.$var_commands.push(cls);
         };
         MacroCommand.prototype.execute = function () {
-            for (var i = 0; i < this.$_commands.length; i++) {
-                var cmd = new this.$_commands[i]();
+            for (var i = 0; i < this.$var_commands.length; i++) {
+                var cmd = new this.$var_commands[i]();
                 cmd.execute.apply(cmd, arguments);
             }
         };
@@ -812,31 +812,31 @@ var puremvc;
         __extends(Mediator, _super);
         function Mediator(name, viewComponent) {
             var _this = _super.call(this) || this;
-            _this.$_mediatorName = null;
-            _this.$_notificationInterests = [];
+            _this.$var_mediatorName = null;
+            _this.$var_notificationInterests = [];
             _this.$viewComponent = null;
             if (isStringNullOrEmpty(name) === true) {
                 throw Error("\u65E0\u6548\u7684\u4E2D\u4ECB\u8005\u5BF9\u8C61\u540D\u5B57");
             }
-            _this.$_mediatorName = name;
+            _this.$var_mediatorName = name;
             _this.$viewComponent = viewComponent || null;
             return _this;
         }
-        Mediator.prototype.$_getMediatorName = function () {
-            return this.$_mediatorName;
-        };
-        Mediator.prototype.listNotificationInterests = function () {
-        };
-        Mediator.prototype.$_removeNotificationInterests = function () {
-            for (var i = 0; i < this.$_notificationInterests.length; i++) {
-                var observer = this.$_notificationInterests[i];
-                View.inst.removeObserver(observer.name, observer.method, observer.caller);
-            }
-        };
         Mediator.prototype.$handleNotification = function (name, method, priority, option) {
             if (priority === void 0) { priority = suncom.EventPriorityEnum.MID; }
             var observer = View.inst.registerObserver(name, method, this, void 0, priority, option);
-            observer && this.$_notificationInterests.push(observer);
+            observer && this.$var_notificationInterests.push(observer);
+        };
+        Mediator.prototype.func_getMediatorName = function () {
+            return this.$var_mediatorName;
+        };
+        Mediator.prototype.listNotificationInterests = function () {
+        };
+        Mediator.prototype.func_removeNotificationInterests = function () {
+            for (var i = 0; i < this.$var_notificationInterests.length; i++) {
+                var observer = this.$var_notificationInterests[i];
+                View.inst.removeObserver(observer.name, observer.method, observer.caller);
+            }
         };
         Mediator.prototype.onRegister = function () {
         };
