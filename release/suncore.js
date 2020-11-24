@@ -15,19 +15,18 @@ var suncore;
 (function (suncore) {
     var MessagePriorityEnum;
     (function (MessagePriorityEnum) {
-        MessagePriorityEnum[MessagePriorityEnum["MIN"] = 0] = "MIN";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_0"] = 1] = "PRIORITY_0";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_HIGH"] = 2] = "PRIORITY_HIGH";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_NOR"] = 3] = "PRIORITY_NOR";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LOW"] = 4] = "PRIORITY_LOW";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LAZY"] = 5] = "PRIORITY_LAZY";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TRIGGER"] = 6] = "PRIORITY_TRIGGER";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TASK"] = 7] = "PRIORITY_TASK";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_0"] = 0] = "PRIORITY_0";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_HIGH"] = 1] = "PRIORITY_HIGH";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_NOR"] = 2] = "PRIORITY_NOR";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LOW"] = 3] = "PRIORITY_LOW";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LAZY"] = 4] = "PRIORITY_LAZY";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TRIGGER"] = 5] = "PRIORITY_TRIGGER";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TASK"] = 6] = "PRIORITY_TASK";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_PROMISE"] = 7] = "PRIORITY_PROMISE";
         MessagePriorityEnum[MessagePriorityEnum["MAX"] = 8] = "MAX";
     })(MessagePriorityEnum = suncore.MessagePriorityEnum || (suncore.MessagePriorityEnum = {}));
     var ModuleEnum;
     (function (ModuleEnum) {
-        ModuleEnum[ModuleEnum["MIN"] = 0] = "MIN";
         ModuleEnum[ModuleEnum["SYSTEM"] = 0] = "SYSTEM";
         ModuleEnum[ModuleEnum["CUSTOM"] = 1] = "CUSTOM";
         ModuleEnum[ModuleEnum["TIMELINE"] = 2] = "TIMELINE";
@@ -61,19 +60,19 @@ var suncore;
         __extends(AbstractTask, _super);
         function AbstractTask() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.$done = false;
-            _this.$running = false;
+            _this.$_done = false;
+            _this.$_running = false;
             return _this;
         }
         AbstractTask.prototype.cancel = function () {
         };
         Object.defineProperty(AbstractTask.prototype, "done", {
             get: function () {
-                return this.$done;
+                return this.$_done;
             },
             set: function (yes) {
-                if (this.$done !== yes) {
-                    this.$done = yes;
+                if (this.$_done !== yes) {
+                    this.$_done = yes;
                     if (yes === true) {
                         this.cancel();
                     }
@@ -84,10 +83,10 @@ var suncore;
         });
         Object.defineProperty(AbstractTask.prototype, "running", {
             get: function () {
-                return this.$running;
+                return this.$_running;
             },
             set: function (yes) {
-                this.$running = yes;
+                this.$_running = yes;
             },
             enumerable: false,
             configurable: true
@@ -99,28 +98,28 @@ var suncore;
         __extends(BaseService, _super);
         function BaseService() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.$running = false;
+            _this.$_running = false;
             return _this;
         }
         BaseService.prototype.run = function () {
-            if (this.$running === true) {
+            if (this.$_running === true) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, "\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u5DF1\u8FD0\u884C");
                 return;
             }
-            this.$running = true;
+            this.$_running = true;
             this.$onRun();
         };
         BaseService.prototype.stop = function () {
-            if (this.$running === false) {
+            if (this.$_running === false) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, "\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u672A\u8FD0\u884C");
                 return;
             }
-            this.$running = false;
+            this.$_running = false;
             this.$onStop();
         };
         Object.defineProperty(BaseService.prototype, "running", {
             get: function () {
-                return this.$running;
+                return this.$_running;
             },
             enumerable: false,
             configurable: true
@@ -182,23 +181,30 @@ var suncore;
     suncore.Engine = Engine;
     var Message = (function () {
         function Message() {
-            this.hashId = 0;
             this.mod = ModuleEnum.SYSTEM;
             this.priority = MessagePriorityEnum.PRIORITY_0;
+            this.weights = 0;
             this.task = null;
-            this.groupId = -1;
-            this.handler = null;
+            this.groupId = 0;
+            this.args = null;
             this.method = null;
             this.caller = null;
             this.timeout = 0;
         }
+        Message.prototype.recover = function () {
+            this.task = null;
+            this.args = null;
+            this.method = null;
+            this.caller = null;
+            suncom.Pool.recover("suncore.Message", this);
+        };
         return Message;
     }());
     suncore.Message = Message;
     var MessageManager = (function () {
         function MessageManager() {
             this.$queues = [];
-            for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (var mod = 0; mod < ModuleEnum.MAX; mod++) {
                 this.$queues[mod] = new MessageQueue(mod);
             }
         }
@@ -206,14 +212,14 @@ var suncore;
             this.$queues[message.mod].putMessage(message);
         };
         MessageManager.prototype.dealMessage = function () {
-            for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (var mod = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModulePaused(mod) === false) {
                     this.$queues[mod].dealMessage();
                 }
             }
         };
         MessageManager.prototype.classifyMessages0 = function () {
-            for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (var mod = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModuleStopped(mod) === false) {
                     this.$queues[mod].classifyMessages0();
                 }
@@ -233,19 +239,38 @@ var suncore;
             this.$tasks = [];
             this.$queues = [];
             this.$messages0 = [];
-            this.$out = { canceled: false };
+            this.$canceled = false;
+            this.$weights = 0;
             this.$mod = mod;
-            for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
+            for (var priority = 0; priority < MessagePriorityEnum.MAX; priority++) {
                 this.$queues[priority] = [];
             }
         }
         MessageQueue.prototype.putMessage = function (message) {
             this.$messages0.push(message);
+            if (message.priority === MessagePriorityEnum.PRIORITY_PROMISE) {
+                this.$initPromiseWeights(message);
+            }
+        };
+        MessageQueue.prototype.$initPromiseWeights = function (message) {
+            var promises = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE];
+            if (promises.length === 0) {
+                message.weights = this.$weights;
+            }
+            else {
+                var promise = promises[0];
+                if (promise.task.running === false) {
+                    message.weights = this.$weights;
+                }
+                else {
+                    message.weights = this.$weights = promises[0].weights + 1;
+                }
+            }
         };
         MessageQueue.prototype.dealMessage = function () {
             var dealCount = 0;
             var remainCount = 0;
-            for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
+            for (var priority = 0; priority < MessagePriorityEnum.MAX; priority++) {
                 var queue = void 0;
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
                     queue = this.$tasks;
@@ -260,7 +285,7 @@ var suncore;
                     for (var id = this.$tasks.length - 1; id > -1; id--) {
                         var tasks = this.$tasks[id];
                         if (tasks.length > 0 && this.$dealTaskMessage(tasks[0]) === true) {
-                            suncom.Pool.recover("suncore.Message", tasks.shift());
+                            tasks.shift().recover();
                             dealCount++;
                         }
                         if (tasks.length > 1) {
@@ -271,10 +296,23 @@ var suncore;
                         }
                     }
                 }
+                else if (priority === MessagePriorityEnum.PRIORITY_PROMISE) {
+                    while (queue.length > 0) {
+                        dealCount++;
+                        var promise = queue[0];
+                        if (this.$dealTaskMessage(promise) === false) {
+                            break;
+                        }
+                        queue.shift().recover();
+                        if (this.$weights > promise.weights) {
+                            break;
+                        }
+                    }
+                }
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     while (queue.length > 0 && this.$dealTriggerMessage(queue[0]) === true) {
-                        suncom.Pool.recover("suncore.Message", queue.shift());
-                        if (this.$out.canceled === false) {
+                        queue.shift().recover();
+                        if (this.$canceled === false) {
                             dealCount++;
                         }
                     }
@@ -287,7 +325,7 @@ var suncore;
                         if (this.$dealCustomMessage(message) === false) {
                             okCount--;
                         }
-                        suncom.Pool.recover("suncore.Message", message);
+                        message.recover();
                     }
                     dealCount += okCount;
                 }
@@ -299,7 +337,7 @@ var suncore;
                     var message = queue.shift();
                     this.$dealCustomMessage(message);
                     dealCount++;
-                    suncom.Pool.recover("suncore.Message", message);
+                    message.recover();
                 }
             }
         };
@@ -317,11 +355,11 @@ var suncore;
             if (message.timeout > System.getModuleTimestamp(this.$mod)) {
                 return false;
             }
-            this.$out.canceled = message.handler.run() === false;
+            this.$canceled = message.method.apply(message.caller, message.args) === false;
             return true;
         };
         MessageQueue.prototype.$dealCustomMessage = function (message) {
-            return message.handler.run() !== false;
+            return message.method.apply(message.caller, message.args) !== false;
         };
         MessageQueue.prototype.$getDealCountByPriority = function (priority) {
             if (priority === MessagePriorityEnum.PRIORITY_0) {
@@ -347,9 +385,32 @@ var suncore;
                 else if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
+                else if (message.priority === MessagePriorityEnum.PRIORITY_PROMISE) {
+                    this.$addPromiseMessage(message);
+                }
                 else {
                     this.$queues[message.priority].push(message);
                 }
+            }
+        };
+        MessageQueue.prototype.$addPromiseMessage = function (message) {
+            var messages = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE];
+            var index = -1;
+            for (var i = 0; i < messages.length; i++) {
+                var promise = messages[i];
+                if (promise.task.running === true) {
+                    continue;
+                }
+                if (promise.weights < message.weights) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index === -1) {
+                messages.push(message);
+            }
+            else {
+                messages.splice(index, 0, message);
             }
         };
         MessageQueue.prototype.$addTriggerMessage = function (message) {
@@ -409,7 +470,7 @@ var suncore;
                     this.$cancelMessage(tasks.shift());
                 }
             }
-            for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
+            for (var priority = 0; priority < MessagePriorityEnum.MAX; priority++) {
                 var queue = this.$queues[priority];
                 while (queue.length > 0) {
                     this.$cancelMessage(queue.shift());
@@ -420,7 +481,7 @@ var suncore;
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
                 message.task.done = true;
             }
-            suncom.Pool.recover("suncore.Message", message);
+            message.recover();
         };
         MessageQueue.prototype.cancelTaskByGroupId = function (mod, groupId) {
             for (var id = 0; id < this.$tasks.length; id++) {
@@ -429,7 +490,7 @@ var suncore;
                     while (messages.length > 0) {
                         var message = messages.shift();
                         message.task.done = true;
-                        suncom.Pool.recover("suncore.Message", message);
+                        message.recover();
                     }
                     break;
                 }
@@ -452,6 +513,10 @@ var suncore;
             this.batchIndex = batchIndex;
             return this;
         };
+        MsgQMsg.prototype.recover = function () {
+            this.data = null;
+            suncom.Pool.recover("suncore.MsgQMsg", this);
+        };
         return MsgQMsg;
     }());
     suncore.MsgQMsg = MsgQMsg;
@@ -462,13 +527,13 @@ var suncore;
         }
         MsgQService.prototype.$onRun = function () {
             MsgQ.setModuleActive(this.msgQMod, true);
-            this.facade.registerObserver(NotifyKey.MSG_Q_BUSINESS, this.$onMsgQBusiness, this);
+            this.facade.registerObserver(NotifyKey.MSG_Q_BUSINESS, this.$_onMsgQBusiness, this);
         };
         MsgQService.prototype.$onStop = function () {
             MsgQ.setModuleActive(this.msgQMod, false);
-            this.facade.removeObserver(NotifyKey.MSG_Q_BUSINESS, this.$onMsgQBusiness, this);
+            this.facade.removeObserver(NotifyKey.MSG_Q_BUSINESS, this.$_onMsgQBusiness, this);
         };
-        MsgQService.prototype.$onMsgQBusiness = function (mod) {
+        MsgQService.prototype.$_onMsgQBusiness = function (mod) {
             var msg = null;
             if (mod === void 0 || mod === this.msgQMod) {
                 while (true) {
@@ -485,7 +550,7 @@ var suncore;
                         break;
                     }
                     this.$dealMsgQMsg(msg.id, msg.data);
-                    suncom.Pool.recover("suncore.MsgQMsg", msg);
+                    msg.recover();
                 }
                 MsgQ.batchIndex++;
             }
@@ -552,13 +617,19 @@ var suncore;
     suncore.PauseTimelineCommand = PauseTimelineCommand;
     var SimpleTask = (function (_super) {
         __extends(SimpleTask, _super);
-        function SimpleTask(handler) {
+        function SimpleTask(caller, method, args) {
+            if (args === void 0) { args = null; }
             var _this = _super.call(this) || this;
-            _this.$handler = handler;
+            _this.$_args = null;
+            _this.$_method = null;
+            _this.$_caller = null;
+            _this.$_args = args;
+            _this.$_caller = caller;
+            _this.$_method = method;
             return _this;
         }
         SimpleTask.prototype.run = function () {
-            this.$handler.run();
+            this.$_method.apply(this.$_caller, this.$_args);
             return true;
         };
         return SimpleTask;
@@ -654,6 +725,12 @@ var suncore;
             this.timestamp = -1;
             this.timeout = 0;
         }
+        Timer.prototype.recover = function () {
+            this.method = null;
+            this.caller = null;
+            this.args = null;
+            suncom.Pool.recover("suncore.Timer", this);
+        };
         return Timer;
     }());
     suncore.Timer = Timer;
@@ -661,12 +738,12 @@ var suncore;
         function TimerManager() {
             this.$timers = [];
             this.$timerMap = {};
-            for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (var mod = 0; mod < ModuleEnum.MAX; mod++) {
                 this.$timers[mod] = [];
             }
         }
         TimerManager.prototype.executeTimer = function () {
-            for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (var mod = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModulePaused(mod) === false) {
                     var timers = this.$timers[mod];
                     var timestamp = System.getModuleTimestamp(mod);
@@ -699,7 +776,7 @@ var suncore;
                                 timer.method.apply(timer.caller, timer.args.concat(timer.count, timer.loops));
                             }
                         }
-                        suncom.Pool.recover("suncore.Timer", timer);
+                        timer.recover();
                     }
                 }
             }
@@ -809,12 +886,28 @@ var suncore;
             while (timers.length > 0) {
                 var timer = timers.pop();
                 delete this.$timerMap[timer.timerId];
-                suncom.Pool.recover("suncore.Timer", timer);
+                timer.recover();
             }
         };
         return TimerManager;
     }());
     suncore.TimerManager = TimerManager;
+    var PromiseTask = (function (_super) {
+        __extends(PromiseTask, _super);
+        function PromiseTask() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        PromiseTask.prototype.run = function () {
+            var method = this.$resolve.bind(this);
+            this.$_method.apply(this.$_caller, this.$_args === null ? [method] : [method].concat(this.$_args));
+            return this.done;
+        };
+        PromiseTask.prototype.$resolve = function () {
+            this.done = true;
+        };
+        return PromiseTask;
+    }(SimpleTask));
+    suncore.PromiseTask = PromiseTask;
     var M;
     (function (M) {
         M.engine = null;
@@ -899,7 +992,7 @@ var suncore;
             if (active === false) {
                 var array = $queues[mod] || [];
                 while (array.length > 0) {
-                    suncom.Pool.recover("suncore.MsgQMsg", array.pop());
+                    array.pop().recover();
                 }
                 delete $queues[mod];
             }
@@ -988,7 +1081,6 @@ var suncore;
                     throw Error("\u81EA\u5B9A\u4E49\u7684Task GroupId\u4E0D\u5141\u8BB8\u8D85\u8FC71000");
                 }
                 var message = suncom.Pool.getItemByClass("suncore.Message", Message);
-                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
                 message.task = task;
                 message.groupId = groupId;
@@ -1006,12 +1098,14 @@ var suncore;
             M.messageManager.cancelTaskByGroupId(mod, groupId);
         }
         System.cancelTaskByGroupId = cancelTaskByGroupId;
-        function addTrigger(mod, delay, handler) {
+        function addTrigger(mod, delay, caller, method, args) {
+            if (args === void 0) { args = null; }
             if (System.isModuleStopped(mod) === false) {
                 var message = suncom.Pool.getItemByClass("suncore.Message", Message);
-                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
-                message.handler = handler;
+                message.args = args;
+                message.caller = caller;
+                message.method = method;
                 message.timeout = System.getModuleTimestamp(mod) + delay;
                 message.priority = MessagePriorityEnum.PRIORITY_TRIGGER;
                 M.messageManager.putMessage(message);
@@ -1021,12 +1115,28 @@ var suncore;
             }
         }
         System.addTrigger = addTrigger;
-        function addMessage(mod, priority, handler) {
+        function addPromise(mod, caller, method, args) {
+            if (args === void 0) { args = null; }
             if (System.isModuleStopped(mod) === false) {
                 var message = suncom.Pool.getItemByClass("suncore.Message", Message);
-                message.hashId = suncom.Common.createHashId();
                 message.mod = mod;
-                message.handler = handler;
+                message.task = new PromiseTask(caller, method, args);
+                message.priority = MessagePriorityEnum.PRIORITY_PROMISE;
+                M.messageManager.putMessage(message);
+            }
+            else {
+                suncom.Logger.error(suncom.DebugMode.ANY, "\u5C1D\u8BD5\u6DFB\u52A0Promise\u6D88\u606F\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            }
+        }
+        System.addPromise = addPromise;
+        function addMessage(mod, priority, caller, method, args) {
+            if (args === void 0) { args = null; }
+            if (System.isModuleStopped(mod) === false) {
+                var message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                message.mod = mod;
+                message.args = args;
+                message.caller = caller;
+                message.method = method;
                 message.priority = priority;
                 M.messageManager.putMessage(message);
             }

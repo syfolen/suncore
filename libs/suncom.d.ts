@@ -140,34 +140,9 @@ declare module suncom {
     }
 
     /**
-     * 自定义事件系统中的事件信息（内置对象，请勿在外部持有）
-     */
-    class EventInfo {
-    }
-
-    /**
      * 自定义事件系统
      */
     class EventSystem {
-        /**
-         * 事件对象集合（内置属性，请勿操作）
-         */
-        private $events: { [type: string]: EventInfo[] };
-
-        /**
-         * 避免注册与注销对正在派发的事件列表产生干扰（内置属性，请勿操作）
-         */
-        private $lockers: { [type: string]: boolean };
-
-        /**
-         * 己执行的一次性事件对象列表（内置属性，请勿操作）
-         */
-        private $onceList: EventInfo[];
-
-        /**
-         * 事件是否己取消（内置属性，请勿操作）
-         */
-        private $isCanceled: boolean;
 
         /**
          * 事件注册

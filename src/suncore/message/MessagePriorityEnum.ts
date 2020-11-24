@@ -11,17 +11,12 @@ module suncore {
      */
     export enum MessagePriorityEnum {
         /**
-         * 枚举开始
-         */
-        MIN = 0,
-
-        /**
          * 始终立即响应
          * 说明：
          * 1. 请谨慎定义此消息的回调执行器的返回值，详见 LAZY 消息说明
          * export
          */
-        PRIORITY_0,
+        PRIORITY_0 = 0,
 
         /**
          * 每帧至多响应十次消息

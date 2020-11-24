@@ -13,17 +13,11 @@ module suncore {
      */
     export enum ModuleEnum {
         /**
-         * 枚举开始
-         * export
-         */
-        MIN = 0,
-
-        /**
          * 系统模块
          * 此模块为常驻模块，该模块下的消息永远不会被清理
          * export
          */
-        SYSTEM = MIN,
+        SYSTEM = 0,
 
         /**
          * 通用模块

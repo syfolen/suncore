@@ -10,16 +10,14 @@ module suncore {
      */
     export abstract class AbstractTask extends puremvc.Notifier {
         /**
-         * 任务是否己经完成（内置属性，请勿操作）
-         * export
+         * 任务是否己经完成
          */
-        private $done: boolean = false;
+        private $_done: boolean = false;
 
         /**
-         * 是否正在运行（内置属性，请勿操作）
-         * export
+         * 是否正在运行
          */
-        private $running: boolean = false;
+        private $_running: boolean = false;
 
         /**
          * 执行函数
@@ -46,14 +44,14 @@ module suncore {
          * export
          */
         get done(): boolean {
-            return this.$done;
+            return this.$_done;
         }
         /**
          * depends
          */
         set done(yes: boolean) {
-            if (this.$done !== yes) {
-                this.$done = yes;
+            if (this.$_done !== yes) {
+                this.$_done = yes;
                 if (yes === true) {
                     this.cancel();
                 }
@@ -65,10 +63,10 @@ module suncore {
          * export
          */
         get running(): boolean {
-            return this.$running;
+            return this.$_running;
         }
         set running(yes: boolean) {
-            this.$running = yes;
+            this.$_running = yes;
         }
     }
 }

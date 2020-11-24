@@ -9,32 +9,35 @@ module suncore {
         /**
          * 回调参数列表
          */
-        protected $args: any[] = null;
+        protected $_args: any[] = null;
 
         /**
          * 回调方法
          */
-        protected $method: Function = null;
+        protected $_method: Function = null;
 
         /**
          * 回调对象
          */
-        protected $caller: Object = null;
+        protected $_caller: Object = null;
 
+        /**
+         * export
+         */
         constructor(caller: Object, method: Function, args: any[] = null) {
             super();
-            this.$args = args;
-            this.$caller = caller;
-            this.$method = method;
+            this.$_args = args;
+            this.$_caller = caller;
+            this.$_method = method;
         }
 
         /**
-         * 执行函数
+         * 执行函数，只能返回: true
          * export
          */
         run(): boolean {
             // 执行任务
-            this.$method.apply(this.$caller, this.$args);
+            this.$_method.apply(this.$_caller, this.$_args);
 
             return true;
         }

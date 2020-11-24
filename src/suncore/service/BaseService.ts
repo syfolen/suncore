@@ -9,21 +9,20 @@ module suncore {
      */
     export abstract class BaseService extends puremvc.Notifier {
         /**
-         * 服务是否己启动（内置属性，请勿操作）
-         * export
+         * 服务是否己启动
          */
-        private $running: boolean = false;
+        private $_running: boolean = false;
 
         /**
          * 服务启动入口
          * export
          */
         run(): void {
-            if (this.$running === true) {
+            if (this.$_running === true) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, `服务[${suncom.Common.getQualifiedClassName(this)}]己运行`);
                 return;
             }
-            this.$running = true;
+            this.$_running = true;
             this.$onRun();
         }
 
@@ -32,11 +31,11 @@ module suncore {
          * export
          */
         stop(): void {
-            if (this.$running === false) {
+            if (this.$_running === false) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, `服务[${suncom.Common.getQualifiedClassName(this)}]未运行`);
                 return;
             }
-            this.$running = false;
+            this.$_running = false;
             this.$onStop();
         }
 
@@ -57,7 +56,7 @@ module suncore {
          * export
          */
         get running(): boolean {
-            return this.$running;
+            return this.$_running;
         }
     }
 }

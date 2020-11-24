@@ -10,7 +10,7 @@ module suncore {
         private $queues: MessageQueue[] = [];
 
         constructor() {
-            for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
                 this.$queues[mod] = new MessageQueue(mod);
             }
         }
@@ -26,7 +26,7 @@ module suncore {
          * 处理消息
          */
         dealMessage(): void {
-            for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModulePaused(mod) === false) {
                     this.$queues[mod].dealMessage();
                 }
@@ -37,7 +37,7 @@ module suncore {
          * 将临时消息按优先级分类
          */
         classifyMessages0(): void {
-            for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModuleStopped(mod) === false) {
                     this.$queues[mod].classifyMessages0();
                 }

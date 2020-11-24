@@ -15,7 +15,7 @@ module suncore {
         private $timerMap: { [id: number]: Timer } = {};
 
         constructor() {
-            for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
                 this.$timers[mod] = [];
             }
         }
@@ -25,7 +25,7 @@ module suncore {
          */
         executeTimer(): void {
             // 遍历所有模块中的所有定时器
-            for (let mod: ModuleEnum = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
                 // 当前模块未暂停
                 if (System.isModulePaused(mod) === false) {
                     // 获取模块中的所有定时器

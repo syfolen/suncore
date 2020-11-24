@@ -14,7 +14,7 @@ module suncore {
          */
         protected $onRun(): void {
             MsgQ.setModuleActive(this.msgQMod, true);
-            this.facade.registerObserver(NotifyKey.MSG_Q_BUSINESS, this.$onMsgQBusiness, this);
+            this.facade.registerObserver(NotifyKey.MSG_Q_BUSINESS, this.$_onMsgQBusiness, this);
         }
 
         /**
@@ -23,7 +23,7 @@ module suncore {
          */
         protected $onStop(): void {
             MsgQ.setModuleActive(this.msgQMod, false);
-            this.facade.removeObserver(NotifyKey.MSG_Q_BUSINESS, this.$onMsgQBusiness, this);
+            this.facade.removeObserver(NotifyKey.MSG_Q_BUSINESS, this.$_onMsgQBusiness, this);
         }
 
         /**
@@ -32,7 +32,7 @@ module suncore {
          * 说明：
          * 1. 这样做能提高网络消息响应的及时性
          */
-        private $onMsgQBusiness(mod: MsgQModEnum): void {
+        private $_onMsgQBusiness(mod: MsgQModEnum): void {
             let msg: MsgQMsg = null;
             // 非指定模块不响应指定的业务
             if (mod === void 0 || mod === this.msgQMod) {

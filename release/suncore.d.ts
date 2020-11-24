@@ -19,7 +19,7 @@ declare module suncore {
          * 说明：
          * 1. 请谨慎定义此消息的回调执行器的返回值，详见 LAZY 消息说明
          */
-        PRIORITY_0,
+        PRIORITY_0 = 0,
 
         /**
          * 每帧至多响应十次消息
@@ -66,7 +66,19 @@ declare module suncore {
          * 1. 任务消息在执行时，会阻塞整个消息队列，直至任务完成
          * 2. 新的任务只会在下一帧被开始执行
          */
-        PRIORITY_TASK
+        PRIORITY_TASK,
+
+        /**
+         * 承诺消息
+         * 说明：
+         * 1. 此消息是取代原生js的Promise机制用的
+         * 2. 与任务消息类似，承诺也是阻塞式执行的
+         * 3. 影响承诺执行优先级的除了承诺的被添加顺序之外，还有承诺的批次
+         * 4. 当你在承诺执行的过程中添加新的承诺时，这些承诺将被视为新的批次
+         * 5. 新批次的承诺拥有更高的执行优先级，它们将在当前承诺执行完毕之后开始执行
+         * 6. 当当前批次中的所有承诺全部执行完毕之后，上一批承诺将会继续执行，直至整个消息队列为空
+         */
+        PRIORITY_PROMISE
     }
 
     /**
@@ -81,15 +93,10 @@ declare module suncore {
      */
     enum ModuleEnum {
         /**
-         * 枚举开始
-         */
-        MIN = 0,
-
-        /**
          * 系统模块
          * 此模块为常驻模块，该模块下的消息永远不会被清理
          */
-        SYSTEM = MIN,
+        SYSTEM = 0,
 
         /**
          * 通用模块
@@ -191,16 +198,6 @@ declare module suncore {
      */
     abstract class AbstractTask extends puremvc.Notifier {
         /**
-         * 任务是否己经完成（内置属性，请勿操作）
-         */
-        private $done: boolean;
-
-        /**
-         * 是否正在运行（内置属性，请勿操作）
-         */
-        private $running: boolean;
-
-        /**
          * 是否正在运行
          */
         running: boolean;
@@ -234,10 +231,6 @@ declare module suncore {
      * 2. 服务被设计用来处理与表现层无关的有状态业务。
      */
     abstract class BaseService extends puremvc.Notifier {
-        /**
-         * 服务是否己启动（内置属性，请勿操作）
-         */
-        private $running: boolean;
 
         /**
          * 服务启动入口
@@ -302,13 +295,14 @@ declare module suncore {
 
     /**
      * 简单任务对象
+     * 说明：
      */
     class SimpleTask extends AbstractTask {
 
-        constructor(handler: suncom.Handler);
+        constructor(caller: Object, method: Function, args?: any[]);
 
         /**
-         * 执行函数
+         * 执行函数，只能返回: true
          */
         run(): boolean;
     }
@@ -449,12 +443,17 @@ declare module suncore {
         /**
          * 添加触发器
          */
-        function addTrigger(mod: ModuleEnum, delay: number, handler: suncom.Handler): void;
+        function addTrigger(mod: ModuleEnum, delay: number, caller: Object, method: Function, args?: any[]): void;
+
+        /**
+         * 添加承诺
+         */
+        function addPromise(mod: ModuleEnum, caller: Object, method: Function, args?: any[]): void;
 
         /**
          * 添加消息
          */
-        function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.Handler): void;
+        function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, caller: Object, method: Function, args?: any[]): void;
 
         /**
          * 添加自定义定时器

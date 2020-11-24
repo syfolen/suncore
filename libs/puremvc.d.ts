@@ -62,6 +62,11 @@ declare module puremvc {
      */
     class Facade {
         /**
+         * 调试模式，为true时会输出日志，默认为: true
+         */
+        static DEBUG: boolean;
+
+        /**
          * 单例
          */
         static inst: Facade;
@@ -122,7 +127,7 @@ declare module puremvc {
          * 说明：
          * 1. 若需覆盖参数，请先调用removeObserver移除监听后再重新注册
          */
-        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): Observer;
+        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): void;
 
         /**
          * 移除监听
@@ -251,12 +256,6 @@ declare module puremvc {
          * 是否己销毁
          */
         readonly destroyed: boolean;
-    }
-
-    /**
-     * 观察者对象（内置对象，请勿在外部持有）
-     */
-    class Observer {
     }
 
     /**
