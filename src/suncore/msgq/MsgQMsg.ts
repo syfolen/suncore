@@ -31,5 +31,10 @@ module suncore {
             this.batchIndex = batchIndex;
             return this;
         }
+
+        recover(): void {
+            this.data = null;
+            suncom.Pool.recover("suncore.MsgQMsg", this);
+        }
     }
 }

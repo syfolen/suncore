@@ -27,7 +27,7 @@ module suncore {
         /**
          * 任务分组编号
          */
-        groupId: number = -1;
+        groupId: number = 0;
 
         /**
          * 回调参数列表
@@ -50,5 +50,13 @@ module suncore {
          * 超时时间
          */
         timeout: number = 0;
+
+        recover(): void {
+            this.task = null;
+            this.args = null;
+            this.method = null;
+            this.caller = null;
+            suncom.Pool.recover("suncore.Message", this);
+        }
     }
 }

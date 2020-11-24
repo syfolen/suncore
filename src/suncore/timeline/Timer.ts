@@ -67,5 +67,12 @@ module suncore {
          * 超时时间，当系统时间大于或等于超时时间时，定时器会被响应
          */
         timeout: number = 0;
+
+        recover(): void {
+            this.method = null;
+            this.caller = null;
+            this.args = null;
+            suncom.Pool.recover("suncore.Timer", this);
+        }
     }
 }

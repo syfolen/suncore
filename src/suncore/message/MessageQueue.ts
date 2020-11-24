@@ -106,7 +106,7 @@ module suncore {
                     for (let id: number = this.$tasks.length - 1; id > -1; id--) {
                         const tasks: Message[] = this.$tasks[id];
                         if (tasks.length > 0 && this.$dealTaskMessage(tasks[0]) === true) {
-                            suncom.Pool.recover("suncore.Message", tasks.shift());
+                            tasks.shift().recover();
                             dealCount++;
                         }
                         if (tasks.length > 1) {
@@ -126,19 +126,18 @@ module suncore {
                         if (this.$dealTaskMessage(promise) === false) {
                             break;
                         }
-                        suncom.Pool.recover("suncore.Message", queue.shift());
-
-                        if (this.$status > PromiseDealStatus.DEALING) {
+                        queue.shift().recover();
+                        // 若当前承诺权重高于正在执行的承诺权重，则跳出循环
+                        if (this.$weights > promise.weights) {
                             break;
                         }
                     }
-                    this.$status = PromiseDealStatus.NONE;
                 }
                 // 触发器消息
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     // 返回true时应当移除触发器
                     while (queue.length > 0 && this.$dealTriggerMessage(queue[0]) === true) {
-                        suncom.Pool.recover("suncore.Message", queue.shift());
+                        queue.shift().recover();
                         if (this.$canceled === false) {
                             dealCount++;
                         }
@@ -157,7 +156,7 @@ module suncore {
                         if (this.$dealCustomMessage(message) === false) {
                             okCount--;
                         }
-                        suncom.Pool.recover("suncore.Message", message);
+                        message.recover();
                     }
 
                     // 总处理条数累加
@@ -175,7 +174,7 @@ module suncore {
                     const message: Message = queue.shift();
                     this.$dealCustomMessage(message);
                     dealCount++;
-                    suncom.Pool.recover("suncore.Message", message);
+                    message.recover();
                 }
             }
         }
@@ -267,6 +266,9 @@ module suncore {
             let index: number = -1;
             for (let i: number = 0; i < messages.length; i++) {
                 const promise: Message = messages[i];
+                if (promise.task.running === true) {
+                    continue;
+                }
                 if (promise.weights < message.weights) {
                     index = i;
                     break;
@@ -373,7 +375,7 @@ module suncore {
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
                 message.task.done = true;
             }
-            suncom.Pool.recover("suncore.Message", message);
+            message.recover();
         }
 
         /**
@@ -386,7 +388,7 @@ module suncore {
                     while (messages.length > 0) {
                         const message = messages.shift();
                         message.task.done = true;
-                        suncom.Pool.recover("suncore.Message", message);
+                        message.recover();
                     }
                     break;
                 }

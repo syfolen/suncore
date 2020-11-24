@@ -70,7 +70,7 @@ module suncore {
                                 timer.method.apply(timer.caller, timer.args.concat(timer.count, timer.loops));
                             }
                         }
-                        suncom.Pool.recover("suncore.Timer", timer);
+                        timer.recover();
                     }
                 }
             }
@@ -234,7 +234,7 @@ module suncore {
             while (timers.length > 0) {
                 const timer: Timer = timers.pop();
                 delete this.$timerMap[timer.timerId];
-                suncom.Pool.recover("suncore.Timer", timer);
+                timer.recover();
             }
         }
     }

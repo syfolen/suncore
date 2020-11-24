@@ -114,7 +114,7 @@ module suncore {
             if (active === false) {
                 const array: MsgQMsg[] = $queues[mod] || [];
                 while (array.length > 0) {
-                    suncom.Pool.recover("suncore.MsgQMsg", array.pop());
+                    array.pop().recover();
                 }
                 delete $queues[mod];
             }

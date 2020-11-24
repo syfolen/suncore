@@ -17,7 +17,7 @@ module test {
                     suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                         console.log("promise level 1:" + data);
                         resolve();
-                    }, [5]);
+                    }, [4]);
                 }, 2000)
                 suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                     console.log("promise level 1:" + data);
@@ -64,6 +64,10 @@ module test {
                 suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                     console.log("promise level 1:" + data);
                     resolve();
+                    suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
+                        console.log("promise level 2:" + data);
+                        resolve();
+                    }, [4]);
                 }, [2]);
                 suncore.System.addPromise(suncore.ModuleEnum.CUSTOM, this, (resolve: Function, data: number) => {
                     console.log("promise level 1:" + data);
@@ -79,60 +83,60 @@ module test {
                 resolve();
             }, [3]);
 
-            // suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 9, new suncore.SimpleTask(this, () => {
-            //     console.log("SIMPLE TASK: 1");
-            // }));
+            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 9, new suncore.SimpleTask(this, () => {
+                console.log("SIMPLE TASK: 1");
+            }));
 
-            // suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 9, new suncore.SimpleTask(this, () => {
-            //     console.log("SIMPLE TASK: 2");
-            // }));
-            // // 测试场景定时器
-            // this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.CUSTOM, 500, this.$onTimerHandler, this, void 0, 0);
-            // for (let i: number = 0; i < 20; i++) {
-            //     suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_0, this, (index) => {
-            //         console.log("PRIORITY_0 " + index);
-            //     }, [i]);
-            // }
-            // for (let i: number = 0; i < 20; i++) {
-            //     suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_HIGH, this, (index) => {
-            //         console.log("PRIORITY_HIGH " + index);
-            //     }, [i]);
-            // }
-            // for (let i: number = 0; i < 10; i++) {
-            //     suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_NOR, this, (index) => {
-            //         console.log("PRIORITY_NOR " + index);
-            //     }, [i]);
-            // }
-            // for (let i: number = 0; i < 5; i++) {
-            //     suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LOW, this, (index) => {
-            //         console.log("PRIORITY_LOW " + index);
-            //     }, [i]);
-            // }
-            // for (let i: number = 0; i < 3; i++) {
-            //     suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, (index) => {
-            //         console.log("PRIORITY_LAZY " + index);
-            //     }, [i]);
-            // }
-            // for (let i: number = 0; i < 5; i++) {
-            //     suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, i * 300 + 300, this, (index) => {
-            //         console.log("PRIORITY_TRIGGER " + index);
-            //     }, [i]);
-            // }
-            // for (let i: number = 0; i < 5; i++) {
-            //     suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, i * 300 + 300, this, (index) => {
-            //         console.log("PRIORITY_TRIGGER " + index);
-            //     }, [i]);
-            // }
-            // for (let i: number = 0; i < 5; i++) {
-            //     suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 0, new TestTask(i));
-            // }
-            // for (let i: number = 0; i < 5; i++) {
-            //     suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 1, new TestTask(i));
-            // }
-            // for (let i: number = 0; i < 5; i++) {
-            //     suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 2, new TestTask(i));
-            // }
-            // suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, this.$gotoQuadtreeScene);
+            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 9, new suncore.SimpleTask(this, () => {
+                console.log("SIMPLE TASK: 2");
+            }));
+            // 测试场景定时器
+            this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.CUSTOM, 500, this.$onTimerHandler, this, void 0, 0);
+            for (let i: number = 0; i < 20; i++) {
+                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_0, this, (index) => {
+                    console.log("PRIORITY_0 " + index);
+                }, [i]);
+            }
+            for (let i: number = 0; i < 20; i++) {
+                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_HIGH, this, (index) => {
+                    console.log("PRIORITY_HIGH " + index);
+                }, [i]);
+            }
+            for (let i: number = 0; i < 10; i++) {
+                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_NOR, this, (index) => {
+                    console.log("PRIORITY_NOR " + index);
+                }, [i]);
+            }
+            for (let i: number = 0; i < 5; i++) {
+                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LOW, this, (index) => {
+                    console.log("PRIORITY_LOW " + index);
+                }, [i]);
+            }
+            for (let i: number = 0; i < 3; i++) {
+                suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, (index) => {
+                    console.log("PRIORITY_LAZY " + index);
+                }, [i]);
+            }
+            for (let i: number = 0; i < 5; i++) {
+                suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, i * 300 + 300, this, (index) => {
+                    console.log("PRIORITY_TRIGGER " + index);
+                }, [i]);
+            }
+            for (let i: number = 0; i < 5; i++) {
+                suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, i * 300 + 300, this, (index) => {
+                    console.log("PRIORITY_TRIGGER " + index);
+                }, [i]);
+            }
+            for (let i: number = 0; i < 5; i++) {
+                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 0, new TestTask(i));
+            }
+            for (let i: number = 0; i < 5; i++) {
+                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 1, new TestTask(i));
+            }
+            for (let i: number = 0; i < 5; i++) {
+                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 2, new TestTask(i));
+            }
+            suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, this.$gotoQuadtreeScene);
 
             return true;
         }
