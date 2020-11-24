@@ -83,7 +83,7 @@ var puremvc;
         Facade.prototype.$initMsgQ = function () {
             MutexLocker.scope = new MutexScope();
             MutexLocker.locker = new MutexScope();
-            MutexLocker.msgQMap["sun"] = suncore.MsgQModEnum.KAL;
+            MutexLocker.msgQMap["sun"] = suncore.MsgQModEnum.E_KAL;
             MutexLocker.msgQMap["MMI"] = suncore.MsgQModEnum.MMI;
         };
         Facade.prototype.$initializeModel = function () {
@@ -232,16 +232,16 @@ var puremvc;
     puremvc.Model = Model;
     var MutexScope = (function () {
         function MutexScope() {
-            this.$actMsgQMod = suncore.MsgQModEnum.NIL;
-            this.$curMsgQMod = suncore.MsgQModEnum.NIL;
+            this.$actMsgQMod = suncore.MsgQModEnum.E_NIL;
+            this.$curMsgQMod = suncore.MsgQModEnum.E_NIL;
             this.$target = {};
             this.$snapshots = [];
         }
         MutexScope.prototype.asserts = function (msgQMod, target) {
-            if (msgQMod === suncore.MsgQModEnum.KAL) {
+            if (msgQMod === suncore.MsgQModEnum.E_KAL) {
                 return;
             }
-            if (this.$curMsgQMod === suncore.MsgQModEnum.NIL || this.$curMsgQMod === suncore.MsgQModEnum.KAL) {
+            if (this.$curMsgQMod === suncore.MsgQModEnum.E_NIL || this.$curMsgQMod === suncore.MsgQModEnum.E_KAL) {
                 return;
             }
             if (this.$curMsgQMod === suncore.MsgQModEnum.MMI) {
@@ -282,7 +282,7 @@ var puremvc;
             var a = this.$target[MutexScope.MUTEX_REFERENCE_KAL] || 0;
             var b = this.$target[MutexScope.MUTEX_REFERENCE_MMI] || 0;
             var c = this.$target[MutexScope.MUTEX_REFERENCE_ANY] || 0;
-            if (msgQMod === suncore.MsgQModEnum.KAL) {
+            if (msgQMod === suncore.MsgQModEnum.E_KAL) {
                 a++;
             }
             else if (msgQMod === suncore.MsgQModEnum.MMI) {
@@ -291,10 +291,10 @@ var puremvc;
             else {
                 c++;
             }
-            if (this.$curMsgQMod === suncore.MsgQModEnum.NIL || this.$curMsgQMod === suncore.MsgQModEnum.KAL) {
+            if (this.$curMsgQMod === suncore.MsgQModEnum.E_NIL || this.$curMsgQMod === suncore.MsgQModEnum.E_KAL) {
                 this.$curMsgQMod = msgQMod;
             }
-            else if (this.$curMsgQMod === suncore.MsgQModEnum.MMI && msgQMod !== suncore.MsgQModEnum.KAL) {
+            else if (this.$curMsgQMod === suncore.MsgQModEnum.MMI && msgQMod !== suncore.MsgQModEnum.E_KAL) {
                 this.$curMsgQMod = msgQMod;
             }
             this.$cache(a, b, c, false);
@@ -303,7 +303,7 @@ var puremvc;
             var a = this.$target[MutexScope.MUTEX_REFERENCE_KAL] || 0;
             var b = this.$target[MutexScope.MUTEX_REFERENCE_MMI] || 0;
             var c = this.$target[MutexScope.MUTEX_REFERENCE_ANY] || 0;
-            if (msgQMod === suncore.MsgQModEnum.KAL) {
+            if (msgQMod === suncore.MsgQModEnum.E_KAL) {
                 a--;
             }
             else if (msgQMod === suncore.MsgQModEnum.MMI) {
@@ -323,7 +323,7 @@ var puremvc;
                 this.$curMsgQMod = suncore.MsgQModEnum.MMI;
             }
             else if (a > 0) {
-                this.$curMsgQMod = suncore.MsgQModEnum.KAL;
+                this.$curMsgQMod = suncore.MsgQModEnum.E_KAL;
             }
             else {
                 this.$curMsgQMod = this.$actMsgQMod;
@@ -331,7 +331,7 @@ var puremvc;
             this.$cache(a, b, c, true);
         };
         MutexScope.prototype.active = function (msgQMod) {
-            if (this.$actMsgQMod === suncore.MsgQModEnum.NIL) {
+            if (this.$actMsgQMod === suncore.MsgQModEnum.E_NIL) {
                 this.$actMsgQMod = this.$curMsgQMod = msgQMod;
             }
         };
@@ -340,7 +340,7 @@ var puremvc;
             var b = this.$target[MutexScope.MUTEX_REFERENCE_MMI] || 0;
             var c = this.$target[MutexScope.MUTEX_REFERENCE_ANY] || 0;
             if (a === 0 && b === 0 && c === 0) {
-                this.$actMsgQMod = this.$curMsgQMod = suncore.MsgQModEnum.NIL;
+                this.$actMsgQMod = this.$curMsgQMod = suncore.MsgQModEnum.E_NIL;
             }
         };
         MutexScope.prototype.$cache = function (a, b, c, d) {
@@ -704,8 +704,8 @@ var puremvc;
                     this.$onceObservers.push(observer);
                 }
                 if (observer.caller !== null && observer.caller.destroyed === true) {
-                    if (suncom && suncom["Common"]) {
-                        console.warn("\u5BF9\u8C61[" + suncom["Common"].getQualifiedClassName(observer.caller) + "]\u5DF1\u9500\u6BC1\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
+                    if (suncom && suncom.Common) {
+                        console.warn("\u5BF9\u8C61[" + suncom.Common.getQualifiedClassName(observer.caller) + "]\u5DF1\u9500\u6BC1\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
                     }
                     else {
                         console.warn("\u5BF9\u8C61\u5DF1\u9500\u6BC1\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
@@ -879,7 +879,7 @@ var puremvc;
             if (MutexLocker.checkPrefix === false) {
                 return true;
             }
-            if (MutexLocker.scope.curMsgQMod === suncore.MsgQModEnum.NIL || MutexLocker.scope.curMsgQMod === suncore.MsgQModEnum.KAL || MutexLocker.scope.curMsgQMod === suncore.MsgQModEnum.MMI) {
+            if (MutexLocker.scope.curMsgQMod === suncore.MsgQModEnum.E_NIL || MutexLocker.scope.curMsgQMod === suncore.MsgQModEnum.E_KAL || MutexLocker.scope.curMsgQMod === suncore.MsgQModEnum.MMI) {
                 return true;
             }
             return MutexLocker.mmiMsgQMap[MutexLocker.scope.curMsgQMod] === true;
