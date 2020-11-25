@@ -10,23 +10,6 @@
  */
 declare module puremvc {
     /**
-     * 消息关心的模块ID
-     * 说明：
-     * 1. 当你在非系统模块中监听了系统消息，但又不希望在该模块未激活时响应消息时，则可在监听消息时指定消息关心的模块ID来达到此目的
-     */
-    enum CareModuleID {
-        /**
-         * suncore.ModuleEnum.CUSTOM
-         */
-        CUSTOM,
-
-        /**
-         * suncore.ModuleEnum.TIMELINE
-         */
-        TIMELINE
-    }
-
-    /**
      * 命令接口，实现此接口的对象允许通过registerCommand注册
      */
     interface ICommand {
@@ -35,26 +18,6 @@ declare module puremvc {
          * 命令执行接口
          */
         execute(...args: any[]): void;
-    }
-
-    /**
-     * 注册事件时的可选参数
-     */
-    interface IOption {
-        /**
-         * 消息关心的模块，默认：无
-         */
-        careStatMod?: suncore.ModuleEnum;
-
-        /**
-         * 消息响应间隔，最小为：1
-         */
-        delay?: number;
-
-        /**
-         * 参数列表
-         */
-        args?: any[];
     }
 
     /**
@@ -112,22 +75,14 @@ declare module puremvc {
         protected $regMsgQCmd(msgQMod: suncore.MsgQModEnum, prefix: string): void;
 
         /**
-         * 指定关心模块状态的命令
-         */
-        protected $setCareStatForCmd(cmd: string): void;
-
-        /**
          * 注册监听
          * @receiveOnce: 是否为一次性监听，默认为: false
          * @priority: 响应优先级，值越大，优先级越高，默认为：suncom.EventPriorityEnum.MID
-         * @option: 可选参数，默认为：1
-         * 1. 为number时表示回调函数的响应间隔延时，最小为：1
-         * 2. 为CareModuleID时表示消息所关心的系统模块
-         * 3. 为数组时代表执行回调函数时的默认参数
+         * @args[]: 回调参数列表，默认为: null
          * 说明：
          * 1. 若需覆盖参数，请先调用removeObserver移除监听后再重新注册
          */
-        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): void;
+        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum, args?: any[]): void;
 
         /**
          * 移除监听
@@ -148,7 +103,7 @@ declare module puremvc {
          * 说明：
          * 1. 命令不可重复注册
          */
-        registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): void;
+        registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum, args?: any[]): void;
 
         /**
          * 移除命令
@@ -212,11 +167,8 @@ declare module puremvc {
          * 派发通知
          * @data: 参数对象，允许为任意类型的数据，传递多个参数时可指定其为数组，若需要传递的data本身就是数组，则需要传递[data]
          * @cancelable: 通知是否允许被取消，默认为: true
-         * @force: 强制响应，默认为：false
-         * 说明：
-         * 1. 有些事件关心模块状态，在模块未激活的情况下，将force设为true可以强制响应这类事件
          */
-        sendNotification(name: string, data?: any, cancelable?: boolean, force?: boolean): void;
+        sendNotification(name: string, data?: any, cancelable?: boolean): void;
 
         /**
          * 通知取消
@@ -334,7 +286,7 @@ declare module puremvc {
         /**
          * 指定通知处理函数，接口说明请参考: Facade.registerObserver
          */
-        protected $handleNotification(name: string, method: Function, priority?: suncom.EventPriorityEnum, option?: number | CareModuleID | any[] | IOption): void;
+        protected $handleNotification(name: string, method: Function, priority?: suncom.EventPriorityEnum, args?: any[]): void;
 
         /**
          * 列举感兴趣的通知
