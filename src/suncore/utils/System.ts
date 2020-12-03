@@ -93,13 +93,13 @@ module suncore {
 
         /**
          * 添加任务
-         * @groupId: 不同编组并行执行，若为-1，则自动给预一个groupId
+         * @groupId: 不同编组并行执行，若为-1，则自动给预一个groupId，默认为: 0
          * @return: 返回任务的groupId，若为-1，则说明任务添加失败
          * 说明：
          * 1. 自定义的groupId的值不允许超过1000
          * export
          */
-        export function addTask(mod: ModuleEnum, groupId: number, task: AbstractTask): number {
+        export function addTask(mod: ModuleEnum, task: AbstractTask, groupId: number = 0): number {
             if (System.isModuleStopped(mod) === false) {
                 if (groupId === -1) {
                     groupId = createTaskGroupId();
@@ -151,6 +151,7 @@ module suncore {
 
         /**
          * 添加承诺
+         * @method: 此方法被调用时，第一个参数必然是resolve方法，你应当在method方法执行完毕时调用resolve方法，否则该promise将永远不会结束
          * export
          */
         export function addPromise(mod: ModuleEnum, caller: Object, method: Function, args: any[] = null): void {
