@@ -77,7 +77,12 @@ declare module suncom {
         /**
          * 网页版
          */
-        WEB
+        WEB,
+
+        /**
+         * 原生平台
+         */
+        NATIVE
     }
 
     /**
@@ -396,6 +401,11 @@ declare module suncom {
         function createHashId(): number;
 
         /**
+         * 判断属性是否为 null 或未定义
+         */
+        function isNullOrUndefined(value: any): boolean;
+
+        /**
          * 获取类名
          * @cls: 指定类型
          */
@@ -414,23 +424,24 @@ declare module suncom {
 
         /**
          * 去除字符串的头尾空格
+         * 说明：
+         * 1. 当 str 为无效字符串时返回 null
          */
-        function trim(str?: string): string;
+        function trim(str: string): string;
 
         /**
          * 判断字符串是否为空
+         * 说明：
+         * 1. 当 value 为数字且不为 NaN 时返回 true
+         * 2. 当 value 为字符串且不为 "" 时返回 true
+         * 3. 否则返回 false
          */
-        function isStringNullOrEmpty(str: string | number): boolean;
+        function isStringNullOrEmpty(value: string | number): boolean;
 
         /**
          * 格式化字符串
          */
         function formatString(str: string, args: any[]): string;
-
-        /**
-         * 格式化字符串
-         */
-        function formatString$(str: string, args: any[]): string;
 
         /**
          * 将参数转化为 Date
@@ -465,9 +476,14 @@ declare module suncom {
         function formatDate(str: string, time: string | number | Date): string;
 
         /**
-         * 返回MD5加密后的串
+         * 返回 md5 加密后的串
          */
         function md5(str: string): string;
+
+        /**
+         * 获取 Url 参数值
+         */
+        function getQueryString(name: string, param?: string): string;
 
         /**
          * 生成HTTP签名
@@ -495,10 +511,10 @@ declare module suncom {
          * 从数组中查找数据
          * @array: 数据源
          * @method: 查询规则，返回true表示与规则匹配
-         * @out: 若不为null，则返回查询到的所有数据
+         * @out: 若不为null，则返回查询到的所有数据，默认为: null
          * @return: 若out为null，则只返回查询到的第一条数据，否则返回null
          */
-        function findFromArray<T>(array: T[], method: (data: T) => boolean, out?: T[]): T;
+        function findInArray<T>(array: T[], method: (data: T) => boolean, out?: T[]): T;
 
         /**
          * 将数据从数组中移除
@@ -591,6 +607,11 @@ declare module suncom {
          * 游戏版本，默认为：1.0.0
          */
         let VERSION: string;
+
+        /**
+         * 全局数据中心
+         */
+        const dataMap: { [key: string]: any };
     }
 
     /**

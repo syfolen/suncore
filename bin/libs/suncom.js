@@ -19,6 +19,7 @@ var suncom;
         EnvMode[EnvMode["DEVELOP"] = 0] = "DEVELOP";
         EnvMode[EnvMode["DEBUG"] = 1] = "DEBUG";
         EnvMode[EnvMode["WEB"] = 2] = "WEB";
+        EnvMode[EnvMode["NATIVE"] = 3] = "NATIVE";
     })(EnvMode = suncom.EnvMode || (suncom.EnvMode = {}));
     var EventPriorityEnum;
     (function (EventPriorityEnum) {
@@ -520,6 +521,10 @@ var suncom;
             return $hashId;
         }
         Common.createHashId = createHashId;
+        function isNullOrUndefined(value) {
+            return value === void 0 || value === null;
+        }
+        Common.isNullOrUndefined = isNullOrUndefined;
         function getClassName(cls) {
             var classString = cls.toString().trim();
             var index = classString.indexOf("(");
@@ -535,13 +540,13 @@ var suncom;
             if (prototype === null) {
                 return type;
             }
-            return Common.getClassName(prototype.constructor);
+            return this.getClassName(prototype.constructor);
         }
         Common.getQualifiedClassName = getQualifiedClassName;
         function getMethodName(method, caller) {
             if (caller === void 0) { caller = null; }
             if (caller === null) {
-                return Common.getClassName(method);
+                return this.getClassName(method);
             }
             for (var key in caller) {
                 if (caller[key] === method) {
@@ -561,85 +566,54 @@ var suncom;
         }
         Common.convertEnumToString = convertEnumToString;
         function trim(str) {
-            if (str === void 0) { str = null; }
-            if (str === null) {
+            if (this.isNullOrUndefined(str) === true) {
                 return null;
             }
             var chrs = ["\r", "\n", "\t", " "];
-            while (str.length > 0) {
-                var length_1 = str.length;
-                for (var i = 0; i < chrs.length; i++) {
-                    var chr = chrs[i];
-                    if (str.charAt(0) === chr) {
-                        str = str.substr(1);
-                        break;
-                    }
-                    var index = str.length - 1;
-                    if (str.charAt(index) === chr) {
-                        str = str.substr(0, index);
-                        break;
-                    }
-                }
-                if (str.length === length_1) {
+            var from = 0;
+            while (from < str.length) {
+                var chr = str.charAt(from);
+                var index = chrs.indexOf(chr);
+                if (index === -1) {
                     break;
                 }
+                from++;
             }
-            return str;
+            var to = str.length - 1;
+            while (to > from) {
+                var chr = str.charAt(to);
+                var index = chrs.indexOf(chr);
+                if (index === -1) {
+                    break;
+                }
+                to--;
+            }
+            return str.substring(from, to + 1);
         }
         Common.trim = trim;
-        function isStringNullOrEmpty(str) {
-            if (typeof str === "number") {
-                return false;
+        function isStringNullOrEmpty(value) {
+            if (typeof value === "number") {
+                return isNaN(value);
             }
-            if (typeof str === "string" && str !== "") {
+            if (typeof value === "string" && value !== "") {
                 return false;
             }
             return true;
         }
         Common.isStringNullOrEmpty = isStringNullOrEmpty;
         function formatString(str, args) {
-            var signs = ["%d", "%s"];
-            var index = 0;
-            while (args.length > 0) {
-                var key = null;
-                var indexOfReplace = -1;
-                for (var i = 0; i < signs.length; i++) {
-                    var sign = signs[i];
-                    var indexOfSign = str.indexOf(sign, index);
-                    if (indexOfSign === -1) {
-                        continue;
-                    }
-                    if (indexOfReplace === -1 || indexOfSign < indexOfReplace) {
-                        key = sign;
-                        indexOfReplace = indexOfSign;
-                    }
-                }
-                if (indexOfReplace === -1) {
-                    Logger.warn(DebugMode.ANY, "字符串替换未完成 " + ("str:" + str));
+            var length = str.length;
+            for (var i = 0; i < args.length; i++) {
+                var flag = "{" + i + "}";
+                var index = str.indexOf(flag, str.length - length);
+                if (index === -1) {
                     break;
                 }
-                var suffix = str.substr(indexOfReplace + key.length);
-                str = str.substr(0, indexOfReplace) + args.shift() + suffix;
-                index = str.length - suffix.length;
+                str = str.substr(0, index) + args[i] + str.substr(index + 3);
             }
             return str;
         }
         Common.formatString = formatString;
-        function formatString$(str, args) {
-            var index = 0;
-            while (args.length > 0) {
-                var indexOfSign = str.indexOf("{$}", index);
-                if (index === -1) {
-                    Logger.warn(DebugMode.ANY, "字符串替换未完成 " + ("str:" + str));
-                    break;
-                }
-                var suffix = str.substr(indexOfSign + 3);
-                str = str.substr(0, indexOfSign) + args.shift() + suffix;
-                index = str.length - suffix.length;
-            }
-            return str;
-        }
-        Common.formatString$ = formatString$;
         function convertToDate(date) {
             if (date instanceof Date) {
                 return date;
@@ -666,7 +640,7 @@ var suncom;
         }
         Common.convertToDate = convertToDate;
         function dateAdd(datepart, increment, time) {
-            var date = Common.convertToDate(time);
+            var date = this.convertToDate(time);
             if (datepart === "yy") {
                 date.setFullYear(date.getFullYear() + increment);
             }
@@ -710,8 +684,8 @@ var suncom;
         }
         Common.dateAdd = dateAdd;
         function dateDiff(datepart, date, date2) {
-            var d1 = Common.convertToDate(date);
-            var d2 = Common.convertToDate(date2);
+            var d1 = this.convertToDate(date);
+            var d2 = this.convertToDate(date2);
             var t1 = d1.valueOf();
             var t2 = d2.valueOf();
             if (datepart === "ms") {
@@ -750,7 +724,7 @@ var suncom;
         }
         Common.dateDiff = dateDiff;
         function formatDate(str, time) {
-            var date = Common.convertToDate(time);
+            var date = this.convertToDate(time);
             str = str.replace("MS", ("00" + (date.getMilliseconds()).toString()).substr(-3));
             str = str.replace("ms", (date.getMilliseconds()).toString());
             str = str.replace("yyyy", date.getFullYear().toString());
@@ -772,6 +746,13 @@ var suncom;
             throw Error("未实现的接口！！！");
         }
         Common.md5 = md5;
+        function getQueryString(name, param) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+            var str = param || window.location.search;
+            var array = str.substr(1).match(reg) || null;
+            return array === null ? null : decodeURIComponent(array[2]);
+        }
+        Common.getQueryString = getQueryString;
         function createHttpSign(params, key, sign) {
             if (sign === void 0) { sign = "sign"; }
             var array = [];
@@ -781,7 +762,7 @@ var suncom;
                 }
             }
             array.push("key=" + key);
-            return Common.md5(array.join("&"));
+            return this.md5(array.join("&"));
         }
         Common.createHttpSign = createHttpSign;
         function getFileName(path) {
@@ -789,7 +770,7 @@ var suncom;
             if (index > -1) {
                 path = path.substr(index + 1);
             }
-            var suffix = Common.getFileExtension(path);
+            var suffix = this.getFileExtension(path);
             if (suffix === null) {
                 return path;
             }
@@ -812,7 +793,7 @@ var suncom;
             return path.substr(0, index + 1) + newExt;
         }
         Common.replacePathExtension = replacePathExtension;
-        function findFromArray(array, method, out) {
+        function findInArray(array, method, out) {
             if (out === void 0) { out = null; }
             for (var i = 0; i < array.length; i++) {
                 var item = array[i];
@@ -825,7 +806,7 @@ var suncom;
             }
             return null;
         }
-        Common.findFromArray = findFromArray;
+        Common.findInArray = findInArray;
         function removeItemFromArray(item, array) {
             for (var i = 0; i < array.length; i++) {
                 if (array[i] === item) {
@@ -837,7 +818,7 @@ var suncom;
         Common.removeItemFromArray = removeItemFromArray;
         function removeItemsFromArray(items, array) {
             for (var i = 0; i < items.length; i++) {
-                Common.removeItemFromArray(items[i], array);
+                this.removeItemFromArray(items[i], array);
             }
         }
         Common.removeItemsFromArray = removeItemsFromArray;
@@ -850,7 +831,7 @@ var suncom;
                 else {
                     var array = [];
                     for (var i = 0; i < data.length; i++) {
-                        array.push(Common.copy(data[i], deep));
+                        array.push(this.copy(data[i], deep));
                     }
                     return array;
                 }
@@ -864,7 +845,7 @@ var suncom;
                 }
                 else {
                     for (var key in data) {
-                        newData[key] = Common.copy(data[key], deep);
+                        newData[key] = this.copy(data[key], deep);
                     }
                 }
                 return newData;
@@ -910,7 +891,7 @@ var suncom;
                     newData.sort();
                 }
                 for (var i = 0; i < oldData.length; i++) {
-                    if (Common.isEqual(oldData[i], newData[i], strict) === false) {
+                    if (this.isEqual(oldData[i], newData[i], strict) === false) {
                         return false;
                     }
                 }
@@ -921,7 +902,7 @@ var suncom;
                     return false;
                 }
                 for (var key in oldData) {
-                    if (oldData.hasOwnProperty(key) === true && Common.isEqual(oldData[key], newData[key], strict) === false) {
+                    if (oldData.hasOwnProperty(key) === true && this.isEqual(oldData[key], newData[key], strict) === false) {
                         return false;
                     }
                 }
@@ -941,7 +922,7 @@ var suncom;
             if (data instanceof Array) {
                 var array = [];
                 for (var i = 0; i < data.length; i++) {
-                    array.push(Common.toDisplayString(data[i]));
+                    array.push(this.toDisplayString(data[i]));
                 }
                 return "[" + array.join(",") + "]";
             }
@@ -950,7 +931,7 @@ var suncom;
                     str = JSON.stringify(data);
                 }
                 catch (error) {
-                    str = "[" + Common.getQualifiedClassName(data) + "]";
+                    str = "[" + this.getQualifiedClassName(data) + "]";
                 }
             }
             return str;
@@ -1049,6 +1030,7 @@ var suncom;
         Global.width = 1280;
         Global.height = 720;
         Global.VERSION = "1.0.0";
+        Global.dataMap = {};
     })(Global = suncom.Global || (suncom.Global = {}));
     var Logger;
     (function (Logger) {
