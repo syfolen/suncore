@@ -303,7 +303,7 @@ declare module puremvc {
         /**
          * 获取PureMVC外观引用
          */
-        protected readonly facade: Facade;
+        protected readonly facade: IFacade;
 
         readonly msgQMod: suncore.MsgQModEnum;
 
