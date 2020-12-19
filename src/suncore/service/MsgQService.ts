@@ -33,7 +33,7 @@ module suncore {
          * 1. 这样做能提高网络消息响应的及时性
          */
         private $func_onMsgQBusiness(mod: MsgQModEnum): void {
-            let msg: MsgQMsg = null;
+            let msg: IMsgQMsg = null;
             // 非指定模块不响应指定的业务
             if (mod === void 0 || mod === this.msgQMod) {
                 while (true) {

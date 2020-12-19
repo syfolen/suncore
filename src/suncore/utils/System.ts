@@ -99,7 +99,7 @@ module suncore {
          * 1. 自定义的groupId的值不允许超过1000
          * export
          */
-        export function addTask(mod: ModuleEnum, task: AbstractTask, groupId: number = 0): number {
+        export function addTask(mod: ModuleEnum, task: ITask, groupId: number = 0): number {
             if (System.isModuleStopped(mod) === false) {
                 if (groupId === -1) {
                     groupId = createTaskGroupId();
@@ -107,7 +107,7 @@ module suncore {
                 else if (groupId > 1000) {
                     throw Error(`自定义的Task GroupId不允许超过1000`);
                 }
-                const message: Message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                const message: IMessage = suncom.Pool.getItemByClass("suncore.Message", Message);
                 message.mod = mod;
                 message.task = task;
                 message.groupId = groupId;
@@ -135,7 +135,7 @@ module suncore {
          */
         export function addTrigger(mod: ModuleEnum, delay: number, caller: Object, method: Function, args: any[] = null): void {
             if (System.isModuleStopped(mod) === false) {
-                const message: Message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                const message: IMessage = suncom.Pool.getItemByClass("suncore.Message", Message);
                 message.mod = mod;
                 message.args = args;
                 message.caller = caller;
@@ -156,7 +156,7 @@ module suncore {
          */
         export function addPromise(mod: ModuleEnum, caller: Object, method: Function, args: any[] = null): void {
             if (System.isModuleStopped(mod) === false) {
-                const message: Message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                const message: IMessage = suncom.Pool.getItemByClass("suncore.Message", Message);
                 message.mod = mod;
                 message.task = new PromiseTask(caller, method, args);
                 message.priority = MessagePriorityEnum.PRIORITY_PROMISE;
@@ -173,7 +173,7 @@ module suncore {
          */
         export function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, caller: Object, method: Function, args: any[] = null): void {
             if (System.isModuleStopped(mod) === false) {
-                const message: Message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                const message: IMessage = suncom.Pool.getItemByClass("suncore.Message", Message);
                 message.mod = mod;
                 message.args = args;
                 message.caller = caller;

@@ -12,7 +12,7 @@ module suncore {
         /**
          * 消息列表
          */
-        const $queues: { [mod: number]: MsgQMsg[] } = {};
+        const $queues: { [mod: number]: IMsgQMsg[] } = {};
 
         /**
          * 模块状态
@@ -37,11 +37,11 @@ module suncore {
                 suncom.Logger.warn(suncom.DebugMode.ANY, `消息发送失败，消息ID非法 mod:${dst}, id:${id}`);
                 return;
             }
-            let array: MsgQMsg[] = $queues[dst];
+            let array: IMsgQMsg[] = $queues[dst];
             if (array === void 0) {
                 array = $queues[dst] = [];
             }
-            const msg: MsgQMsg = suncom.Pool.getItemByClass("suncore.MsgQMsg", MsgQMsg);
+            const msg: IMsgQMsg = suncom.Pool.getItemByClass("suncore.MsgQMsg", MsgQMsg);
             array.push(msg.setTo(dst, id, data, batchIndex));
         }
 
@@ -49,14 +49,14 @@ module suncore {
          * 获取消息
          * @id: 只获取指定ID的消息，若为void 0则不校验
          */
-        export function fetch(mod: MsgQModEnum, id?: number): MsgQMsg {
-            const queue: MsgQMsg[] = $queues[mod];
+        export function fetch(mod: MsgQModEnum, id?: number): IMsgQMsg {
+            const queue: IMsgQMsg[] = $queues[mod];
             // 消息队列为空
             if (queue === void 0 || queue.length === 0) {
                 return null;
             }
             for (let i: number = 0; i < queue.length; i++) {
-                const msg: MsgQMsg = queue[i];
+                const msg: IMsgQMsg = queue[i];
                 if (mod === MsgQModEnum.NSL || msg.batchIndex < batchIndex) {
                     if (id === void 0 || msg.id === id) {
                         queue.splice(i, 1);
@@ -112,7 +112,7 @@ module suncore {
         export function setModuleActive(mod: MsgQModEnum, active: boolean): void {
             $modStats[mod] = active;
             if (active === false) {
-                const array: MsgQMsg[] = $queues[mod] || [];
+                const array: IMsgQMsg[] = $queues[mod] || [];
                 while (array.length > 0) {
                     array.pop().recover();
                 }

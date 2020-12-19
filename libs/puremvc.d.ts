@@ -23,7 +23,190 @@ declare module puremvc {
     /**
      * PureMVC外观类
      */
-    class Facade {
+    interface IFacade {
+
+        /**
+         * 注册监听
+         * @receiveOnce: 是否为一次性监听，默认为: false
+         * @priority: 响应优先级，值越大，优先级越高，默认为：suncom.EventPriorityEnum.MID
+         * @args[]: 回调参数列表，默认为: null
+         * 说明：
+         * 1. 若需覆盖参数，请先调用removeObserver移除监听后再重新注册
+         */
+        registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum, args?: any[]): void;
+
+        /**
+         * 移除监听
+         */
+        removeObserver(name: string, method: Function, caller: Object): void;
+
+        /**
+         * 查询是否存在观察者
+         * @method: 若为null，则只校验caller
+         * @caller: 若为null，则只校验method
+         */
+        hasObserver(name: string, method: Function, caller?: Object): boolean;
+
+        /**
+         * 注册命令
+         * @cls: 命令被响应时，会构建cls实例并执行其execute方法
+         * @其余参数请参考registerObserver接口
+         * 说明：
+         * 1. 命令不可重复注册
+         */
+        registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum, args?: any[]): void;
+
+        /**
+         * 移除命令
+         */
+        removeCommand(name: string): void;
+
+        /**
+         * 查询是否存在命令
+         */
+        hasCommand(name: string): boolean;
+
+        /**
+         * 注册数据代理类实例
+         * 说明：
+         * 1. 同一类型的实例不可重复注册
+         */
+        registerProxy(proxy: IProxy<any>): void;
+
+        /**
+         * 移除数据代理类实例
+         */
+        removeProxy(name: string): void;
+
+        /**
+         * 获取数据代理类实例
+         * 说明：
+         * 1. 若实例不存在，则会返回: null
+         */
+        retrieveProxy(name: string): IProxy<any>;
+
+        /**
+         * 查询是否存在数据代理类实例
+         */
+        hasProxy(name: string): boolean;
+
+        /**
+         * 注册视图中介者实例
+         * 说明：
+         * 1. 同一类型的实例不可重复注册
+         */
+        registerMediator(mediator: IMediator<any>): void;
+
+        /**
+         * 移除视图中介者实例
+         */
+        removeMediator(name: string): void;
+
+        /**
+         * 获取视图中介者实例
+         * 说明：
+         * 1. 若实例不存在，则会返回: null
+         */
+        retrieveMediator(name: string): IMediator<any>;
+
+        /**
+         * 查询是否存在视图中介者实例
+         */
+        hasMediator(name: string): boolean;
+
+        /**
+         * 派发通知
+         * @data: 参数对象，允许为任意类型的数据，传递多个参数时可指定其为数组，若需要传递的data本身就是数组，则需要传递[data]
+         * @cancelable: 通知是否允许被取消，默认为: true
+         */
+        sendNotification(name: string, data?: any, cancelable?: boolean): void;
+
+        /**
+         * 通知取消
+         * 说明：
+         * 1. 未响应的回调都将不再执行
+         */
+        notifyCancel(): void;
+    }
+
+    /**
+     * 通知派发者
+     */
+    interface INotifier {
+        /**
+         * 获取消息派发者MsgQ消息模块标识
+         */
+        readonly msgQMod: suncore.MsgQModEnum;
+
+        /**
+         * 是否己销毁
+         */
+        readonly destroyed: boolean;
+
+        /**
+         * 销毁对象
+         */
+        destroy(): void;
+    }
+
+    /**
+     * 数据代理类
+     */
+    interface IProxy<T> extends INotifier {
+
+        /**
+         * 注册回调（此时己注册）
+         */
+        onRegister(): void;
+
+        /**
+         * 移除回调（此时己移除）
+         */
+        onRemove(): void;
+
+        /**
+         * 获取数据模型
+         */
+        getData(): T;
+
+        /**
+         * 指定数据模型
+         */
+        setData(data: T): void;
+    }
+
+    /**
+     * 视图中介者
+     */
+    interface IMediator<T> extends INotifier {
+
+        /**
+         * 列举感兴趣的通知
+         */
+        listNotificationInterests(): void;
+
+        /**
+         * 注册回调（此时己注册）
+         */
+        onRegister(): void;
+
+        /**
+         * 移除回调（此时己移除）
+         */
+        onRemove(): void;
+
+        /**
+         * 获取视图组件实例
+         */
+        getViewComponent(): T;
+
+        /**
+         * 指定视图组件实例
+         */
+        setViewComponent(view: T): void;
+    }
+
+    class Facade implements IFacade {
         /**
          * 调试模式，为true时会输出日志，默认为: true
          */
@@ -74,114 +257,40 @@ declare module puremvc {
          */
         protected $regMsgQCmd(msgQMod: suncore.MsgQModEnum, prefix: string): void;
 
-        /**
-         * 注册监听
-         * @receiveOnce: 是否为一次性监听，默认为: false
-         * @priority: 响应优先级，值越大，优先级越高，默认为：suncom.EventPriorityEnum.MID
-         * @args[]: 回调参数列表，默认为: null
-         * 说明：
-         * 1. 若需覆盖参数，请先调用removeObserver移除监听后再重新注册
-         */
         registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum, args?: any[]): void;
 
-        /**
-         * 移除监听
-         */
         removeObserver(name: string, method: Function, caller: Object): void;
 
-        /**
-         * 查询是否存在观察者
-         * @method: 若为null，则只校验caller
-         * @caller: 若为null，则只校验method
-         */
         hasObserver(name: string, method: Function, caller?: Object): boolean;
 
-        /**
-         * 注册命令
-         * @cls: 命令被响应时，会构建cls实例并执行其execute方法
-         * @其余参数请参考registerObserver接口
-         * 说明：
-         * 1. 命令不可重复注册
-         */
         registerCommand(name: string, cls: new () => ICommand, priority?: suncom.EventPriorityEnum, args?: any[]): void;
 
-        /**
-         * 移除命令
-         */
         removeCommand(name: string): void;
 
-        /**
-         * 查询是否存在命令
-         */
         hasCommand(name: string): boolean;
 
-        /**
-         * 注册数据代理类实例
-         * 说明：
-         * 1. 同一类型的实例不可重复注册
-         */
-        registerProxy(proxy: Proxy<any>): void;
+        registerProxy(proxy: IProxy<any>): void;
 
-        /**
-         * 移除数据代理类实例
-         */
         removeProxy(name: string): void;
 
-        /**
-         * 获取数据代理类实例
-         * 说明：
-         * 1. 若实例不存在，则会返回: null
-         */
-        retrieveProxy(name: string): Proxy<any>;
+        retrieveProxy(name: string): IProxy<any>;
 
-        /**
-         * 查询是否存在数据代理类实例
-         */
         hasProxy(name: string): boolean;
 
-        /**
-         * 注册视图中介者实例
-         * 说明：
-         * 1. 同一类型的实例不可重复注册
-         */
-        registerMediator(mediator: Mediator<any>): void;
+        registerMediator(mediator: IMediator<any>): void;
 
-        /**
-         * 移除视图中介者实例
-         */
         removeMediator(name: string): void;
 
-        /**
-         * 获取视图中介者实例
-         * 说明：
-         * 1. 若实例不存在，则会返回: null
-         */
-        retrieveMediator(name: string): Mediator<any>;
+        retrieveMediator(name: string): IMediator<any>;
 
-        /**
-         * 查询是否存在视图中介者实例
-         */
         hasMediator(name: string): boolean;
 
-        /**
-         * 派发通知
-         * @data: 参数对象，允许为任意类型的数据，传递多个参数时可指定其为数组，若需要传递的data本身就是数组，则需要传递[data]
-         * @cancelable: 通知是否允许被取消，默认为: true
-         */
         sendNotification(name: string, data?: any, cancelable?: boolean): void;
 
-        /**
-         * 通知取消
-         * 说明：
-         * 1. 未响应的回调都将不再执行
-         */
         notifyCancel(): void;
     }
 
-    /**
-     * 通知派发者
-     */
-    class Notifier {
+    class Notifier implements INotifier {
         /**
          * 是否己销毁
          */
@@ -189,9 +298,6 @@ declare module puremvc {
 
         constructor(msgQMod?: suncore.MsgQModEnum);
 
-        /**
-         * 销毁对象
-         */
         destroy(): void;
 
         /**
@@ -199,21 +305,12 @@ declare module puremvc {
          */
         protected readonly facade: Facade;
 
-        /**
-         * 获取消息派发者MsgQ消息模块标识
-         */
         readonly msgQMod: suncore.MsgQModEnum;
 
-        /**
-         * 是否己销毁
-         */
         readonly destroyed: boolean;
     }
 
-    /**
-     * 数据代理类
-     */
-    class Proxy<T> extends Notifier {
+    class Proxy<T> extends Notifier implements IProxy<T> {
         /**
          * 数据模型，未初始化时值为：void 0
          */
@@ -221,24 +318,12 @@ declare module puremvc {
 
         constructor(name: string, data?: T);
 
-        /**
-         * 注册回调（此时己注册）
-         */
         onRegister(): void;
 
-        /**
-         * 移除回调（此时己移除）
-         */
         onRemove(): void;
 
-        /**
-         * 获取数据模型
-         */
         getData(): T;
 
-        /**
-         * 指定数据模型
-         */
         setData(data: T): void;
     }
 
@@ -272,10 +357,7 @@ declare module puremvc {
         execute(): void;
     }
 
-    /**
-     * 视图中介者
-     */
-    class Mediator<T> extends Notifier {
+    class Mediator<T> extends Notifier implements IMediator<T> {
         /**
          * 视图组件实例，未初始化时值为：null
          */
@@ -288,29 +370,14 @@ declare module puremvc {
          */
         protected $handleNotification(name: string, method: Function, priority?: suncom.EventPriorityEnum, args?: any[]): void;
 
-        /**
-         * 列举感兴趣的通知
-         */
         listNotificationInterests(): void;
 
-        /**
-         * 注册回调（此时己注册）
-         */
         onRegister(): void;
 
-        /**
-         * 移除回调（此时己移除）
-         */
         onRemove(): void;
 
-        /**
-         * 获取视图组件实例
-         */
         getViewComponent(): T;
 
-        /**
-         * 指定视图组件实例
-         */
         setViewComponent(view: T): void;
     }
 

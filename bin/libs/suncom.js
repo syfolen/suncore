@@ -32,6 +32,102 @@ var suncom;
         EventPriorityEnum[EventPriorityEnum["EGL"] = 6] = "EGL";
         EventPriorityEnum[EventPriorityEnum["OSL"] = 7] = "OSL";
     })(EventPriorityEnum = suncom.EventPriorityEnum || (suncom.EventPriorityEnum = {}));
+    var Dictionary = (function () {
+        function Dictionary(primaryKey) {
+            this.$var_primaryKey = null;
+            this.$var_dataMap = {};
+            this.source = [];
+            if (typeof primaryKey === "number") {
+                primaryKey = primaryKey + "";
+            }
+            if (typeof primaryKey !== "string") {
+                throw Error("\u975E\u6CD5\u7684\u4E3B\u952E\u5B57\u6BB5\u540D\uFF1A" + primaryKey);
+            }
+            if (primaryKey.length === 0) {
+                throw Error("\u65E0\u6548\u7684\u4E3B\u952E\u5B57\u6BB5\u540D\u5B57\u957F\u5EA6\uFF1A" + primaryKey.length);
+            }
+            this.$var_primaryKey = primaryKey;
+        }
+        Dictionary.prototype.$func_removeByIndex = function (index) {
+            var data = this.source[index];
+            this.source.splice(index, 1);
+            var value = data[this.$var_primaryKey];
+            delete this.$var_dataMap[value];
+            return data;
+        };
+        Dictionary.prototype.$func_getIndexByValue = function (key, value) {
+            if (value === void 0) {
+                return -1;
+            }
+            for (var i = 0; i < this.source.length; i++) {
+                var data = this.source[i];
+                if (data[key] === value) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+        Dictionary.prototype.put = function (data) {
+            var value = data[this.$var_primaryKey];
+            if (Common.isStringNullOrEmpty(value) === true) {
+                throw Error("\u65E0\u6548\u7684\u4E3B\u952E\u7684\u503C\uFF0Ctype:" + typeof value + ", value:" + value);
+            }
+            if (this.getByPrimaryValue(value) === null) {
+                this.source.push(data);
+                this.$var_dataMap[value] = data;
+            }
+            else {
+                throw Error("\u91CD\u590D\u7684\u4E3B\u952E\u503C\uFF1A[" + this.$var_primaryKey + "]" + value);
+            }
+            return data;
+        };
+        Dictionary.prototype.getByValue = function (key, value) {
+            if (key === this.$var_primaryKey) {
+                return this.getByPrimaryValue(value);
+            }
+            var index = this.$func_getIndexByValue(key, value);
+            if (index === -1) {
+                return null;
+            }
+            return this.source[index];
+        };
+        Dictionary.prototype.getByPrimaryValue = function (value) {
+            return this.$var_dataMap[value.toString()] || null;
+        };
+        Dictionary.prototype.remove = function (data) {
+            var index = this.source.indexOf(data);
+            if (index === -1) {
+                return data;
+            }
+            return this.$func_removeByIndex(index);
+        };
+        Dictionary.prototype.removeByValue = function (key, value) {
+            if (key === this.$var_primaryKey) {
+                return this.removeByPrimaryValue(value);
+            }
+            var index = this.$func_getIndexByValue(key, value);
+            if (index === -1) {
+                return null;
+            }
+            return this.$func_removeByIndex(index);
+        };
+        Dictionary.prototype.removeByPrimaryValue = function (value) {
+            var data = this.getByPrimaryValue(value);
+            if (data === null) {
+                return null;
+            }
+            return this.remove(data);
+        };
+        Dictionary.prototype.forEach = function (method) {
+            for (var i = 0; i < this.source.length; i++) {
+                if (method(this.source[i]) === true) {
+                    break;
+                }
+            }
+        };
+        return Dictionary;
+    }());
+    suncom.Dictionary = Dictionary;
     var EventInfo = (function () {
         function EventInfo() {
             this.type = null;
@@ -353,7 +449,7 @@ var suncom;
             this.$var_method = null;
             this.$var_once = false;
         }
-        Handler.prototype.setTo = function (caller, method, args, once) {
+        Handler.prototype.$func_setTo = function (caller, method, args, once) {
             if (args === void 0) { args = null; }
             if (once === void 0) { once = true; }
             if (this.$var_id === -1) {
@@ -412,100 +508,83 @@ var suncom;
         Handler.create = function (caller, method, args, once) {
             var handler = Pool.getItemByClass("suncom.Handler", Handler);
             handler.$var_id = 0;
-            return handler.setTo(caller, method, args, once);
+            return handler.$func_setTo(caller, method, args, once);
         };
         return Handler;
     }());
     suncom.Handler = Handler;
     var HashMap = (function () {
-        function HashMap(primaryKey) {
-            this.$var_primaryKey = null;
-            this.$var_dataMap = {};
-            this.source = [];
-            if (typeof primaryKey === "number") {
-                primaryKey = primaryKey + "";
-            }
-            if (typeof primaryKey !== "string") {
-                throw Error("\u975E\u6CD5\u7684\u4E3B\u952E\u5B57\u6BB5\u540D\uFF1A" + primaryKey);
-            }
-            if (primaryKey.length === 0) {
-                throw Error("\u65E0\u6548\u7684\u4E3B\u952E\u5B57\u6BB5\u540D\u5B57\u957F\u5EA6\uFF1A" + primaryKey.length);
-            }
-            this.$var_primaryKey = primaryKey;
+        function HashMap() {
+            this.$var_nextId = 0;
+            this.$var_ids = [];
+            this.$var_keys = [];
+            this.$var_id2value = {};
         }
-        HashMap.prototype.$func_removeByIndex = function (index) {
-            var data = this.source[index];
-            this.source.splice(index, 1);
-            var value = data[this.$var_primaryKey];
-            delete this.$var_dataMap[value];
-            return data;
+        HashMap.prototype.$toInnerKey = function (key) {
+            if (key === void 0) {
+                return "__suncom_hashMap_innerKey__undefined__";
+            }
+            if (key === null) {
+                return "__suncom_hashMap_innerKey__null__";
+            }
+            if (typeof key === "number" && isNaN(key) === true) {
+                return "__suncom_hashMap_innerKey__isNaN__";
+            }
+            return key;
         };
-        HashMap.prototype.$func_getIndexByValue = function (key, value) {
-            if (value === void 0) {
-                return -1;
-            }
-            for (var i = 0; i < this.source.length; i++) {
-                var data = this.source[i];
-                if (data[key] === value) {
-                    return i;
-                }
-            }
-            return -1;
+        HashMap.prototype.$getInnerIndex = function (key) {
+            var rkey = this.$toInnerKey(key);
+            return this.$var_keys.indexOf(rkey);
         };
-        HashMap.prototype.put = function (data) {
-            var value = data[this.$var_primaryKey];
-            if (Common.isStringNullOrEmpty(value) === true) {
-                throw Error("\u65E0\u6548\u7684\u4E3B\u952E\u7684\u503C\uFF0Ctype:" + typeof value + ", value:" + value);
-            }
-            if (this.getByPrimaryValue(value) === null) {
-                this.source.push(data);
-                this.$var_dataMap[value] = data;
+        HashMap.prototype.size = function () {
+            return this.$var_keys.length;
+        };
+        HashMap.prototype.exist = function (key) {
+            return this.$getInnerIndex(key) > -1;
+        };
+        HashMap.prototype.set = function (key, value) {
+            var index = this.$getInnerIndex(key);
+            var id;
+            if (index === -1) {
+                id = this.$var_nextId++;
+                this.$var_ids.push(id);
+                this.$var_keys.push(this.$toInnerKey(key));
             }
             else {
-                throw Error("\u91CD\u590D\u7684\u4E3B\u952E\u503C\uFF1A[" + this.$var_primaryKey + "]" + value);
+                id = this.$var_ids[index];
             }
-            return data;
+            this.$var_id2value[id] = value;
+            return value;
         };
-        HashMap.prototype.getByValue = function (key, value) {
-            if (key === this.$var_primaryKey) {
-                return this.getByPrimaryValue(value);
-            }
-            var index = this.$func_getIndexByValue(key, value);
+        HashMap.prototype.get = function (key) {
+            var index = this.$getInnerIndex(key);
             if (index === -1) {
                 return null;
             }
-            return this.source[index];
+            var id = this.$var_ids[index];
+            return this.$var_id2value[id];
         };
-        HashMap.prototype.getByPrimaryValue = function (value) {
-            return this.$var_dataMap[value.toString()] || null;
-        };
-        HashMap.prototype.remove = function (data) {
-            var index = this.source.indexOf(data);
-            if (index === -1) {
-                return data;
-            }
-            return this.$func_removeByIndex(index);
-        };
-        HashMap.prototype.removeByValue = function (key, value) {
-            if (key === this.$var_primaryKey) {
-                return this.removeByPrimaryValue(value);
-            }
-            var index = this.$func_getIndexByValue(key, value);
+        HashMap.prototype.remove = function (key) {
+            var index = this.$getInnerIndex(key);
             if (index === -1) {
                 return null;
             }
-            return this.$func_removeByIndex(index);
+            var id = this.$var_ids[index];
+            var value = this.$var_id2value[index];
+            this.$var_ids.splice(index, 1);
+            this.$var_keys.splice(index, 1);
+            delete this.$var_id2value[id];
+            return value;
         };
-        HashMap.prototype.removeByPrimaryValue = function (value) {
-            var data = this.getByPrimaryValue(value);
-            if (data === null) {
-                return null;
-            }
-            return this.remove(data);
+        HashMap.prototype.clear = function () {
+            this.$var_ids.length = 0;
+            this.$var_keys.length = 0;
+            this.$var_id2value = {};
         };
         HashMap.prototype.forEach = function (method) {
-            for (var i = 0; i < this.source.length; i++) {
-                if (method(this.source[i]) === true) {
+            for (var i = 0; i < this.$var_ids.length; i++) {
+                var id = this.$var_ids[i];
+                if (method(this.$var_id2value[id], this.$var_keys[id]) === true) {
                     break;
                 }
             }

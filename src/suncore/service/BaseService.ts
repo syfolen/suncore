@@ -1,20 +1,15 @@
 
 module suncore {
     /**
-     * 服务（主要用于逻辑层架构）
-     * 说明：
-     * 1. 每个服务均有独立的生命周期。
-     * 2. 服务被设计用来处理与表现层无关的有状态业务。
      * export
      */
-    export abstract class BaseService extends puremvc.Notifier {
+    export abstract class BaseService extends puremvc.Notifier implements IService {
         /**
          * 服务是否己启动
          */
         private $var_running: boolean = false;
 
         /**
-         * 服务启动入口
          * export
          */
         run(): void {
@@ -27,7 +22,6 @@ module suncore {
         }
 
         /**
-         * 服务停止接口
          * export
          */
         stop(): void {
@@ -52,7 +46,6 @@ module suncore {
         protected abstract $onStop(): void;
 
         /**
-         * 服务是否正在运行
          * export
          */
         get running(): boolean {

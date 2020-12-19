@@ -3,36 +3,36 @@ module suncore {
     /**
      * 自定义定时器
      */
-    export class Timer implements ITimer {
+    export interface ITimer {
         /**
          * 模块
          */
-        mod: ModuleEnum = ModuleEnum.SYSTEM;
+        mod: ModuleEnum;
 
         /**
          * 是否己激活
          */
-        active: boolean = false;
+        active: boolean;
 
         /**
          * 响应延时
          */
-        delay: number = 0;
+        delay: number;
 
         /**
          * 回调函数
          */
-        method: Function = null;
+        method: Function;
 
         /**
          * 回调对象
          */
-        caller: Object = null;
+        caller: Object;
 
         /**
          * 参数列表
          */
-        args: any[] = null;
+        args: any[];
 
         /**
          * 统计真实响应次数
@@ -41,38 +41,33 @@ module suncore {
          * 2. 在侧重于次数精准统计的应用中，建议此参数为 true
          * 3. 在侧重于时间精准统计的应用中，建议此参数为 false
          */
-        real: boolean = false;
+        real: boolean;
 
         /**
          * 当前重复次数
          */
-        count: number = 0;
+        count: number;
 
         /**
          * 循环设定次数
          */
-        loops: number = 1;
+        loops: number;
 
         /**
          * 定时器编号
          */
-        timerId: number = 0;
+        timerId: number;
 
         /**
          * 创建时间
          */
-        timestamp: number = -1;
+        timestamp: number;
 
         /**
          * 超时时间，当系统时间大于或等于超时时间时，定时器会被响应
          */
-        timeout: number = 0;
+        timeout: number;
 
-        recover(): void {
-            this.method = null;
-            this.caller = null;
-            this.args = null;
-            suncom.Pool.recover("suncore.Timer", this);
-        }
+        recover(): void;
     }
 }

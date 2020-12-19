@@ -1,13 +1,9 @@
 
 module suncore {
-    /**
-     * 消息管理器
-     */
-    export class MessageManager {
-        /**
-         * 消息队列列表
-         */
-        private $queues: MessageQueue[] = [];
+
+    export class MessageManager implements IMessageManager {
+
+        private $queues: IMessageQueue[] = [];
 
         constructor() {
             for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
@@ -15,16 +11,10 @@ module suncore {
             }
         }
 
-        /**
-         * 添加消息
-         */
-        putMessage(message: Message): void {
+        putMessage(message: IMessage): void {
             this.$queues[message.mod].putMessage(message);
         }
 
-        /**
-         * 处理消息
-         */
         dealMessage(): void {
             for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModulePaused(mod) === false) {
@@ -33,9 +23,6 @@ module suncore {
             }
         }
 
-        /**
-         * 将临时消息按优先级分类
-         */
         classifyMessages0(): void {
             for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModuleStopped(mod) === false) {
@@ -44,16 +31,10 @@ module suncore {
             }
         }
 
-        /**
-         * 清除所有消息
-         */
         clearMessages(mod: ModuleEnum): void {
             this.$queues[mod].clearMessages();
         }
 
-        /**
-         * 取消任务
-         */
         cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void {
             this.$queues[mod].cancelTaskByGroupId(mod, groupId);
         }

@@ -83,13 +83,13 @@ module test {
                 resolve();
             }, [3]);
 
-            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 9, new suncore.SimpleTask(this, () => {
+            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, new suncore.SimpleTask(this, () => {
                 console.log("SIMPLE TASK: 1");
-            }));
+            }), 9);
 
-            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 9, new suncore.SimpleTask(this, () => {
+            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, new suncore.SimpleTask(this, () => {
                 console.log("SIMPLE TASK: 2");
-            }));
+            }), 9);
             // 测试场景定时器
             this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.CUSTOM, 500, this.$onTimerHandler, this, void 0, 0);
             for (let i: number = 0; i < 20; i++) {
@@ -128,13 +128,13 @@ module test {
                 }, [i]);
             }
             for (let i: number = 0; i < 5; i++) {
-                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 0, new TestTask(i));
+                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, new TestTask(i), 0);
             }
             for (let i: number = 0; i < 5; i++) {
-                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 1, new TestTask(i));
+                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, new TestTask(i), 1);
             }
             for (let i: number = 0; i < 5; i++) {
-                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 2, new TestTask(i));
+                suncore.System.addTask(suncore.ModuleEnum.CUSTOM, new TestTask(i), 2);
             }
             suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, this.$gotoQuadtreeScene);
 

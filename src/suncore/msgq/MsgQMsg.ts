@@ -3,7 +3,7 @@ module suncore {
     /**
      * MsgQ消息体中间件
      */
-    export class MsgQMsg {
+    export class MsgQMsg implements IMsgQMsg {
         /**
          * 响应消息的模块
          */
@@ -24,7 +24,7 @@ module suncore {
          */
         batchIndex: number = 0;
 
-        setTo(dst: MsgQModEnum, id: number, data: any, batchIndex: number): MsgQMsg {
+        setTo(dst: MsgQModEnum, id: number, data: any, batchIndex: number): IMsgQMsg {
             this.id = id;
             this.dst = dst;
             this.data = data;

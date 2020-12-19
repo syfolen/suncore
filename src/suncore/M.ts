@@ -12,21 +12,21 @@ module suncore {
         /**
          * 游戏时间轴
          */
-        export let timeline: Timeline = null;
+        export let timeline: ITimeline = null;
 
         /**
          * 场景时间轴
          */
-        export let timeStamp: Timeline = null;
+        export let timeStamp: ITimeline = null;
 
         /**
          * 定时器管理器
          */
-        export let timerManager: TimerManager = null;
+        export let timerManager: ITimerManager = null;
 
         /**
          * 消息管理器
          */
-        export let messageManager: MessageManager = null;
+        export let messageManager: IMessageManager = null;
     }
 }

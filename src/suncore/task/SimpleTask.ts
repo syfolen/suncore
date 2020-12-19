@@ -2,7 +2,6 @@
 module suncore {
     /**
      * 简单任务对象
-     * 说明：
      * export
      */
     export class SimpleTask extends AbstractTask {

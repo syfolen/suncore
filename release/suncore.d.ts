@@ -190,18 +190,36 @@ declare module suncore {
     }
 
     /**
+     * 服务（主要用于逻辑层架构）
+     * 说明：
+     * 1. 每个服务均有独立的生命周期。
+     * 2. 服务被设计用来处理与表现层无关的有状态业务。
+     */
+    interface IService extends puremvc.INotifier {
+        /**
+         * 服务是否正在运行
+         */
+        readonly running: boolean;
+
+        /**
+         * 服务启动入口
+         */
+        run(): void;
+
+        /**
+         * 服务停止接口
+         */
+        stop(): void;
+    }
+
+    /**
      * 任务抽象类
      * 说明：
      * 1. Task必定为MMI层对象，这是不可更改的
      * 2. Task一旦开始则不允许取消，可直接设置done为true来强制结束
      * 3. Task对象有自己的生命周期管理机制，故不建议在外部持有
      */
-    abstract class AbstractTask extends puremvc.Notifier {
-        /**
-         * 是否正在运行
-         */
-        running: boolean;
-
+    interface ITask extends puremvc.INotifier {
         /**
          * 是否己完成
          * 说明：
@@ -210,10 +228,15 @@ declare module suncore {
         done: boolean;
 
         /**
+         * 是否正在运行
+         */
+        running: boolean;
+
+        /**
          * 执行函数
          * @return: 为true时表示任务立刻完成，若返回false，则需要在其它函数中将done置为true，否则任务永远无法结束
          */
-        abstract run(): boolean;
+        run(): boolean;
 
         /**
          * 任务被取消
@@ -224,22 +247,21 @@ declare module suncore {
         cancel(): void;
     }
 
-    /**
-     * 服务（主要用于逻辑层架构）
-     * 说明：
-     * 1. 每个服务均有独立的生命周期。
-     * 2. 服务被设计用来处理与表现层无关的有状态业务。
-     */
-    abstract class BaseService extends puremvc.Notifier {
+    abstract class AbstractTask extends puremvc.Notifier implements ITask {
 
-        /**
-         * 服务启动入口
-         */
+        running: boolean;
+
+        done: boolean;
+
+        abstract run(): boolean;
+
+        cancel(): void;
+    }
+
+    abstract class BaseService extends puremvc.Notifier implements IService {
+
         run(): void;
 
-        /**
-         * 服务停止接口
-         */
         stop(): void;
 
         /**
@@ -252,9 +274,6 @@ declare module suncore {
          */
         protected abstract $onStop(): void;
 
-        /**
-         * 服务是否正在运行
-         */
         readonly running: boolean;
     }
 
@@ -295,7 +314,6 @@ declare module suncore {
 
     /**
      * 简单任务对象
-     * 说明：
      */
     class SimpleTask extends AbstractTask {
 
@@ -428,12 +446,12 @@ declare module suncore {
 
         /**
          * 添加任务
-         * @groupId: 不同编组并行执行，若为-1，则自动给预一个groupId
+         * @groupId: 不同编组并行执行，若为-1，则自动给预一个groupId，默认为: 0
          * @return: 返回任务的groupId，若为-1，则说明任务添加失败
          * 说明：
          * 1. 自定义的groupId的值不允许超过1000
          */
-        function addTask(mod: ModuleEnum, groupId: number, task: AbstractTask): number;
+        function addTask(mod: ModuleEnum, task: ITask, groupId?: number): number;
 
         /**
          * 取消任务
@@ -447,6 +465,7 @@ declare module suncore {
 
         /**
          * 添加承诺
+         * @method: 此方法被调用时，第一个参数必然是resolve方法，你应当在method方法执行完毕时调用resolve方法，否则该promise将永远不会结束
          */
         function addPromise(mod: ModuleEnum, caller: Object, method: Function, args?: any[]): void;
 

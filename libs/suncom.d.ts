@@ -130,24 +130,61 @@ declare module suncom {
         OSL
     }
 
-    interface IPCMInt2 {
+    /**
+     * 字典，通常用于作为一个大量数据的集合，用于快速获取数据集中的某条数据
+     * 说明：
+     * 1. 字典的主键值只允许为数字或字符串类型
+     * 2. 仅允许存储 Object 类型的数据
+     */
+    interface IDictionary<T> {
+        /**
+         * 数据源（请勿直接操作其中的数据）
+         */
+        source: T[];
 
-        arg1: number;
+        /**
+         * 添加数据
+         */
+        put(data: T): T;
 
-        arg2: number;
-    }
+        /**
+         * 根据键值返回数据
+         */
+        getByValue(key: number | string, value: any): T;
 
-    interface IPCMIntString {
+        /**
+         * 根据主键值快速返回数据
+         */
+        getByPrimaryValue(value: number | string): T;
 
-        arg1: number;
+        /**
+         * 移除数据
+         */
+        remove(data: T): T;
 
-        arg2: string;
+        /**
+         * 根据键值移除数据
+         */
+        removeByValue(key: number | string, value: any): T;
+
+        /**
+         * 根据主键值移除数据
+         */
+        removeByPrimaryValue(value: number | string): T;
+
+        /**
+         * 为每个数据执行方法
+         * 说明：
+         * 1. 若method返回true，则会中断遍历
+         * 2. 请勿在此方法中新增或移除数据
+         */
+        forEach(method: (data: T) => any): void;
     }
 
     /**
      * 自定义事件系统
      */
-    class EventSystem {
+    interface IEventSystem {
 
         /**
          * 事件注册
@@ -180,17 +217,21 @@ declare module suncom {
     /**
      * 期望异常测试类
      */
-    class Expect {
+    interface IExpect {
+        /**
+         * 期望相反
+         */
+        readonly not: IExpect;
 
         /**
          * 指定期望值
          */
-        expect(value: any): Expect;
+        expect(value: any): IExpect;
 
         /**
          * 解释异常
          */
-        interpret(str: string): Expect;
+        interpret(str: string): IExpect;
 
         /**
          * 测试执行接口，若测试未通过，则输出description
@@ -293,34 +334,12 @@ declare module suncom {
          * 深度相等且类型一致
          */
         toStrictEqual(value: any): void;
-
-        /**
-         * 期望相反
-         */
-        readonly not: Expect;
     }
 
     /**
      * 事件处理器
      */
-    class Handler {
-
-        /**
-         * 执行处理器
-         */
-        run(): any;
-
-        /**
-         * 执行处理器，携带额外的参数
-         * @args 参数列表，允许为任意类型的数据
-         */
-        runWith(args: any): any;
-
-        /**
-         * 回收到对象池
-         */
-        recover(): void;
-
+    interface IHandler {
         /**
          * 回调对象
          */
@@ -332,62 +351,154 @@ declare module suncom {
         readonly method: Function;
 
         /**
-         * 创建Handler的简单工厂方法
+         * 执行处理器
          */
-        static create(caller: Object, method: Function, args?: any[], once?: boolean): Handler;
+        run(): any;
+
+        /**
+         * 执行处理器，携带额外的参数
+         * @args: 参数列表，允许为任意类型的数据
+         */
+        runWith(args: any): any;
+
+        /**
+         * 回收到对象池
+         */
+        recover(): void;
     }
 
     /**
-     * 哈希表，通常用于作为一个大量数据的集合，用于快速获取数据集中的某条数据
+     * 哈希表，通常用于作为一个大量数据的集合
+     * 说明：
+     * 1. 哈希表的主键值允许为任意类型
+     * 2. 允许被存储的值为 null 或 undefined
      */
-    class HashMap<T> {
-        /**
-         * 数据源（请勿直接操作其中的数据）
-         */
-        source: T[];
+    interface IHashMap<K, V> {
 
         /**
-         * @primaryKey: 指定主键字段名，哈希表会使用主键值来作为数据索引，所以请确保主键值是恒值
+         * 返回字典中的条目数量
          */
-        constructor(primaryKey: number | string);
+        size(): number;
 
         /**
-         * 添加数据
+         * 是否存在从 key 到值的映射
          */
-        put(data: T): T;
+        exist(key: any): boolean;
 
         /**
-         * 根据键值返回数据
+         * 设置 key 所映射的值
          */
-        getByValue(key: number | string, value: any): T;
+        set(key: K, value: V): V;
 
         /**
-         * 根据主键值快速返回数据
+         * 获取 key 所映射的值
          */
-        getByPrimaryValue(value: number | string): T;
+        get(key: K): V;
 
         /**
-         * 移除数据
+         * 移除 key 及其所映射的值
          */
-        remove(data: T): T;
+        remove(key: K): V;
 
         /**
-         * 根据键值移除数据
+         * 清除所有数据
          */
-        removeByValue(key: number | string, value: any): T;
-
-        /**
-         * 根据主键值移除数据
-         */
-        removeByPrimaryValue(value: number | string): T;
+        clear(): void;
 
         /**
          * 为每个数据执行方法
          * 说明：
          * 1. 若method返回true，则会中断遍历
-         * 2. 谨慎在此方法中新增或移除数据
+         * 2. 请勿在此方法中新增或移除数据
          */
+        forEach(method: (value: V, key?: K) => any): void;
+    }
+
+    interface IPCMInt2 {
+
+        arg1: number;
+
+        arg2: number;
+    }
+
+    interface IPCMIntString {
+
+        arg1: number;
+
+        arg2: string;
+    }
+
+    class Dictionary<T> implements IDictionary<T> {
+
+        source: T[];
+
+        /**
+         * @primaryKey: 指定主键字段名，字典会使用主键值来作为数据索引，所以请确保主键值是恒值
+         */
+        constructor(primaryKey: number | string);
+
+        put(data: T): T;
+
+        getByValue(key: number | string, value: any): T;
+
+        getByPrimaryValue(value: number | string): T;
+
+        remove(data: T): T;
+
+        removeByValue(key: number | string, value: any): T;
+
+        removeByPrimaryValue(value: number | string): T;
+
         forEach(method: (data: T) => any): void;
+    }
+
+    class EventSystem implements IEventSystem {
+
+        addEventListener(type: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: EventPriorityEnum): void;
+
+        removeEventListener(type: string, method: Function, caller: Object): void;
+
+        dispatchEvent(type: string, data?: any, cancelable?: boolean): void;
+
+        dispatchCancel(): void;
+    }
+
+    /**
+     * 事件处理器
+     */
+    class Handler implements IHandler {
+
+        run(): any;
+
+        runWith(args: any): any;
+
+        recover(): void;
+
+        readonly caller: Object;
+
+        readonly method: Function;
+
+        /**
+         * 创建Handler的简单工厂方法
+         */
+        static create(caller: Object, method: Function, args?: any[], once?: boolean): IHandler;
+    }
+
+    class HashMap<K, V> implements IHashMap<K, V> {
+
+        size(): number;
+
+        exist(key: any): boolean;
+
+        set(key: K, value: V): V;
+
+        get(key: K): V;
+
+        remove(key: K): V;
+
+        clear(): void;
+
+        forEach(method: (value: V, key?: K) => any): void;
     }
 
     /**
@@ -778,7 +889,7 @@ declare module suncom {
         /**
          * 期望测试
          */
-        function expect(value: any, description?: string): Expect;
+        function expect(value: any, description?: string): IExpect;
 
         /**
          * 期望之外的，执行此方法时直接触发ASSERT_FAILED

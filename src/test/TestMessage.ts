@@ -97,7 +97,7 @@ module test {
                 suncom.Test.notExpected();
             });
             const testCancelTaskData: IData = { msg: 0, list: [] };
-            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 1, new TestCancelTask(testCancelTaskData));
+            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, new TestCancelTask(testCancelTaskData), 1);
             suncore.System.addTrigger(suncore.ModuleEnum.CUSTOM, 1000, this, () => {
                 suncom.Test.notExpected();
             });
@@ -191,13 +191,13 @@ module test {
                 });
             }
 
-            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 1, new suncore.SimpleTask(this, () => {
+            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, new suncore.SimpleTask(this, () => {
                 counter.priority_task++;
-            }));
+            }), 1);
 
-            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, 3, new suncore.SimpleTask(this, () => {
+            suncore.System.addTask(suncore.ModuleEnum.CUSTOM, new suncore.SimpleTask(this, () => {
                 counter.priority_task++;
-            }));
+            }), 3);
 
             suncore.System.addMessage(suncore.ModuleEnum.CUSTOM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, () => {
                 suncom.Test.expect(counter.priority_0).interpret(`priority_0 执行次数不正确，若者lazy过早执行`).toBe(50);

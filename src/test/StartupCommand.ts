@@ -12,7 +12,7 @@ module test {
             this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.TIMELINE, false]);
 
             suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, this, () => {
-                suncore.System.addTask(suncore.ModuleEnum.SYSTEM, 0, new test.TestClass());
+                suncore.System.addTask(suncore.ModuleEnum.SYSTEM, new test.TestClass());
                 // new test.TestMessage();
             });
         }

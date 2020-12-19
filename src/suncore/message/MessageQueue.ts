@@ -3,7 +3,7 @@ module suncore {
     /**
      * 消息队列
      */
-    export class MessageQueue {
+    export class MessageQueue implements IMessageQueue {
         /**
          * 所属模块
          */
@@ -12,19 +12,19 @@ module suncore {
         /**
          * 任务消息列表
          */
-        private $tasks: Message[][] = [];
+        private $tasks: IMessage[][] = [];
 
         /**
          * 其它消息队列
          */
-        private $queues: Message[][] = [];
+        private $queues: IMessage[][] = [];
 
         /**
          * 临时消息队列
          * 说明：
          * 1. 因为消息可能产生消息，所以当前帧中所有新消息都会被放置在临时队列中，在帧结束之前统一整理至消息队列
          */
-        private $messages0: Message[] = [];
+        private $messages0: IMessage[] = [];
 
         /**
          * 消息是否取消执行
@@ -47,7 +47,7 @@ module suncore {
         /**
          * 添加消息
          */
-        putMessage(message: Message): void {
+        putMessage(message: IMessage): void {
             this.$messages0.push(message);
             // 新消息为承诺
             if (message.priority === MessagePriorityEnum.PRIORITY_PROMISE) {
@@ -58,13 +58,13 @@ module suncore {
         /**
          * 初始化承诺的权重
          */
-        private $initPromiseWeights(message: Message): void {
-            const promises: Message[] = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE];
+        private $initPromiseWeights(message: IMessage): void {
+            const promises: IMessage[] = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE];
             if (promises.length === 0) {
                 message.weights = this.$weights;
             }
             else {
-                const promise: Message = promises[0];
+                const promise: IMessage = promises[0];
                 if (promise.task.running === false) {
                     message.weights = this.$weights;
                 }
@@ -104,7 +104,7 @@ module suncore {
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
                     // 并行触发
                     for (let id: number = this.$tasks.length - 1; id > -1; id--) {
-                        const tasks: Message[] = this.$tasks[id];
+                        const tasks: IMessage[] = this.$tasks[id];
                         if (tasks.length > 0 && this.$dealTaskMessage(tasks[0]) === true) {
                             tasks.shift().recover();
                             dealCount++;
@@ -122,7 +122,7 @@ module suncore {
                     while (queue.length > 0) {
                         dealCount++;
 
-                        const promise: Message = queue[0];
+                        const promise: IMessage = queue[0];
                         if (this.$dealTaskMessage(promise) === false) {
                             break;
                         }
@@ -152,7 +152,7 @@ module suncore {
 
                     // 若 totalCount 为 0 ，则表示处理所有消息
                     for (; queue.length > 0 && (totalCount === 0 || okCount < totalCount); okCount++) {
-                        const message: Message = queue.shift();
+                        const message: IMessage = queue.shift();
                         if (this.$dealCustomMessage(message) === false) {
                             okCount--;
                         }
@@ -169,9 +169,9 @@ module suncore {
 
             // 若只剩下惰性消息，则处理惰性消息
             if (remainCount === 0 && dealCount === 0 && this.$messages0.length === 0) {
-                const queue: Message[] = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
+                const queue: IMessage[] = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
                 if (queue.length > 0) {
-                    const message: Message = queue.shift();
+                    const message: IMessage = queue.shift();
                     this.$dealCustomMessage(message);
                     dealCount++;
                     message.recover();
@@ -182,8 +182,8 @@ module suncore {
         /**
          * 任务消息处理逻辑
          */
-        private $dealTaskMessage(message: Message): boolean {
-            const task: AbstractTask = message.task as AbstractTask;
+        private $dealTaskMessage(message: IMessage): boolean {
+            const task: ITask = message.task;
 
             // 若任务没有被开启，则开启任务
             if (task.running === false) {
@@ -200,7 +200,7 @@ module suncore {
         /**
          * 触发器消息处理逻辑
          */
-        private $dealTriggerMessage(message: Message): boolean {
+        private $dealTriggerMessage(message: IMessage): boolean {
             // 触发条件未达成
             if (message.timeout > System.getModuleTimestamp(this.$mod)) {
                 return false;
@@ -213,7 +213,7 @@ module suncore {
          * 其它类型消息处理逻辑
          * 执行器的返回值意义请参考 MessagePriorityEnum 的 PRIORITY_LAZY 注释
          */
-        private $dealCustomMessage(message: Message): boolean {
+        private $dealCustomMessage(message: IMessage): boolean {
             return message.method.apply(message.caller, message.args) !== false;
         }
 
@@ -241,7 +241,7 @@ module suncore {
          */
         classifyMessages0(): void {
             while (this.$messages0.length > 0) {
-                const message: Message = this.$messages0.shift();
+                const message: IMessage = this.$messages0.shift();
                 if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
                     this.$addTaskMessage(message);
                 }
@@ -260,12 +260,12 @@ module suncore {
         /**
          * 添加承诺
          */
-        private $addPromiseMessage(message: Message): void {
-            const messages: Message[] = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE];
+        private $addPromiseMessage(message: IMessage): void {
+            const messages: IMessage[] = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE];
 
             let index: number = -1;
             for (let i: number = 0; i < messages.length; i++) {
-                const promise: Message = messages[i];
+                const promise: IMessage = messages[i];
                 if (promise.task.running === true) {
                     continue;
                 }
@@ -286,8 +286,8 @@ module suncore {
         /**
          * 添加触发器消息
          */
-        private $addTriggerMessage(message: Message): void {
-            const queue: Message[] = this.$queues[MessagePriorityEnum.PRIORITY_TRIGGER];
+        private $addTriggerMessage(message: IMessage): void {
+            const queue: IMessage[] = this.$queues[MessagePriorityEnum.PRIORITY_TRIGGER];
 
             let min: number = 0;
             let mid: number = 0;
@@ -326,11 +326,11 @@ module suncore {
         /**
          * 添加任务消息
          */
-        private $addTaskMessage(message: Message): void {
+        private $addTaskMessage(message: IMessage): void {
             let index: number = -1;
 
             for (let i: number = 0; i < this.$tasks.length; i++) {
-                const tasks: Message[] = this.$tasks[i];
+                const tasks: IMessage[] = this.$tasks[i];
                 if (tasks.length > 0 && tasks[0].groupId === message.groupId) {
                     index = i;
                     break;
@@ -355,13 +355,13 @@ module suncore {
                 this.$cancelMessage(this.$messages0.shift());
             }
             for (let i: number = 0; i < this.$tasks.length; i++) {
-                const tasks: Message[] = this.$tasks[i];
+                const tasks: IMessage[] = this.$tasks[i];
                 while (tasks.length > 0) {
                     this.$cancelMessage(tasks.shift());
                 }
             }
             for (let priority: MessagePriorityEnum = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
-                const queue: Message[] = this.$queues[priority];
+                const queue: IMessage[] = this.$queues[priority];
                 while (queue.length > 0) {
                     this.$cancelMessage(queue.shift());
                 }
@@ -371,7 +371,7 @@ module suncore {
         /**
          * 取消消息（目前只有task才需要被取消）
          */
-        private $cancelMessage(message: Message): void {
+        private $cancelMessage(message: IMessage): void {
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
                 message.task.done = true;
             }
@@ -383,7 +383,7 @@ module suncore {
          */
         cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void {
             for (let id: number = 0; id < this.$tasks.length; id++) {
-                const messages: Message[] = this.$tasks[id];
+                const messages: IMessage[] = this.$tasks[id];
                 if (messages.length > 0 && messages[0].groupId === groupId) {
                     while (messages.length > 0) {
                         const message = messages.shift();
