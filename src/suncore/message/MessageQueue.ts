@@ -105,7 +105,7 @@ module suncore {
                     // 并行触发
                     for (let id: number = this.$tasks.length - 1; id > -1; id--) {
                         const tasks: IMessage[] = this.$tasks[id];
-                        if (tasks.length > 0 && this.$dealTaskMessage(tasks[0]) === true) {
+                        while (tasks.length > 0 && this.$dealTaskMessage(tasks[0]) === true) {
                             tasks.shift().recover();
                             dealCount++;
                         }
