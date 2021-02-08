@@ -173,6 +173,11 @@ declare module suncom {
         removeByPrimaryValue(value: number | string): T;
 
         /**
+         * 清除所有数据
+         */
+        clear(): void;
+
+        /**
          * 为每个数据执行方法
          * 说明：
          * 1. 若method返回true，则会中断遍历
@@ -449,6 +454,8 @@ declare module suncom {
 
         removeByPrimaryValue(value: number | string): T;
 
+        clear(): void;
+
         forEach(method: (data: T) => any): void;
     }
 
@@ -587,11 +594,6 @@ declare module suncom {
         function formatDate(str: string, time: string | number | Date): string;
 
         /**
-         * 返回 md5 加密后的串
-         */
-        function md5(str: string): string;
-
-        /**
          * 获取 Url 参数值
          */
         function getQueryString(name: string, param?: string): string;
@@ -636,6 +638,12 @@ declare module suncom {
          * 将数据从数组中移除
          */
         function removeItemsFromArray<T>(items: T[], array: T[]): void;
+
+        /**
+         * 复制数据对象
+         * @deep: 默认为: false
+         */
+        function copy(data: any, deep?: boolean): any;
 
         /**
          * 判断深度相等
@@ -729,45 +737,26 @@ declare module suncom {
      * 日志接口
      */
     namespace Logger {
-        /**
-         * 锁定日志，若为false，则旧日志会实时被移除，默认：false
-         */
-        let locked: boolean;
-
-        /**
-         * 获取部分日志
-         */
-        function getDebugString(index: number, length: number): string[];
-
-        /**
-         * 日志总行数
-         */
-        function getNumOfLines(): number;
 
         /**
          * 普通日志
          */
-        function log(mod: DebugMode, ...args: any[]): void;
+        function log(mod: DebugMode, str: string): void;
 
         /**
          * 警告日志
          */
-        function warn(mod: DebugMode, ...args: any[]): void;
+        function warn(mod: DebugMode, str: string): void;
 
         /**
          * 错误日志
          */
-        function error(mod: DebugMode, ...args: any[]): void;
+        function error(mod: DebugMode, str: string): void;
 
         /**
          * 文件日志
          */
-        function log2f(mod: DebugMode, ...args: any[]): void;
-
-        /**
-         * 调用追踪日志
-         */
-        function trace(mod: DebugMode, ...args: any[]): void;
+        function log2f(mod: DebugMode, str: string): void;
     }
 
     /**

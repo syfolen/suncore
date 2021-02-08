@@ -97,7 +97,7 @@ var puremvc;
         };
         Facade.prototype.registerObserver = function (name, method, caller, receiveOnce, priority, args) {
             MutexLocker.active(suncore.MsgQModEnum.MMI);
-            var observer = this.$var_view.registerObserver(name, method, caller, receiveOnce, priority, args);
+            this.$var_view.registerObserver(name, method, caller, receiveOnce, priority, args);
             MutexLocker.deactive();
         };
         Facade.prototype.removeObserver = function (name, method, caller) {
@@ -454,12 +454,14 @@ var puremvc;
         function Proxy(name, data) {
             var _this = _super.call(this) || this;
             _this.$var_proxyName = null;
+            _this.$var_lockData = null;
             _this.$data = void 0;
             if (isStringNullOrEmpty(name) === true) {
                 throw Error("\u65E0\u6548\u7684\u6A21\u578B\u7C7B\u540D\u5B57");
             }
             _this.$data = data;
             _this.$var_proxyName = name;
+            _this.$lockJsonData(data);
             return _this;
         }
         Proxy.prototype.func_getProxyName = function () {
@@ -474,6 +476,19 @@ var puremvc;
         };
         Proxy.prototype.setData = function (data) {
             this.$data = data;
+            if (this.$var_lockData === null) {
+                this.$lockJsonData(data);
+            }
+        };
+        Proxy.prototype.$lockJsonData = function (data) {
+            if (data instanceof Object && data instanceof Array === false) {
+                this.$var_lockData = data;
+            }
+        };
+        Proxy.prototype.$setDefaultJsonValue = function (key, value) {
+            if (this.$var_lockData[key] === void 0) {
+                this.$var_lockData[key] = value;
+            }
         };
         return Proxy;
     }(Notifier));

@@ -220,7 +220,7 @@ declare module puremvc {
         /**
          * 获取单例对象
          */
-        static getInstance(): Facade;
+        static getInstance(): IFacade;
 
         /**
          * 初始化MsgQ配置（优先于模型类）
@@ -325,6 +325,19 @@ declare module puremvc {
         getData(): T;
 
         setData(data: T): void;
+
+        /**
+         * 锁定数据源
+         */
+        protected $lockJsonData(data: any): void;
+
+        /**
+         * 为 json 对象设置默认的键值
+         * 说明：
+         * 1. 若值己存在，则不会被设置
+         * 2. 设用此方法
+         */
+        protected $setDefaultJsonValue(key: string, value: any): void;
     }
 
     /**

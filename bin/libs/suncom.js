@@ -118,6 +118,10 @@ var suncom;
             }
             return this.remove(data);
         };
+        Dictionary.prototype.clear = function () {
+            this.source.length = 0;
+            this.$var_dataMap = {};
+        };
         Dictionary.prototype.forEach = function (method) {
             for (var i = 0; i < this.source.length; i++) {
                 if (method(this.source[i]) === true) {
@@ -605,6 +609,9 @@ var suncom;
         }
         Common.isNullOrUndefined = isNullOrUndefined;
         function getClassName(cls) {
+            if (cls instanceof Function && this.isStringNullOrEmpty(cls.name) === false) {
+                return cls.name;
+            }
             var classString = cls.toString().trim();
             var index = classString.indexOf("(");
             return cls.name || classString.substring(9, index);
@@ -635,15 +642,6 @@ var suncom;
             return null;
         }
         Common.getMethodName = getMethodName;
-        function convertEnumToString(value, oEnum) {
-            for (var key in oEnum) {
-                if (oEnum[key] === value) {
-                    return key;
-                }
-            }
-            return null;
-        }
-        Common.convertEnumToString = convertEnumToString;
         function trim(str) {
             if (this.isNullOrUndefined(str) === true) {
                 return null;
@@ -681,13 +679,14 @@ var suncom;
         }
         Common.isStringNullOrEmpty = isStringNullOrEmpty;
         function formatString(str, args) {
-            var length = str.length;
+            var remain = str.length;
             for (var i = 0; i < args.length; i++) {
                 var flag = "{" + i + "}";
-                var index = str.indexOf(flag, str.length - length);
+                var index = str.indexOf(flag, str.length - remain);
                 if (index === -1) {
                     break;
                 }
+                remain = str.length - index - 3;
                 str = str.substr(0, index) + args[i] + str.substr(index + 3);
             }
             return str;
@@ -711,7 +710,7 @@ var suncom;
                         dates[1] = (dt.getMonth() + 1).toString();
                         dates[2] = dt.getDate().toString();
                     }
-                    return new Date(Number(dates[0]), Number(dates[1]) - 1, Number(dates[2]), Number(times[0]), Number(times[1]), Number(times[2]));
+                    return new Date(+dates[0], +dates[1] - 1, +dates[2], +times[0], +times[1], +times[2]);
                 }
                 return new Date(date);
             }
@@ -821,10 +820,6 @@ var suncom;
             return str;
         }
         Common.formatDate = formatDate;
-        function md5(str) {
-            throw Error("未实现的接口！！！");
-        }
-        Common.md5 = md5;
         function getQueryString(name, param) {
             var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
             var str = param || window.location.search;
@@ -1027,12 +1022,10 @@ var suncom;
             }
             var array = ver.split(".");
             var array2 = Global.VERSION.split(".");
-            var length = array.length > array2.length ? array.length : array2.length;
-            while (array.length < length) {
-                array.push("0");
-            }
-            while (array2.length < length) {
-                array2.push("0");
+            var length = Math.max(array.length, array2.length);
+            for (var i = 0; i < length; i++) {
+                array.length === i && array.push("0");
+                array2.length === i && array2.push("0");
             }
             var error = 0;
             for (var i = 0; i < length; i++) {
@@ -1040,11 +1033,9 @@ var suncom;
                 var s1 = array2[i];
                 if (Mathf.isNumber(s0) === false) {
                     error |= 0x01;
-                    array[i] = "0";
                 }
                 if (Mathf.isNumber(s1) === false) {
                     error |= 0x02;
-                    array2[i] = "0";
                 }
             }
             if (error & 0x1) {
@@ -1057,8 +1048,8 @@ var suncom;
                 return 0;
             }
             for (var i = 0; i < length; i++) {
-                var reg0 = Number(array[i]);
-                var reg1 = Number(array2[i]);
+                var reg0 = +array[i];
+                var reg1 = +array2[i];
                 if (reg0 < reg1) {
                     return 1;
                 }
@@ -1073,29 +1064,29 @@ var suncom;
     var DBService;
     (function (DBService) {
         var $id = 0;
-        DBService.$table = {};
+        var $table = {};
         function get(name) {
-            return DBService.$table[name];
+            return $table[name];
         }
         DBService.get = get;
         function put(name, data) {
             if (name < 0) {
                 $id++;
-                DBService.$table["auto_" + $id] = data;
+                $table["auto_" + $id] = data;
             }
             else {
-                DBService.$table[name] = data;
+                $table[name] = data;
             }
             return data;
         }
         DBService.put = put;
         function exist(name) {
-            return DBService.$table[name] !== void 0;
+            return $table[name] !== void 0;
         }
         DBService.exist = exist;
         function drop(name) {
             var data = DBService.get(name);
-            delete DBService.$table[name];
+            delete $table[name];
             return data;
         }
         DBService.drop = drop;
@@ -1113,122 +1104,30 @@ var suncom;
     })(Global = suncom.Global || (suncom.Global = {}));
     var Logger;
     (function (Logger) {
-        Logger.NUM_OF_BLOCK = 200;
-        Logger.LINES_OF_BLOCK = 200;
-        var $messages = [];
-        Logger.locked = false;
-        function $addLine(line) {
-            if (Logger.locked === false && $messages.length > Logger.NUM_OF_BLOCK) {
-                $messages.shift();
-            }
-            var lines = null;
-            var length = $messages.length;
-            if (length > 0) {
-                lines = $messages[length - 1];
-                if (lines.length === Logger.LINES_OF_BLOCK) {
-                    lines = null;
-                }
-            }
-            if (lines === null) {
-                lines = [];
-                $messages.push(lines);
-            }
-            lines.push(line);
-        }
-        function getDebugString(index, length) {
-            if (index < 0) {
-                length += index;
-                index = 0;
-            }
-            var lineIndex = index % Logger.LINES_OF_BLOCK;
-            var groupIndex = (index - lineIndex) / Logger.LINES_OF_BLOCK;
-            var lines = [];
-            for (var i = 0; i < length; i++) {
-                if (groupIndex < $messages.length) {
-                    var array = $messages[groupIndex];
-                    if (lineIndex < array.length) {
-                        lines.push(array[lineIndex]);
-                    }
-                    lineIndex++;
-                    if (lineIndex === array.length) {
-                        lineIndex = 0;
-                        groupIndex++;
-                    }
-                }
-                else {
-                    break;
-                }
-            }
-            return lines;
-        }
-        Logger.getDebugString = getDebugString;
-        function getNumOfLines() {
-            var length = 0;
-            for (var i = 0; i < $messages.length; i++) {
-                length += $messages[i].length;
-            }
-            return length;
-        }
-        Logger.getNumOfLines = getNumOfLines;
-        function log(mod) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
+        function log(mod, str) {
             if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
-                var str = args.join(" ");
                 console.log(str);
-                $addLine(str);
             }
         }
         Logger.log = log;
-        function warn(mod) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
+        function warn(mod, str) {
             if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
-                var str = args.join(" ");
                 console.warn(str);
-                $addLine(str);
             }
         }
         Logger.warn = warn;
-        function error(mod) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
+        function error(mod, str) {
             if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
-                var str = args.join(" ");
                 console.error(str);
-                $addLine(str);
             }
         }
         Logger.error = error;
-        function log2f(mod) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
+        function log2f(mod, str) {
             if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
-                var str = args.join(" ");
                 console.info(str);
-                $addLine(str);
             }
         }
         Logger.log2f = log2f;
-        function trace(mod) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
-            if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
-                var str = args.join(" ");
-                console.trace(str);
-            }
-        }
-        Logger.trace = trace;
     })(Logger = suncom.Logger || (suncom.Logger = {}));
     var Mathf;
     (function (Mathf) {
@@ -1300,38 +1199,14 @@ var suncom;
             return retValueF;
         }
         Mathf.round = round;
-        function $round(value, n) {
-            if (n === void 0) { n = 0; }
-            Logger.warn(DebugMode.ANY, "\u6B64\u63A5\u53E3\u5DF1\u5F03\u7528\uFF1Asuncom.Common.$round(value: number, n: number = 0);");
-            var tmpValue = Math.floor(value * Math.pow(10, n + 2));
-            var floatValue = tmpValue % 100;
-            var intValue = (tmpValue - floatValue) / 100;
-            if (floatValue < 0 && floatValue > 0) {
-                intValue -= 1;
-                floatValue += 100;
-            }
-            var a = floatValue % 10;
-            var b = (floatValue - a) / 10;
-            if (b > 5) {
-                intValue += 1;
-            }
-            else if (b === 5) {
-                var modValue = a % 2;
-                if (modValue === 1 || modValue === -1) {
-                    intValue += 1;
-                }
-            }
-            return intValue / Math.pow(10, n);
-        }
-        Mathf.$round = $round;
         function random(min, max) {
-            var value = Random.random() * (max - min);
+            var value = Math.random() * (max - min);
             return Math.floor(value) + min;
         }
         Mathf.random = random;
         function isNumber(str) {
             if (typeof str === "number") {
-                return true;
+                return isNaN(str) === false;
             }
             if (typeof str === "string") {
                 if (str === "") {
