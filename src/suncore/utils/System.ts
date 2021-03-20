@@ -73,32 +73,6 @@ module suncore {
         }
 
         /**
-         * 获取帧同步时间戳
-         * export
-         */
-        export function getFixedTimestamp(): number {
-            if (isModuleStopped(suncore.ModuleEnum.TIMELINE) === false) {
-                return M.timeline.getTimeFixed();
-            }
-            else {
-                suncom.Logger.error(suncom.DebugMode.ANY, `尝试获取帧同步时间戳，但模块 TIMELINE 己停止！！！`);
-            }
-        }
-
-        /**
-         * 获取物理帧时间戳
-         * export
-         */
-        export function getPhsicsTimestamp(): number {
-            if (isModuleStopped(suncore.ModuleEnum.TIMELINE) === false) {
-                return M.timeline.getTimePhsics();
-            }
-            else {
-                suncom.Logger.error(suncom.DebugMode.ANY, `尝试获取物理帧时间戳，但模块 TIMELINE 己停止！！！`);
-            }
-        }
-
-        /**
          * 获取指定模块的时间戳
          * export
          */

@@ -78,20 +78,9 @@ module suncore {
             // 优先广播MsgQModEnum.NSL的数据（谨慎修改）
             this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NSL);
 
-            // 若校准时间成功，则派发固定帧事件和物理事件
-            while (M.timeline.phsics()) {
-                const fixed: boolean = M.timeline.fixed();
-                if (fixed === true) {
-                    this.facade.sendNotification(NotifyKey.ENTER_FIXED_FRAME);
-                }
-
-                this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);
-                this.facade.sendNotification(NotifyKey.PHYSICS_FRAME);
-
-                if (fixed === true) {
-                    this.facade.sendNotification(NotifyKey.LATER_FIXED_FRAME);
-                }
-            }
+            // 物理相关事件
+            this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);
+            this.facade.sendNotification(NotifyKey.PHYSICS_FRAME);
 
             // 定时器不属于帧逻辑
             M.timerManager.executeTimer();

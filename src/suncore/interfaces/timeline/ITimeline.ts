@@ -17,16 +17,6 @@ module suncore {
         lapse(delta: number): void;
 
         /**
-         * 固定时间流逝
-         */
-        fixed(): boolean;
-
-        /**
-         * 物理时间流逝
-         */
-        phsics(): boolean;
-
-        /**
          * 暂停时间轴
          * @stop: 是否停止时间轴
          * 1. 时间轴暂停时，对应的模块允许被添加任务
@@ -43,16 +33,6 @@ module suncore {
          * 获取时间戳（毫秒）
          */
         getTime(): number;
-
-        /**
-         * 获取帧同步时间戳（毫秒）
-         */
-        getTimeFixed(): number;
-
-        /**
-         * 获取物理帧时间戳（毫秒）
-         */
-        getTimePhsics(): number;
 
         /**
          * 时间轴是否己暂停

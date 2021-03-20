@@ -39,22 +39,6 @@ module suncore {
         export const PAUSE_TIMELINE: string = "suncore.NotifyKey.PAUSE_TIMELINE";
 
         /**
-         * 固定帧事件（进入事件）
-         * 说明：
-         * 1. 该事件优先于物理帧事件派发
-         * export
-         */
-        export const ENTER_FIXED_FRAME: string = "suncore.NotifyKey.ENTER_FIXED_FRAME";
-
-        /**
-         * 固定帧事件（晚于事件）
-         * 说明：
-         * 1. 该事件优先于物理帧事件派发
-         * export
-         */
-        export const LATER_FIXED_FRAME: string = "suncore.NotifyKey.LATER_FIXED_FRAME";
-
-        /**
          * 物理帧事件（后于物理预处理事件执行）
          * 说明：
          * 1. 此事件在物理计算之后派发，故物理世界中的数据应当在此事件中被读取
