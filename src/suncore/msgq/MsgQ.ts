@@ -30,11 +30,11 @@ module suncore {
          */
         export function send(dst: MsgQModEnum, id: number, data?: any): void {
             if (isModuleActive(dst) === false) {
-                suncom.Logger.warn(suncom.DebugMode.ANY, `消息发送失败，模块己暂停 mod:${MsgQModEnum[dst]}`);
+                suncom.Logger.warn(`消息发送失败，模块己暂停 mod:${MsgQModEnum[dst]}`);
                 return;
             }
             if (check(dst, id) === false) {
-                suncom.Logger.warn(suncom.DebugMode.ANY, `消息发送失败，消息ID非法 mod:${dst}, id:${id}`);
+                suncom.Logger.warn(`消息发送失败，消息ID非法 mod:${dst}, id:${id}`);
                 return;
             }
             let array: IMsgQMsg[] = $queues[dst];

@@ -5,59 +5,34 @@ declare module suncom {
      */
     enum DebugMode {
         /**
-         * 任意
+         * 错误日志
          */
-        ANY = 0x1,
+        ERROR = 0x1,
 
         /**
-         * 引擎
+         * 警告日志
          */
-        ENGINE = 0x2,
+        WARN = 0x2,
 
         /**
-         * 原生
+         * 日志文件
          */
-        NATIVE = 0x4,
+        LOG2F = 0x4,
 
         /**
-         * 网络
+         * 信息日志（框架）
          */
-        NETWORK = 0x8,
+        INFO = 0x8,
 
         /**
-         * 网络心跳
+         * 调试日志
          */
-        NETWORK_HEARTBEAT = 0x10,
-
-        /**
-         * 调试模式
-         */
-        DEBUG = 0x20,
-
-        /**
-         * 工程模式
-         */
-        ENGINEER = 0x40,
+        DEBUG = 0x10,
 
         /**
          * 普通
          */
-        NORMAL = 0x80,
-
-        /**
-         * 测试模式
-         */
-        TEST = 0x100,
-
-        /**
-         * 测试驱动开发模式
-         */
-        TDD = 0x200,
-
-        /**
-         * 验收测试模式
-         */
-        ATDD = 0x400
+        NORMAL = 0x20
     }
 
     /**
@@ -68,11 +43,6 @@ declare module suncom {
          * 开发环境
          */
         DEVELOP = 0,
-
-        /**
-         * 调试模式
-         */
-        DEBUG,
 
         /**
          * 网页版
@@ -433,6 +403,31 @@ declare module suncom {
         arg2: string;
     }
 
+    /**
+     * 线性同余发生器接口
+     */
+    interface IRandom {
+        /**
+         * 随机种子
+         */
+        readonly r: number;
+
+        /**
+         * 指定随机种子（必须大于0）
+         */
+        seed(value: number): void;
+
+        /**
+         * 返回一个随机数
+         */
+        random(): number;
+
+        /**
+         * 返回 >= min 且 < max 的随机整数
+         */
+        randomInt(min: number, max: number): number;
+    }
+
     class Dictionary<T> implements IDictionary<T> {
 
         source: T[];
@@ -506,6 +501,25 @@ declare module suncom {
         clear(): void;
 
         forEach(method: (value: V, key?: K) => any): void;
+    }
+
+    /**
+     * 线性同余发生器
+     */
+    class Random implements IRandom {
+
+        /**
+         * @r：随机种子，默认为：1
+         */
+        constructor(r?: number);
+
+        seed(value: number): void;
+
+        random(): number;
+
+        randomInt(min: number, max: number): number;
+
+        readonly r: number;
     }
 
     /**
@@ -589,7 +603,7 @@ declare module suncom {
         function dateDiff(datepart: string, date: string | number | Date, date2: string | number | Date): number;
 
         /**
-         * 格式化时间，支持：yy-MM-dd hh:mm:ss MS|ms
+         * 格式化时间，支持：yyyy-MM-dd hh:mm:ss.MS or yy-M-d h-m-s.ms
          */
         function formatDate(str: string, time: string | number | Date): string;
 
@@ -741,22 +755,32 @@ declare module suncom {
         /**
          * 普通日志
          */
-        function log(mod: DebugMode, str: string): void;
+        function log(...args: any[]): void;
 
         /**
-         * 警告日志
+         * 调试日志
          */
-        function warn(mod: DebugMode, str: string): void;
+        function debug(...args: any[]): void;
 
         /**
-         * 错误日志
+         * 信息日志（框架）
          */
-        function error(mod: DebugMode, str: string): void;
+        function info(...args: any[]): void;
 
         /**
          * 文件日志
          */
-        function log2f(mod: DebugMode, str: string): void;
+        function log2f(...args: any[]): void;
+
+        /**
+         * 警告日志
+         */
+        function warn(...args: any[]): void;
+
+        /**
+         * 错误日志
+         */
+        function error(...args: any[]): void;
     }
 
     /**
@@ -806,7 +830,7 @@ declare module suncom {
         function round(value: number, n?: number): number;
 
         /**
-         * 返回>=min且<max的随机整数
+         * 返回 >= min 且 < max 的随机整数
          */
         function random(min: number, max: number): number;
 
@@ -843,22 +867,6 @@ declare module suncom {
          * 清缓指定标识下的所有己缓存对象
          */
         function clear(sign: string): void;
-    }
-
-    /**
-     * 线性同余发生器
-     */
-    namespace Random {
-
-        /**
-         * 指定随机种子
-         */
-        function seed(value: number): void;
-
-        /**
-         * 返回一个随机数
-         */
-        function random(): number;
     }
 
     /**

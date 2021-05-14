@@ -17,7 +17,7 @@ module suncore {
                 throw Error(`参数pause应当为布尔值`);
             }
             if (System.isModulePaused(mod) === false) {
-                suncom.Logger.error(suncom.DebugMode.ANY, `模块 ${ModuleEnum[mod]} 己经启动！！！`);
+                suncom.Logger.error(`模块 ${ModuleEnum[mod]} 己经启动！！！`);
                 return;
             }
 

@@ -14,7 +14,7 @@ module suncore {
          */
         run(): void {
             if (this.$var_running === true) {
-                suncom.Logger.warn(suncom.DebugMode.ANY, `服务[${suncom.Common.getQualifiedClassName(this)}]己运行`);
+                suncom.Logger.warn(`服务[${suncom.Common.getQualifiedClassName(this)}]己运行`);
                 return;
             }
             this.$var_running = true;
@@ -26,7 +26,7 @@ module suncore {
          */
         stop(): void {
             if (this.$var_running === false) {
-                suncom.Logger.warn(suncom.DebugMode.ANY, `服务[${suncom.Common.getQualifiedClassName(this)}]未运行`);
+                suncom.Logger.warn(`服务[${suncom.Common.getQualifiedClassName(this)}]未运行`);
                 return;
             }
             this.$var_running = false;

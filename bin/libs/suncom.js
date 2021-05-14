@@ -2,24 +2,18 @@ var suncom;
 (function (suncom) {
     var DebugMode;
     (function (DebugMode) {
-        DebugMode[DebugMode["ANY"] = 1] = "ANY";
-        DebugMode[DebugMode["ENGINE"] = 2] = "ENGINE";
-        DebugMode[DebugMode["NATIVE"] = 4] = "NATIVE";
-        DebugMode[DebugMode["NETWORK"] = 8] = "NETWORK";
-        DebugMode[DebugMode["NETWORK_HEARTBEAT"] = 16] = "NETWORK_HEARTBEAT";
-        DebugMode[DebugMode["DEBUG"] = 32] = "DEBUG";
-        DebugMode[DebugMode["ENGINEER"] = 64] = "ENGINEER";
-        DebugMode[DebugMode["NORMAL"] = 128] = "NORMAL";
-        DebugMode[DebugMode["TEST"] = 256] = "TEST";
-        DebugMode[DebugMode["TDD"] = 512] = "TDD";
-        DebugMode[DebugMode["ATDD"] = 1024] = "ATDD";
+        DebugMode[DebugMode["ERROR"] = 1] = "ERROR";
+        DebugMode[DebugMode["WARN"] = 2] = "WARN";
+        DebugMode[DebugMode["LOG2F"] = 4] = "LOG2F";
+        DebugMode[DebugMode["INFO"] = 8] = "INFO";
+        DebugMode[DebugMode["DEBUG"] = 16] = "DEBUG";
+        DebugMode[DebugMode["NORMAL"] = 32] = "NORMAL";
     })(DebugMode = suncom.DebugMode || (suncom.DebugMode = {}));
     var EnvMode;
     (function (EnvMode) {
         EnvMode[EnvMode["DEVELOP"] = 0] = "DEVELOP";
-        EnvMode[EnvMode["DEBUG"] = 1] = "DEBUG";
-        EnvMode[EnvMode["WEB"] = 2] = "WEB";
-        EnvMode[EnvMode["NATIVE"] = 3] = "NATIVE";
+        EnvMode[EnvMode["WEB"] = 1] = "WEB";
+        EnvMode[EnvMode["NATIVE"] = 2] = "NATIVE";
     })(EnvMode = suncom.EnvMode || (suncom.EnvMode = {}));
     var EventPriorityEnum;
     (function (EventPriorityEnum) {
@@ -278,8 +272,8 @@ var suncom;
             this.$var_value = void 0;
             this.$var_asNot = false;
             this.$var_interpretation = null;
-            if (Global.debugMode & DebugMode.TEST) {
-                description !== null && Logger.log(DebugMode.ANY, description);
+            if (Global.debugMode & DebugMode.DEBUG) {
+                description !== null && Logger.debug(description);
             }
         }
         Expect.prototype.expect = function (value) {
@@ -293,8 +287,8 @@ var suncom;
         Expect.prototype.test = function (pass, message) {
             if ((this.$var_asNot === false && pass === false) || (this.$var_asNot === true && pass === true)) {
                 Test.ASSERT_FAILED = true;
-                message !== null && Logger.error(DebugMode.ANY, message);
-                this.$var_interpretation !== null && Logger.error(DebugMode.ANY, this.$var_interpretation);
+                message !== null && Logger.error(message);
+                this.$var_interpretation !== null && Logger.error(this.$var_interpretation);
                 if (Test.ASSERT_BREAKPOINT === true) {
                     debugger;
                 }
@@ -302,14 +296,14 @@ var suncom;
             }
         };
         Expect.prototype.anything = function () {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = this.$var_value !== null && this.$var_value !== void 0;
                 var message = "\u671F\u671B\u503C" + (this.$var_asNot === false ? "" : "不为") + "\uFF1Anull or undefined, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.arrayContaining = function (array) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = true;
                 for (var i = 0; i < array.length; i++) {
                     var value = array[i];
@@ -323,28 +317,28 @@ var suncom;
             }
         };
         Expect.prototype.stringContaining = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = this.$var_value.indexOf(value) > -1;
                 var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5305\u542B\uFF1A" + value + ", \u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.stringMatching = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = value.indexOf(this.$var_value) > -1;
                 var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u88AB\u5305\u542B\uFF1A" + value + ", \u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toHaveProperty = function (key, value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = value === void 0 ? this.$var_value[key] !== void 0 : this.$var_value[key] === value;
                 var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5B58\u5728\u5C5E\u6027\uFF1A" + key + ", \u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBe = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = this.$var_value === value;
                 var message = "\u671F\u671B\u503C" + (this.$var_asNot === false ? "" : "不为") + "\uFF1A" + Common.toDisplayString(value) + ", \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
@@ -357,28 +351,28 @@ var suncom;
             this.toBe(void 0);
         };
         Expect.prototype.toBeBoolean = function () {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = typeof this.$var_value === "boolean";
                 var message = "\u671F\u671B" + (this.$var_asNot === false ? "为" : "不为") + "\uFF1A\u5E03\u5C14\u7C7B\u578B, \u5B9E\u9645\u4E3A\uFF1A" + typeof this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeInstanceOf = function (cls) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = this.$var_value instanceof cls;
                 var message = "\u671F\u671B " + Common.getQualifiedClassName(this.$var_value) + " \u7684\u7C7B\u578B" + (this.$var_asNot === false ? "" : "不") + "\u4E3A " + Common.getClassName(cls);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeFalsy = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = value ? false : true;
                 var message = "\u671F\u671B " + Common.toDisplayString(value) + " " + (this.$var_asNot === false ? "" : "不") + "\u4E3A\u5047, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeTruthy = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = value ? true : false;
                 var message = "\u671F\u671B " + Common.toDisplayString(value) + " " + (this.$var_asNot === false ? "" : "不") + "\u4E3A\u5047, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
@@ -386,49 +380,49 @@ var suncom;
         };
         Expect.prototype.toBeCloseTo = function (value, deviation) {
             if (deviation === void 0) { deviation = 0; }
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = Math.abs(this.$var_value - value) <= Math.abs(deviation);
                 var message = "\u671F\u671B\u4E0E" + value + "\u7684\u8BEF\u5DEE" + (this.$var_asNot === true ? "" : "不") + "\u8D85\u8FC7" + deviation + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeGreaterThan = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = this.$var_value > value;
                 var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5927\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeGreaterOrEqualThan = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = this.$var_value >= value;
                 var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5927\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeLessThan = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = this.$var_value < value;
                 var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5C0F\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeLessOrEqualThan = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = this.$var_value <= value;
                 var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5C0F\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toEqual = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = Common.isEqual(this.$var_value, value, false);
                 var message = "\u671F\u671B\u76F8\u7B49\uFF1A" + Common.toDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toStrictEqual = function (value) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 var pass = Common.isEqual(this.$var_value, value, true);
                 var message = "\u671F\u671B\u76F8\u7B49\uFF1A" + Common.toDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
@@ -596,6 +590,39 @@ var suncom;
         return HashMap;
     }());
     suncom.HashMap = HashMap;
+    var Random = (function () {
+        function Random(r) {
+            if (r === void 0) { r = 1; }
+            this.$r = 1;
+            this.$A = 1103515245;
+            this.$C = 12345;
+            this.$M = 32767;
+            this.$r = r;
+        }
+        Random.prototype.seed = function (value) {
+            this.$r = Math.max(1, value);
+        };
+        Random.prototype.random = function () {
+            var r = dcodeIO.Long.fromNumber(this.$r);
+            var A = dcodeIO.Long.fromNumber(this.$A);
+            var C = dcodeIO.Long.fromNumber(this.$C);
+            this.$r = Math.floor(r.mul(A).add(C).low / this.$M);
+            return (this.$r % this.$M + this.$M) / (this.$M * 2);
+        };
+        Random.prototype.randomInt = function (min, max) {
+            var value = this.random() * (max - min);
+            return Math.floor(value) + min;
+        };
+        Object.defineProperty(Random.prototype, "r", {
+            get: function () {
+                return this.$r;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        return Random;
+    }());
+    suncom.Random = Random;
     var Common;
     (function (Common) {
         var $hashId = 0;
@@ -1013,11 +1040,11 @@ var suncom;
         Common.toDisplayString = toDisplayString;
         function compareVersion(ver) {
             if (typeof ver !== "string") {
-                Logger.error(DebugMode.ANY, "参数版本号无效");
+                Logger.error("参数版本号无效");
                 return 0;
             }
             if (typeof Global.VERSION !== "string") {
-                Logger.error(DebugMode.ANY, "版本号未设置");
+                Logger.error("版本号未设置");
                 return 0;
             }
             var array = ver.split(".");
@@ -1039,10 +1066,10 @@ var suncom;
                 }
             }
             if (error & 0x1) {
-                Logger.error(DebugMode.ANY, "参数版本号无效 " + ("ver:" + ver));
+                Logger.error("参数版本号无效 " + ("ver:" + ver));
             }
             if (error & 0x2) {
-                Logger.error(DebugMode.ANY, "当前版本号无效 " + ("ver:" + Global.VERSION));
+                Logger.error("当前版本号无效 " + ("ver:" + Global.VERSION));
             }
             if (error > 0) {
                 return 0;
@@ -1104,30 +1131,74 @@ var suncom;
     })(Global = suncom.Global || (suncom.Global = {}));
     var Logger;
     (function (Logger) {
-        function log(mod, str) {
-            if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
-                console.log(str);
+        function log() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (Global.debugMode & DebugMode.NORMAL) {
+                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
+                console.log.apply(console, args);
             }
         }
         Logger.log = log;
-        function warn(mod, str) {
-            if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
-                console.warn(str);
+        function debug() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (Global.debugMode & DebugMode.DEBUG) {
+                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
+                args.push("color:#00FFFF");
+                console.log.apply(console, args);
             }
         }
-        Logger.warn = warn;
-        function error(mod, str) {
-            if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
-                console.error(str);
+        Logger.debug = debug;
+        function info() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (Global.debugMode & DebugMode.INFO) {
+                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
+                console.info.apply(console, args);
             }
         }
-        Logger.error = error;
-        function log2f(mod, str) {
-            if (Global.debugMode > 0 && (mod === DebugMode.ANY || (Global.debugMode & mod) === mod)) {
-                console.info(str);
+        Logger.info = info;
+        function log2f() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (Global.debugMode & DebugMode.LOG2F) {
+                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
+                args.push("color: #0000FF");
+                console.info.apply(console, args);
             }
         }
         Logger.log2f = log2f;
+        function warn() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (Global.debugMode & DebugMode.WARN) {
+                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
+                console.warn.apply(console, args);
+            }
+        }
+        Logger.warn = warn;
+        function error() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (Global.debugMode & DebugMode.ERROR) {
+                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
+                console.error.apply(console, args);
+            }
+        }
+        Logger.error = error;
     })(Logger = suncom.Logger || (suncom.Logger = {}));
     var Mathf;
     (function (Mathf) {
@@ -1275,36 +1346,13 @@ var suncom;
         }
         Pool.clear = clear;
     })(Pool = suncom.Pool || (suncom.Pool = {}));
-    var Random;
-    (function (Random) {
-        var $r = 1;
-        var $A = 1103515245;
-        var $C = 12345;
-        var $M = 32767;
-        function seed(value) {
-            if (value < 1) {
-                value = 1;
-                Logger.warn(DebugMode.ANY, "\u968F\u673A\u79CD\u5B50\u4E0D\u5141\u8BB8\u5C0F\u4E8E1");
-            }
-            $r = value;
-        }
-        Random.seed = seed;
-        function random() {
-            var r = dcodeIO.Long.fromNumber($r);
-            var A = dcodeIO.Long.fromNumber($A);
-            var C = dcodeIO.Long.fromNumber($C);
-            $r = Math.floor(r.mul(A).add(C).low / $M);
-            return ($r % $M + $M) / ($M * 2);
-        }
-        Random.random = random;
-    })(Random = suncom.Random || (suncom.Random = {}));
     var Test;
     (function (Test) {
         Test.ASSERT_FAILED = false;
         Test.ASSERT_BREAKPOINT = true;
         var $expect = null;
         function expect(value, description) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 return new Expect(description).expect(value);
             }
             if ($expect === null) {
@@ -1314,19 +1362,19 @@ var suncom;
         }
         Test.expect = expect;
         function notExpected(message) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 Test.expect(true).interpret("Test.notExpected \u671F\u671B\u4E4B\u5916\u7684").toBe(false);
             }
         }
         Test.notExpected = notExpected;
         function assertTrue(value, message) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 Test.expect(value).interpret(message || "Test.assertTrue error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(true);
             }
         }
         Test.assertTrue = assertTrue;
         function assertFalse(value, message) {
-            if (Global.debugMode & DebugMode.TEST) {
+            if (Global.debugMode & DebugMode.DEBUG) {
                 Test.expect(value).interpret(message || "Test.assertFalse error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(false);
             }
         }

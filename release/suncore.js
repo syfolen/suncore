@@ -103,7 +103,7 @@ var suncore;
         }
         BaseService.prototype.run = function () {
             if (this.$var_running === true) {
-                suncom.Logger.warn(suncom.DebugMode.ANY, "\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u5DF1\u8FD0\u884C");
+                suncom.Logger.warn("\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u5DF1\u8FD0\u884C");
                 return;
             }
             this.$var_running = true;
@@ -111,7 +111,7 @@ var suncore;
         };
         BaseService.prototype.stop = function () {
             if (this.$var_running === false) {
-                suncom.Logger.warn(suncom.DebugMode.ANY, "\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u672A\u8FD0\u884C");
+                suncom.Logger.warn("\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u672A\u8FD0\u884C");
                 return;
             }
             this.$var_running = false;
@@ -569,16 +569,16 @@ var suncore;
             }
             if (stop === true) {
                 if (System.isModuleStopped(mod) === true) {
-                    suncom.Logger.error(suncom.DebugMode.ANY, "\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u505C\u6B62\uFF01\uFF01\uFF01");
+                    suncom.Logger.error("\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u505C\u6B62\uFF01\uFF01\uFF01");
                     return;
                 }
             }
             else if (System.isModulePaused(mod) === true) {
-                suncom.Logger.error(suncom.DebugMode.ANY, "\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u6682\u505C\uFF01\uFF01\uFF01");
+                suncom.Logger.error("\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u6682\u505C\uFF01\uFF01\uFF01");
                 return;
             }
             else if (mod === ModuleEnum.SYSTEM) {
-                suncom.Logger.error(suncom.DebugMode.ANY, "\u65E0\u6CD5\u6682\u505C " + ModuleEnum[mod] + " \u6A21\u5757\uFF01\uFF01\uFF01");
+                suncom.Logger.error("\u65E0\u6CD5\u6682\u505C " + ModuleEnum[mod] + " \u6A21\u5757\uFF01\uFF01\uFF01");
                 return;
             }
             if (mod === ModuleEnum.TIMELINE) {
@@ -592,7 +592,7 @@ var suncore;
             }
             if (mod === ModuleEnum.SYSTEM) {
                 if (System.isModuleStopped(ModuleEnum.TIMELINE) === false || System.isModuleStopped(ModuleEnum.CUSTOM) === false) {
-                    suncom.Logger.error(suncom.DebugMode.ANY, "SYSTEM \u4E0D\u80FD\u505C\u6B62\u56E0\u4E3A CUSTOM \u6216 TIMELINE \u4F9D\u7136\u5728\u8FD0\u884C");
+                    suncom.Logger.error("SYSTEM \u4E0D\u80FD\u505C\u6B62\u56E0\u4E3A CUSTOM \u6216 TIMELINE \u4F9D\u7136\u5728\u8FD0\u884C");
                 }
             }
             M.timerManager.clearTimer(mod);
@@ -645,7 +645,7 @@ var suncore;
                 throw Error("\u53C2\u6570pause\u5E94\u5F53\u4E3A\u5E03\u5C14\u503C");
             }
             if (System.isModulePaused(mod) === false) {
-                suncom.Logger.error(suncom.DebugMode.ANY, "\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u542F\u52A8\uFF01\uFF01\uFF01");
+                suncom.Logger.error("\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u542F\u52A8\uFF01\uFF01\uFF01");
                 return;
             }
             if (mod === ModuleEnum.SYSTEM && M.engine === null) {
@@ -923,11 +923,11 @@ var suncore;
         MsgQ.batchIndex = 1;
         function send(dst, id, data) {
             if (isModuleActive(dst) === false) {
-                suncom.Logger.warn(suncom.DebugMode.ANY, "\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6A21\u5757\u5DF1\u6682\u505C mod:" + MsgQModEnum[dst]);
+                suncom.Logger.warn("\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6A21\u5757\u5DF1\u6682\u505C mod:" + MsgQModEnum[dst]);
                 return;
             }
             if (check(dst, id) === false) {
-                suncom.Logger.warn(suncom.DebugMode.ANY, "\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6D88\u606FID\u975E\u6CD5 mod:" + dst + ", id:" + id);
+                suncom.Logger.warn("\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6D88\u606FID\u975E\u6CD5 mod:" + dst + ", id:" + id);
                 return;
             }
             var array = $queues[dst];
@@ -1053,7 +1053,7 @@ var suncore;
                 return M.engine.getDelta();
             }
             else {
-                suncom.Logger.error(suncom.DebugMode.ANY, "\u5C1D\u8BD5\u83B7\u53D6\u5E27\u65F6\u95F4\u95F4\u9694\uFF0C\u4F46\u7CFB\u7EDF\u6A21\u5757\u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+                suncom.Logger.error("\u5C1D\u8BD5\u83B7\u53D6\u5E27\u65F6\u95F4\u95F4\u9694\uFF0C\u4F46\u7CFB\u7EDF\u6A21\u5757\u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
         }
         System.getDelta = getDelta;
@@ -1068,7 +1068,7 @@ var suncore;
                 return M.engine.getTime();
             }
             else {
-                suncom.Logger.error(suncom.DebugMode.ANY, "\u5C1D\u8BD5\u83B7\u53D6\u65F6\u95F4\u6233\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+                suncom.Logger.error("\u5C1D\u8BD5\u83B7\u53D6\u65F6\u95F4\u6233\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
         }
         System.getModuleTimestamp = getModuleTimestamp;
@@ -1090,7 +1090,7 @@ var suncore;
             }
             else {
                 groupId = -1;
-                suncom.Logger.error(suncom.DebugMode.ANY, "\u5C1D\u8BD5\u6DFB\u52A0\u4EFB\u52A1\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+                suncom.Logger.error("\u5C1D\u8BD5\u6DFB\u52A0\u4EFB\u52A1\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
             return groupId;
         }
@@ -1112,7 +1112,7 @@ var suncore;
                 M.messageManager.putMessage(message);
             }
             else {
-                suncom.Logger.error(suncom.DebugMode.ANY, "\u5C1D\u8BD5\u6DFB\u52A0\u89E6\u53D1\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+                suncom.Logger.error("\u5C1D\u8BD5\u6DFB\u52A0\u89E6\u53D1\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
         }
         System.addTrigger = addTrigger;
@@ -1126,7 +1126,7 @@ var suncore;
                 M.messageManager.putMessage(message);
             }
             else {
-                suncom.Logger.error(suncom.DebugMode.ANY, "\u5C1D\u8BD5\u6DFB\u52A0Promise\u6D88\u606F\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+                suncom.Logger.error("\u5C1D\u8BD5\u6DFB\u52A0Promise\u6D88\u606F\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
         }
         System.addPromise = addPromise;
@@ -1142,7 +1142,7 @@ var suncore;
                 M.messageManager.putMessage(message);
             }
             else {
-                suncom.Logger.error(suncom.DebugMode.ANY, "\u5C1D\u8BD5\u6DFB\u52A0Message\u6D88\u606F\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+                suncom.Logger.error("\u5C1D\u8BD5\u6DFB\u52A0Message\u6D88\u606F\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
         }
         System.addMessage = addMessage;
@@ -1153,7 +1153,7 @@ var suncore;
                 return M.timerManager.addTimer(mod, delay, method, caller, args, loops, real);
             }
             else {
-                suncom.Logger.error(suncom.DebugMode.ANY, "\u5C1D\u8BD5\u6DFB\u52A0\u5B9A\u65F6\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+                suncom.Logger.error("\u5C1D\u8BD5\u6DFB\u52A0\u5B9A\u65F6\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
             }
         }
         System.addTimer = addTimer;
