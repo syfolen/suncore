@@ -55,8 +55,9 @@ module suncore {
             if (queue === void 0 || queue.length === 0) {
                 return null;
             }
-            for (let i: number = 0; i < queue.length; i++) {
-                const msg: IMsgQMsg = queue[i];
+            let i: number, msg: IMsgQMsg;
+            for (i = 0; i < queue.length; i++) {
+                msg = queue[i];
                 if (mod === MsgQModEnum.NSL || msg.batchIndex < batchIndex) {
                     if (id === void 0 || msg.id === id) {
                         queue.splice(i, 1);

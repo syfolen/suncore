@@ -15,24 +15,25 @@ module suncore {
         private $timerMap: { [id: number]: ITimer } = {};
 
         constructor() {
-            for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
+            let mod: ModuleEnum;
+            for (mod = 0; mod < ModuleEnum.MAX; mod++) {
                 this.$timers[mod] = [];
             }
         }
 
         executeTimer(): void {
+            let mod: ModuleEnum, timer: ITimer, timers: ITimer[], recycle: boolean, timestamp: number;
             // 遍历所有模块中的所有定时器
-            for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
+            for (mod = 0; mod < ModuleEnum.MAX; mod++) {
                 // 当前模块未暂停
                 if (System.isModulePaused(mod) === false) {
                     // 获取模块中的所有定时器
-                    const timers: ITimer[] = this.$timers[mod];
+                    timers = this.$timers[mod];
                     // 获取当前时间戳
-                    const timestamp: number = System.getModuleTimestamp(mod);
+                    timestamp = System.getModuleTimestamp(mod);
                     // 对模块中的所有定时器进行遍历
                     while (timers.length > 0) {
-                        const timer: ITimer = timers[0];
-
+                        timer = timers[0];
                         // 若定时器有效
                         if (timer.active === true) {
                             // 若定时器未到响应时间，则跳出
@@ -49,7 +50,7 @@ module suncore {
                             }
                         }
 
-                        let recycle: boolean = false;
+                        recycle = false;
                         // 移除无效定时器
                         if (timer.active === false || (timer.loops > 0 && timer.count >= timer.loops)) {
                             delete this.$timerMap[timer.timerId];
@@ -161,7 +162,7 @@ module suncore {
             // 获取对应模块的定时器列表
             const timers: ITimer[] = this.$timers[mod];
 
-            let index: number = -1;
+            let i: number, index: number = -1;
 
             let min: number = 0;
             let mid: number = 0;
@@ -180,7 +181,7 @@ module suncore {
                 }
             }
 
-            for (let i: number = min; i <= max; i++) {
+            for (i = min; i <= max; i++) {
                 if (timers[i].timeout > timeout) {
                     index = i;
                     break;
@@ -206,9 +207,9 @@ module suncore {
         }
 
         clearTimer(mod: ModuleEnum): void {
-            const timers: ITimer[] = this.$timers[mod];
+            let timer: ITimer, timers: ITimer[] = this.$timers[mod];
             while (timers.length > 0) {
-                const timer: ITimer = timers.pop();
+                timer = timers.pop();
                 delete this.$timerMap[timer.timerId];
                 timer.recover();
             }

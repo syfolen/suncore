@@ -6,7 +6,8 @@ module suncore {
         private $queues: IMessageQueue[] = [];
 
         constructor() {
-            for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
+            let mod: ModuleEnum;
+            for (mod = 0; mod < ModuleEnum.MAX; mod++) {
                 this.$queues[mod] = new MessageQueue(mod);
             }
         }
@@ -16,7 +17,8 @@ module suncore {
         }
 
         dealMessage(): void {
-            for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
+            let mod: ModuleEnum;
+            for (mod = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModulePaused(mod) === false) {
                     this.$queues[mod].dealMessage();
                 }
@@ -24,7 +26,8 @@ module suncore {
         }
 
         classifyMessages0(): void {
-            for (let mod: ModuleEnum = 0; mod < ModuleEnum.MAX; mod++) {
+            let mod: ModuleEnum;
+            for (mod = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModuleStopped(mod) === false) {
                     this.$queues[mod].classifyMessages0();
                 }
