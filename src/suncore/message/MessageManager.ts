@@ -39,7 +39,28 @@ module suncore {
         }
 
         cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void {
-            this.$queues[mod].cancelTaskByGroupId(mod, groupId);
+            this.$queues[mod].cancelTaskByGroupId(groupId);
+        }
+
+        /**
+         * 注册动作
+         */
+        registerAction(mod: ModuleEnum, actionId: number): void {
+            this.$queues[mod].registerAction(actionId);
+        }
+
+        /**
+         * 移除动作
+         */
+        removeAction(mod: ModuleEnum, actionId: number): void {
+            this.$queues[mod].removeAction(actionId);
+        }
+
+        /**
+         * 移除所有动作
+         */
+        removeAllActions(mod: ModuleEnum): void {
+            this.$queues[mod].removeAllActions();
         }
     }
 }

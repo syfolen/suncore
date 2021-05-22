@@ -51,6 +51,7 @@ module suncore {
             // 移除模块下的消息和定时器
             M.timerManager.clearTimer(mod);
             M.messageManager.clearMessages(mod);
+            M.messageManager.removeAllActions(mod);
 
             if (mod === ModuleEnum.TIMELINE) {
                 M.timeline = null;

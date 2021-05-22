@@ -30,6 +30,21 @@ module suncore {
         /**
          * 取消任务
          */
-        cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void;
+        cancelTaskByGroupId(groupId: number): void;
+
+        /**
+         * 注册动作
+         */
+        registerAction(actionId: number): void;
+
+        /**
+         * 移除动作
+         */
+        removeAction(actionId: number): void;
+
+        /**
+         * 移除所有动作
+         */
+        removeAllActions(): void;
     }
 }

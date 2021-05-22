@@ -36,6 +36,21 @@ module suncore {
          */
         private $weights: number = 0;
 
+        /**
+         * 动作集合
+         */
+        private $actionMap: { [actionId: number]: boolean } = {};
+
+        /**
+         * 动作个数
+         */
+        private $actionCount: number = 0;
+
+        /**
+         * 最近被移除的动作
+         */
+        private $actionRemoveThisFrameCount: number = 0;
+
         constructor(mod: ModuleEnum) {
             this.$mod = mod;
 
@@ -162,16 +177,22 @@ module suncore {
                 remainCount += queue.length;
             }
 
-            // 若只剩下惰性消息，则处理惰性消息
-            if (remainCount === 0 && dealCount === 0 && this.$messages0.length === 0) {
-                queue = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
-                if (queue.length > 0) {
-                    message = queue.shift();
-                    this.$dealCustomMessage(message);
-                    dealCount++;
-                    message.recover();
+            // 没有注册的动作，且当前帧没有移除动作
+            if (this.$actionCount === 0 && this.$actionRemoveThisFrameCount === 0) {
+                // 若只剩下惰性消息，则处理惰性消息
+                if (remainCount === 0 && dealCount === 0 && this.$messages0.length === 0) {
+                    queue = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
+                    if (queue.length > 0) {
+                        message = queue.shift();
+                        this.$dealCustomMessage(message);
+                        dealCount++;
+                        message.recover();
+                    }
                 }
             }
+
+            // 清空当前帧移除的动作统计
+            this.$actionRemoveThisFrameCount = 0;
         }
 
         /**
@@ -251,6 +272,8 @@ module suncore {
                     this.$queues[message.priority].push(message);
                 }
             }
+            // 清空当前帧移除的动作个数统计
+            this.$actionRemoveThisFrameCount = 0;
         }
 
         /**
@@ -379,7 +402,7 @@ module suncore {
         /**
          * 取消任务
          */
-        cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void {
+        cancelTaskByGroupId(groupId: number): void {
             let id: number, message: IMessage, messages: IMessage[];
             for (id = 0; id < this.$tasks.length; id++) {
                 messages = this.$tasks[id];
@@ -392,6 +415,36 @@ module suncore {
                     break;
                 }
             }
+        }
+
+        /**
+         * 注册动作
+         */
+        registerAction(actionId: number): void {
+            if (this.$actionMap[actionId] !== true) {
+                this.$actionMap[actionId] = true;
+                this.$actionCount++;
+            }
+        }
+
+        /**
+         * 移除动作
+         */
+        removeAction(actionId: number): void {
+            if (this.$actionMap[actionId] === true) {
+                delete this.$actionMap[actionId];
+                this.$actionCount--;
+                this.$actionRemoveThisFrameCount++;
+            }
+        }
+
+        /**
+         * 移除所有动作
+         */
+        removeAllActions(): void {
+            this.$actionMap = {};
+            this.$actionCount = 0;
+            this.$actionRemoveThisFrameCount = 0;
         }
     }
 }
