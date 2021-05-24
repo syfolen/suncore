@@ -187,33 +187,33 @@ module suncore {
         }
 
         /**
-         * 注册动作
+         * 添加自定义消息
          * 说明：
-         * 1. 通过此接口注册的 actionId 会无条件限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，直到 actionId 被移除
+         * 1. 通过此接口注册的 MessageId 会无条件限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，直到 MessageId 被移除
          * 2. 有时候你没法借助 System 的其它接口来限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，此接口会帮助动你
          * export
          */
-        export function registerAction(mod: ModuleEnum, actionId: number): void {
+        export function addCustomMessageId(mod: ModuleEnum, messageId: number): void {
             if (System.isModuleStopped(mod) === false) {
-                M.messageManager.registerAction(mod, actionId);
+                M.messageManager.addCustomMessageId(mod, messageId);
             }
             else {
-                suncom.Logger.error(`尝试注册动作，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+                suncom.Logger.error(`尝试添加自定义消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);
             }
         }
 
         /**
-         * 移除动作
+         * 移除自定义消息
          * 说明
-         * 1. 当所有 actionId 均被移除时，对 MessagePriorityEnum.PRIORITY_LAZY 的执行限制将被解除
+         * 1. 当所有 MessageId 均被移除时，对 MessagePriorityEnum.PRIORITY_LAZY 的执行限制将被解除
          * export
          */
-        export function removeAction(mod: ModuleEnum, actionId: number): void {
+        export function removeCustomMessageId(mod: ModuleEnum, messageId: number): void {
             if (System.isModuleStopped(mod) === false) {
-                M.messageManager.removeAction(mod, actionId);
+                M.messageManager.removeCustomMessageId(mod, messageId);
             }
             else {
-                suncom.Logger.error(`尝试移除动作，但模块 ${ModuleEnum[mod]} 己停止！！！`);
+                suncom.Logger.error(`尝试移除自定义消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);
             }
         }
 

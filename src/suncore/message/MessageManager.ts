@@ -43,24 +43,24 @@ module suncore {
         }
 
         /**
-         * 注册动作
+         * 注册自定义消息
          */
-        registerAction(mod: ModuleEnum, actionId: number): void {
-            this.$queues[mod].registerAction(actionId);
+        addCustomMessageId(mod: ModuleEnum, messageId: number): void {
+            this.$queues[mod].addCustomMessageId(messageId);
         }
 
         /**
-         * 移除动作
+         * 移除自定义消息
          */
-        removeAction(mod: ModuleEnum, actionId: number): void {
-            this.$queues[mod].removeAction(actionId);
+        removeCustomMessageId(mod: ModuleEnum, messageId: number): void {
+            this.$queues[mod].removeCustomMessageId(messageId);
         }
 
         /**
-         * 移除所有动作
+         * 移除所有自定义消息
          */
-        removeAllActions(mod: ModuleEnum): void {
-            this.$queues[mod].removeAllActions();
+        removeAllCustomMessageId(mod: ModuleEnum): void {
+            this.$queues[mod].removeAllCustomMessageId();
         }
     }
 }

@@ -37,19 +37,19 @@ module suncore {
         private $weights: number = 0;
 
         /**
-         * 动作集合
+         * 自定义消息集合
          */
-        private $actionMap: { [actionId: number]: boolean } = {};
+        private $customMessageMap: { [messageId: number]: boolean } = {};
 
         /**
-         * 动作个数
+         * 自定义消息个数
          */
-        private $actionCount: number = 0;
+        private $customMessageCount: number = 0;
 
         /**
-         * 最近被移除的动作
+         * 最近被移除的自定义消息
          */
-        private $actionRemoveThisFrameCount: number = 0;
+        private $customMessageRemovedThisFrameCount: number = 0;
 
         constructor(mod: ModuleEnum) {
             this.$mod = mod;
@@ -177,8 +177,8 @@ module suncore {
                 remainCount += queue.length;
             }
 
-            // 没有注册的动作，且当前帧没有移除动作
-            if (this.$actionCount === 0 && this.$actionRemoveThisFrameCount === 0) {
+            // 没有自定义消息，且当前帧没有移除自定义消息
+            if (this.$customMessageCount === 0 && this.$customMessageRemovedThisFrameCount === 0) {
                 // 若只剩下惰性消息，则处理惰性消息
                 if (remainCount === 0 && dealCount === 0 && this.$messages0.length === 0) {
                     queue = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
@@ -191,8 +191,8 @@ module suncore {
                 }
             }
 
-            // 清空当前帧移除的动作统计
-            this.$actionRemoveThisFrameCount = 0;
+            // 清空当前帧移除的自定义消息统计
+            this.$customMessageRemovedThisFrameCount = 0;
         }
 
         /**
@@ -272,8 +272,8 @@ module suncore {
                     this.$queues[message.priority].push(message);
                 }
             }
-            // 清空当前帧移除的动作个数统计
-            this.$actionRemoveThisFrameCount = 0;
+            // 清空当前帧移除的自定义消息个数统计
+            this.$customMessageRemovedThisFrameCount = 0;
         }
 
         /**
@@ -418,33 +418,33 @@ module suncore {
         }
 
         /**
-         * 注册动作
+         * 注册自定义消息
          */
-        registerAction(actionId: number): void {
-            if (this.$actionMap[actionId] !== true) {
-                this.$actionMap[actionId] = true;
-                this.$actionCount++;
+        addCustomMessageId(messageId: number): void {
+            if (this.$customMessageMap[messageId] !== true) {
+                this.$customMessageMap[messageId] = true;
+                this.$customMessageCount++;
             }
         }
 
         /**
-         * 移除动作
+         * 移除自定义消息
          */
-        removeAction(actionId: number): void {
-            if (this.$actionMap[actionId] === true) {
-                delete this.$actionMap[actionId];
-                this.$actionCount--;
-                this.$actionRemoveThisFrameCount++;
+        removeCustomMessageId(messageId: number): void {
+            if (this.$customMessageMap[messageId] === true) {
+                delete this.$customMessageMap[messageId];
+                this.$customMessageCount--;
+                this.$customMessageRemovedThisFrameCount++;
             }
         }
 
         /**
-         * 移除所有动作
+         * 移除所有自定义消息
          */
-        removeAllActions(): void {
-            this.$actionMap = {};
-            this.$actionCount = 0;
-            this.$actionRemoveThisFrameCount = 0;
+        removeAllCustomMessageId(): void {
+            this.$customMessageMap = {};
+            this.$customMessageCount = 0;
+            this.$customMessageRemovedThisFrameCount = 0;
         }
     }
 }

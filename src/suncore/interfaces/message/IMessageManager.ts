@@ -31,18 +31,18 @@ module suncore {
         cancelTaskByGroupId(mod: ModuleEnum, groupId: number): void;
 
         /**
-         * 注册动作
+         * 注册自定义消息
          */
-        registerAction(mod: ModuleEnum, actionId: number): void;
+        addCustomMessageId(mod: ModuleEnum, messageId: number): void;
 
         /**
-         * 移除动作
+         * 移除自定义消息
          */
-        removeAction(mod: ModuleEnum, actionId: number): void;
+        removeCustomMessageId(mod: ModuleEnum, messageId: number): void;
 
         /**
-         * 移除所有动作
+         * 移除所有自定义消息
          */
-        removeAllActions(mod: ModuleEnum): void;
+        removeAllCustomMessageId(mod: ModuleEnum): void;
     }
 }

@@ -33,18 +33,18 @@ module suncore {
         cancelTaskByGroupId(groupId: number): void;
 
         /**
-         * 注册动作
+         * 注册自定义消息
          */
-        registerAction(actionId: number): void;
+        addCustomMessageId(messageId: number): void;
 
         /**
-         * 移除动作
+         * 移除自定义消息
          */
-        removeAction(actionId: number): void;
+        removeCustomMessageId(messageId: number): void;
 
         /**
-         * 移除所有动作
+         * 移除所有自定义消息
          */
-        removeAllActions(): void;
+        removeAllCustomMessageId(): void;
     }
 }
