@@ -426,7 +426,7 @@ module suncore {
                 this.$customMessageMap[messageId] = true;
                 this.$customMessageCount++;
                 if (message !== null) {
-                    suncom.Logger.info(`MessageQueue::addCustomMessageId=> messageId:${messageId}, messageCount:${this.$customMessageCount}, message:${message}`);
+                    suncom.Logger.info(`suncore::addCustomMessageId=> messageId:${messageId}, messageCount:${this.$customMessageCount}, message:${message}`);
                 }
             }
         }
@@ -441,7 +441,7 @@ module suncore {
                 this.$customMessageCount--;
                 this.$customMessageRemovedThisFrameCount++;
                 if (message !== null) {
-                    suncom.Logger.info(`MessageQueue::removeCustomMessageId=> messageId:${messageId}, messageCount:${this.$customMessageCount}, message:${message}`);
+                    suncom.Logger.info(`suncore::removeCustomMessageId=> messageId:${messageId}, messageCount:${this.$customMessageCount}, message:${message}`);
                 }
             }
         }
