@@ -419,22 +419,30 @@ module suncore {
 
         /**
          * 注册自定义消息
+         * @message: 消息日志
          */
-        addCustomMessageId(messageId: number): void {
+        addCustomMessageId(messageId: number, message: string): void {
             if (this.$customMessageMap[messageId] !== true) {
                 this.$customMessageMap[messageId] = true;
                 this.$customMessageCount++;
+                if (message !== null) {
+                    suncom.Logger.log(`MessageQueue::addCustomMessageId=> messageId:${messageId}, messageCount:${this.$customMessageCount}, message:${message}`);
+                }
             }
         }
 
         /**
          * 移除自定义消息
+         * @message: 消息日志
          */
-        removeCustomMessageId(messageId: number): void {
+        removeCustomMessageId(messageId: number, message: string): void {
             if (this.$customMessageMap[messageId] === true) {
                 delete this.$customMessageMap[messageId];
                 this.$customMessageCount--;
                 this.$customMessageRemovedThisFrameCount++;
+                if (message !== null) {
+                    suncom.Logger.log(`MessageQueue::removeCustomMessageId=> messageId:${messageId}, messageCount:${this.$customMessageCount}, message:${message}`);
+                }
             }
         }
 

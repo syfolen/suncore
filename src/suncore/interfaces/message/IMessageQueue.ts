@@ -34,13 +34,15 @@ module suncore {
 
         /**
          * 注册自定义消息
+         * @message: 消息日志
          */
-        addCustomMessageId(messageId: number): void;
+        addCustomMessageId(messageId: number, message: string): void;
 
         /**
          * 移除自定义消息
+         * @message: 消息日志
          */
-        removeCustomMessageId(messageId: number): void;
+        removeCustomMessageId(messageId: number, message: string): void;
 
         /**
          * 移除所有自定义消息

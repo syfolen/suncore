@@ -44,16 +44,18 @@ module suncore {
 
         /**
          * 注册自定义消息
+         * @message: 消息日志
          */
-        addCustomMessageId(mod: ModuleEnum, messageId: number): void {
-            this.$queues[mod].addCustomMessageId(messageId);
+        addCustomMessageId(mod: ModuleEnum, messageId: number, message: string = null): void {
+            this.$queues[mod].addCustomMessageId(messageId, message);
         }
 
         /**
          * 移除自定义消息
+         * @message: 消息日志
          */
-        removeCustomMessageId(mod: ModuleEnum, messageId: number): void {
-            this.$queues[mod].removeCustomMessageId(messageId);
+        removeCustomMessageId(mod: ModuleEnum, messageId: number, message: string = null): void {
+            this.$queues[mod].removeCustomMessageId(messageId, message);
         }
 
         /**

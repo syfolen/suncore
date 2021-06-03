@@ -188,14 +188,15 @@ module suncore {
 
         /**
          * 添加自定义消息
+         * @message: 消息日志
          * 说明：
          * 1. 通过此接口注册的 MessageId 会无条件限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，直到 MessageId 被移除
          * 2. 有时候你没法借助 System 的其它接口来限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，此接口会帮助动你
          * export
          */
-        export function addCustomMessageId(mod: ModuleEnum, messageId: number): void {
+        export function addCustomMessageId(mod: ModuleEnum, messageId: number, message: string = null): void {
             if (System.isModuleStopped(mod) === false) {
-                M.messageManager.addCustomMessageId(mod, messageId);
+                M.messageManager.addCustomMessageId(mod, messageId, message);
             }
             else {
                 suncom.Logger.error(`尝试添加自定义消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);
@@ -204,13 +205,14 @@ module suncore {
 
         /**
          * 移除自定义消息
+         * @message: 消息日志
          * 说明
          * 1. 当所有 MessageId 均被移除时，对 MessagePriorityEnum.PRIORITY_LAZY 的执行限制将被解除
          * export
          */
-        export function removeCustomMessageId(mod: ModuleEnum, messageId: number): void {
+        export function removeCustomMessageId(mod: ModuleEnum, messageId: number, message: string = null): void {
             if (System.isModuleStopped(mod) === false) {
-                M.messageManager.removeCustomMessageId(mod, messageId);
+                M.messageManager.removeCustomMessageId(mod, messageId, message);
             }
             else {
                 suncom.Logger.error(`尝试移除自定义消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);
