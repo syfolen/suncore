@@ -54,8 +54,8 @@ module suncore {
          * 移除自定义消息
          * @message: 消息日志
          */
-        removeCustomMessageId(mod: ModuleEnum, messageId: number, message: string = null): void {
-            this.$queues[mod].removeCustomMessageId(messageId, message);
+        removeCustomMessageId(mod: ModuleEnum, messageId: number): void {
+            this.$queues[mod].removeCustomMessageId(messageId);
         }
 
         /**

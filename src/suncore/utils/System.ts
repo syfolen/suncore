@@ -210,9 +210,9 @@ module suncore {
          * 1. 当所有 MessageId 均被移除时，对 MessagePriorityEnum.PRIORITY_LAZY 的执行限制将被解除
          * export
          */
-        export function removeCustomMessageId(mod: ModuleEnum, messageId: number, message: string = null): void {
+        export function removeCustomMessageId(mod: ModuleEnum, messageId: number): void {
             if (System.isModuleStopped(mod) === false) {
-                M.messageManager.removeCustomMessageId(mod, messageId, message);
+                M.messageManager.removeCustomMessageId(mod, messageId);
             }
             else {
                 suncom.Logger.error(`尝试移除自定义消息，但模块 ${ModuleEnum[mod]} 己停止！！！`);

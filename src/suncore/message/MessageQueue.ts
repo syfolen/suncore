@@ -39,7 +39,7 @@ module suncore {
         /**
          * 自定义消息集合
          */
-        private $customMessageMap: { [messageId: number]: boolean } = {};
+        private $customMessageMap: { [messageId: number]: string } = {};
 
         /**
          * 自定义消息个数
@@ -422,12 +422,15 @@ module suncore {
          * @message: 消息日志
          */
         addCustomMessageId(messageId: number, message: string): void {
-            if (this.$customMessageMap[messageId] !== true) {
-                this.$customMessageMap[messageId] = true;
+            if (this.$customMessageMap[messageId] === void 0) {
+                this.$customMessageMap[messageId] = message;
                 this.$customMessageCount++;
                 if (message !== null) {
-                    suncom.Logger.info(`suncore::addCustomMessageId=> messageId:${messageId}, messageCount:${this.$customMessageCount}, message:${message}`);
+                    suncom.Logger.info(`suncore::addCustomMessageId=> messageId:${messageId}, messageCount:${this.$customMessageCount}, message: 开始 ${message}`);
                 }
+            }
+            else {
+                suncom.Test.notExpected();
             }
         }
 
@@ -435,14 +438,18 @@ module suncore {
          * 移除自定义消息
          * @message: 消息日志
          */
-        removeCustomMessageId(messageId: number, message: string): void {
-            if (this.$customMessageMap[messageId] === true) {
+        removeCustomMessageId(messageId: number): void {
+            const message: string = this.$customMessageMap[messageId];
+            if (message !== void 0) {
                 delete this.$customMessageMap[messageId];
                 this.$customMessageCount--;
                 this.$customMessageRemovedThisFrameCount++;
                 if (message !== null) {
-                    suncom.Logger.info(`suncore::removeCustomMessageId=> messageId:${messageId}, messageCount:${this.$customMessageCount}, message:${message}`);
+                    suncom.Logger.info(`suncore::removeCustomMessageId=> messageId:${messageId}, messageCount:${this.$customMessageCount}, message: 结束 ${message}`);
                 }
+            }
+            else {
+                suncom.Test.notExpected();
             }
         }
 

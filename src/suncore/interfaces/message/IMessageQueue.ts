@@ -42,7 +42,7 @@ module suncore {
          * 移除自定义消息
          * @message: 消息日志
          */
-        removeCustomMessageId(messageId: number, message: string): void;
+        removeCustomMessageId(messageId: number): void;
 
         /**
          * 移除所有自定义消息
