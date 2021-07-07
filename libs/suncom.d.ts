@@ -15,7 +15,7 @@ declare module suncom {
         WARN = 0x2,
 
         /**
-         * 日志文件
+         * 文件日志
          */
         LOG2F = 0x4,
 
@@ -33,26 +33,6 @@ declare module suncom {
          * 普通
          */
         NORMAL = 0x20
-    }
-
-    /**
-     * 环境模式，主要用于发布控制
-     */
-    enum EnvMode {
-        /**
-         * 开发环境
-         */
-        DEVELOP = 0,
-
-        /**
-         * 网页版
-         */
-        WEB,
-
-        /**
-         * 原生平台
-         */
-        NATIVE
     }
 
     /**
@@ -110,7 +90,7 @@ declare module suncom {
         /**
          * 数据源（请勿直接操作其中的数据）
          */
-        source: T[];
+        readonly source: T[];
 
         /**
          * 添加数据
@@ -120,12 +100,12 @@ declare module suncom {
         /**
          * 根据键值返回数据
          */
-        getByValue(key: number | string, value: any): T;
+        getByValue(key: NumberOrString, value: any): T;
 
         /**
          * 根据主键值快速返回数据
          */
-        getByPrimaryValue(value: number | string): T;
+        getByPrimaryValue(value: NumberOrString): T;
 
         /**
          * 移除数据
@@ -135,12 +115,12 @@ declare module suncom {
         /**
          * 根据键值移除数据
          */
-        removeByValue(key: number | string, value: any): T;
+        removeByValue(key: NumberOrString, value: any): T;
 
         /**
          * 根据主键值移除数据
          */
-        removeByPrimaryValue(value: number | string): T;
+        removeByPrimaryValue(value: NumberOrString): T;
 
         /**
          * 清除所有数据
@@ -389,18 +369,28 @@ declare module suncom {
         forEach(method: (value: V, key?: K) => any): void;
     }
 
+    interface IPCMInt {
+
+        arg0: number;
+    }
+
     interface IPCMInt2 {
 
-        arg1: number;
+        arg0: number;
 
-        arg2: number;
+        arg1: number;
     }
 
     interface IPCMIntString {
 
-        arg1: number;
+        arg0: number;
 
-        arg2: string;
+        arg1: string;
+    }
+
+    interface IPCMString {
+
+        arg0: string;
     }
 
     /**
@@ -430,24 +420,24 @@ declare module suncom {
 
     class Dictionary<T> implements IDictionary<T> {
 
-        source: T[];
+        readonly source: T[];
 
         /**
          * @primaryKey: 指定主键字段名，字典会使用主键值来作为数据索引，所以请确保主键值是恒值
          */
-        constructor(primaryKey: number | string);
+        constructor(primaryKey: NumberOrString);
 
         put(data: T): T;
 
-        getByValue(key: number | string, value: any): T;
+        getByValue(key: NumberOrString, value: any): T;
 
-        getByPrimaryValue(value: number | string): T;
+        getByPrimaryValue(value: NumberOrString): T;
 
         remove(data: T): T;
 
-        removeByValue(key: number | string, value: any): T;
+        removeByValue(key: NumberOrString, value: any): T;
 
-        removeByPrimaryValue(value: number | string): T;
+        removeByPrimaryValue(value: NumberOrString): T;
 
         clear(): void;
 
@@ -568,7 +558,7 @@ declare module suncom {
          * 2. 当 value 为字符串且不为 "" 时返回 true
          * 3. 否则返回 false
          */
-        function isStringNullOrEmpty(value: string | number): boolean;
+        function isStringNullOrEmpty(value: NumberOrString): boolean;
 
         /**
          * 格式化字符串
@@ -584,7 +574,7 @@ declare module suncom {
          * 3. hh:mm:ss
          * 4. yyyy-MM-dd hh:mm:ss
          */
-        function convertToDate(date: string | number | Date): Date;
+        function convertToDate(date: NumberOrString | Date): Date;
 
         /**
          * 时间累加
@@ -593,19 +583,19 @@ declare module suncom {
          * @time: 时间参数
          * @return: 时间戳
          */
-        function dateAdd(datepart: string, increment: number, time: string | number | Date): number;
+        function dateAdd(datepart: string, increment: number, time: NumberOrString | Date): number;
 
         /**
          * 计算时间差
          * @datepart: yy, MM, ww, dd, hh, mm, ss, ms
          * @return: 时间戳
          */
-        function dateDiff(datepart: string, date: string | number | Date, date2: string | number | Date): number;
+        function dateDiff(datepart: string, date: NumberOrString | Date, date2: NumberOrString | Date): number;
 
         /**
          * 格式化时间，支持：yyyy-MM-dd hh:mm:ss.MS or yy-M-d h-m-s.ms
          */
-        function formatDate(str: string, time: string | number | Date): string;
+        function formatDate(str: string, time: NumberOrString | Date): string;
 
         /**
          * 获取 Url 参数值
@@ -614,10 +604,10 @@ declare module suncom {
 
         /**
          * 生成HTTP签名
-         * @key: 密钥
-         * @sign: 忽略签名字段，默认为："sign"
+         * @sign: 密钥
+         * @signKey: 忽略签名字段，默认为："sign"
          */
-        function createHttpSign(params: Object, key: string, sign?: string): string;
+        function createHttpSign(params: Object, sign: string, signKey?: string): string;
 
         /**
          * 获取文件名（不包括扩展名）
@@ -674,43 +664,9 @@ declare module suncom {
     }
 
     /**
-     * 伪数据库服务
-     * 说明：
-     * 1. 用于快速存储或读取数据，数据仅保存在内存中
-     */
-    namespace DBService {
-
-        /**
-         * 获取数据
-         */
-        function get<T>(name: number): T;
-
-        /**
-         * 存储数据
-         * @name: 若小于0，则存储的数据不可通过get方法获取
-         */
-        function put<T>(name: number, data: T): T;
-
-        /**
-         * 是否存在
-         */
-        function exist(name: number): boolean;
-
-        /**
-         * 删除数据
-         */
-        function drop<T>(name: number): T;
-    }
-
-    /**
      * 全局常量或变量
      */
     namespace Global {
-        /**
-         * 运行环境，默认为：EnvMode.DEVELOP
-         */
-        let envMode: EnvMode;
-
         /**
          * 调试模式，默认为：0
          */
@@ -740,11 +696,6 @@ declare module suncom {
          * 游戏版本，默认为：1.0.0
          */
         let VERSION: string;
-
-        /**
-         * 全局数据中心
-         */
-        const dataMap: { [key: string]: any };
     }
 
     /**
@@ -755,32 +706,37 @@ declare module suncom {
         /**
          * 普通日志
          */
-        function log(...args: any[]): void;
+        function log(str: string): void;
 
         /**
          * 调试日志
          */
-        function debug(...args: any[]): void;
+        function debug(str: string): void;
+
+        /**
+         * 追踪日志
+         */
+        function trace(str: string, callback: (str: string) => void): void;
 
         /**
          * 信息日志（框架）
          */
-        function info(...args: any[]): void;
+        function info(str: string): void;
 
         /**
          * 文件日志
          */
-        function log2f(...args: any[]): void;
+        function log2f(str: string): void;
 
         /**
          * 警告日志
          */
-        function warn(...args: any[]): void;
+        function warn(str: string): void;
 
         /**
          * 错误日志
          */
-        function error(...args: any[]): void;
+        function error(str: string): void;
     }
 
     /**
@@ -837,7 +793,7 @@ declare module suncom {
         /**
          * 判断是否为数字
          */
-        function isNumber(str: string | number): boolean;
+        function isNumber(str: NumberOrString): boolean;
     }
 
     /**
@@ -903,4 +859,25 @@ declare module suncom {
          */
         function assertFalse(value: boolean, message?: string): void;
     }
+
+    /**
+     * 常用类型声明
+     */
+    type NumberOrString = number | string;
+
+    type KVNumber2Number = { [key: number]: number };
+
+    type KVNumber2String = { [key: number]: string };
+
+    type KVNumber2Boolean = { [key: number]: boolean };
+
+    type KVString2Number = { [key: string]: number };
+
+    type KVString2String = { [key: string]: string };
+
+    type KVString2Boolean = { [key: string]: boolean };
+
+    type KVNumber2Object<T> = { [key: number]: T };
+
+    type KVString2Object<T> = { [key: string]: T };
 }

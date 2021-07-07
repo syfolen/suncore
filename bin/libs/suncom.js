@@ -9,12 +9,6 @@ var suncom;
         DebugMode[DebugMode["DEBUG"] = 16] = "DEBUG";
         DebugMode[DebugMode["NORMAL"] = 32] = "NORMAL";
     })(DebugMode = suncom.DebugMode || (suncom.DebugMode = {}));
-    var EnvMode;
-    (function (EnvMode) {
-        EnvMode[EnvMode["DEVELOP"] = 0] = "DEVELOP";
-        EnvMode[EnvMode["WEB"] = 1] = "WEB";
-        EnvMode[EnvMode["NATIVE"] = 2] = "NATIVE";
-    })(EnvMode = suncom.EnvMode || (suncom.EnvMode = {}));
     var EventPriorityEnum;
     (function (EventPriorityEnum) {
         EventPriorityEnum[EventPriorityEnum["LOWEST"] = 0] = "LOWEST";
@@ -50,7 +44,7 @@ var suncom;
             return data;
         };
         Dictionary.prototype.$func_getIndexByValue = function (key, value) {
-            if (value === void 0) {
+            if (value === void 0 || value === null) {
                 return -1;
             }
             for (var i = 0; i < this.source.length; i++) {
@@ -86,7 +80,7 @@ var suncom;
             return this.source[index];
         };
         Dictionary.prototype.getByPrimaryValue = function (value) {
-            return this.$var_dataMap[value.toString()] || null;
+            return this.$var_dataMap[value] || null;
         };
         Dictionary.prototype.remove = function (data) {
             var index = this.source.indexOf(data);
@@ -134,11 +128,6 @@ var suncom;
             this.priority = EventPriorityEnum.MID;
             this.receiveOnce = false;
         }
-        EventInfo.prototype.recover = function () {
-            this.caller = null;
-            this.method = null;
-            Pool.recover("suncom.EventInfo", this);
-        };
         return EventInfo;
     }());
     suncom.EventInfo = EventInfo;
@@ -148,6 +137,8 @@ var suncom;
             this.$var_lockers = {};
             this.$var_onceList = [];
             this.$var_isCanceled = false;
+            this.$var_recycles = [];
+            this.$var_dispatchCount = 0;
         }
         EventSystem.prototype.addEventListener = function (type, method, caller, receiveOnce, priority) {
             if (receiveOnce === void 0) { receiveOnce = false; }
@@ -171,11 +162,12 @@ var suncom;
             }
             var index = -1;
             for (var i = 0; i < list.length; i++) {
-                var item = list[i];
-                if (item.method === method && item.caller === caller) {
+                var event_1 = list[i];
+                if (event_1.method === method && event_1.caller === caller) {
+                    Global.debugMode > 0 && console.warn("\u5FFD\u7565\u91CD\u590D\u6CE8\u518C\u7684\u4E8B\u4EF6 name:" + name);
                     return;
                 }
-                if (index === -1 && item.priority < priority) {
+                if (index === -1 && event_1.priority < priority) {
                     index = i;
                 }
             }
@@ -211,9 +203,9 @@ var suncom;
                 this.$var_lockers[type] = false;
             }
             for (var i = 0; i < list.length; i++) {
-                var event_1 = list[i];
-                if (event_1.method === method && event_1.caller === caller) {
-                    list.splice(i, 1)[0].recover();
+                var event_2 = list[i];
+                if (event_2.method === method && event_2.caller === caller) {
+                    this.$var_recycles.push(list.splice(i, 1)[0]);
                     break;
                 }
             }
@@ -234,16 +226,17 @@ var suncom;
             this.$var_lockers[type] = true;
             var isCanceled = this.$var_isCanceled;
             this.$var_isCanceled = false;
+            this.$var_dispatchCount++;
             for (var i = 0; i < list.length; i++) {
-                var event_2 = list[i];
-                if (event_2.receiveOnce === true) {
-                    this.$var_onceList.push(event_2);
+                var event_3 = list[i];
+                if (event_3.receiveOnce === true) {
+                    this.$var_onceList.push(event_3);
                 }
                 if (data instanceof Array) {
-                    event_2.method.apply(event_2.caller, data);
+                    event_3.method.apply(event_3.caller, data);
                 }
                 else {
-                    event_2.method.call(event_2.caller, data);
+                    event_3.method.call(event_3.caller, data);
                 }
                 if (this.$var_isCanceled) {
                     if (cancelable === true) {
@@ -255,9 +248,20 @@ var suncom;
             }
             this.$var_isCanceled = isCanceled;
             this.$var_lockers[type] = false;
+            this.$var_dispatchCount--;
             while (this.$var_onceList.length > 0) {
-                var event_3 = this.$var_onceList.pop();
-                this.removeEventListener(event_3.type, event_3.method, event_3.caller);
+                var event_4 = this.$var_onceList.pop();
+                this.removeEventListener(event_4.type, event_4.method, event_4.caller);
+            }
+            if (this.$var_dispatchCount === 0) {
+                while (this.$var_recycles.length > 0) {
+                    var event_5 = this.$var_recycles.pop();
+                    event_5.caller = null;
+                    event_5.method = null;
+                    event_5.priority = 0;
+                    event_5.receiveOnce = false;
+                    Pool.recover("suncom.EventInfo", event_5);
+                }
             }
         };
         EventSystem.prototype.dispatchCancel = function () {
@@ -272,7 +276,7 @@ var suncom;
             this.$var_value = void 0;
             this.$var_asNot = false;
             this.$var_interpretation = null;
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 description !== null && Logger.debug(description);
             }
         }
@@ -296,18 +300,17 @@ var suncom;
             }
         };
         Expect.prototype.anything = function () {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = this.$var_value !== null && this.$var_value !== void 0;
                 var message = "\u671F\u671B\u503C" + (this.$var_asNot === false ? "" : "不为") + "\uFF1Anull or undefined, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.arrayContaining = function (array) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = true;
                 for (var i = 0; i < array.length; i++) {
-                    var value = array[i];
-                    if (this.$var_value.indexOf(value) < 0) {
+                    if (this.$var_value.indexOf(array[i]) < 0) {
                         pass = false;
                         break;
                     }
@@ -317,28 +320,28 @@ var suncom;
             }
         };
         Expect.prototype.stringContaining = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = this.$var_value.indexOf(value) > -1;
                 var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5305\u542B\uFF1A" + value + ", \u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.stringMatching = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = value.indexOf(this.$var_value) > -1;
                 var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u88AB\u5305\u542B\uFF1A" + value + ", \u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toHaveProperty = function (key, value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = value === void 0 ? this.$var_value[key] !== void 0 : this.$var_value[key] === value;
                 var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5B58\u5728\u5C5E\u6027\uFF1A" + key + ", \u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBe = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = this.$var_value === value;
                 var message = "\u671F\u671B\u503C" + (this.$var_asNot === false ? "" : "不为") + "\uFF1A" + Common.toDisplayString(value) + ", \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
@@ -351,28 +354,28 @@ var suncom;
             this.toBe(void 0);
         };
         Expect.prototype.toBeBoolean = function () {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = typeof this.$var_value === "boolean";
                 var message = "\u671F\u671B" + (this.$var_asNot === false ? "为" : "不为") + "\uFF1A\u5E03\u5C14\u7C7B\u578B, \u5B9E\u9645\u4E3A\uFF1A" + typeof this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeInstanceOf = function (cls) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = this.$var_value instanceof cls;
                 var message = "\u671F\u671B " + Common.getQualifiedClassName(this.$var_value) + " \u7684\u7C7B\u578B" + (this.$var_asNot === false ? "" : "不") + "\u4E3A " + Common.getClassName(cls);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeFalsy = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = value ? false : true;
                 var message = "\u671F\u671B " + Common.toDisplayString(value) + " " + (this.$var_asNot === false ? "" : "不") + "\u4E3A\u5047, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeTruthy = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = value ? true : false;
                 var message = "\u671F\u671B " + Common.toDisplayString(value) + " " + (this.$var_asNot === false ? "" : "不") + "\u4E3A\u5047, \u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
@@ -380,49 +383,49 @@ var suncom;
         };
         Expect.prototype.toBeCloseTo = function (value, deviation) {
             if (deviation === void 0) { deviation = 0; }
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = Math.abs(this.$var_value - value) <= Math.abs(deviation);
-                var message = "\u671F\u671B\u4E0E" + value + "\u7684\u8BEF\u5DEE" + (this.$var_asNot === true ? "" : "不") + "\u8D85\u8FC7" + deviation + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
+                var message = "\u671F\u671B\u4E0E" + value + "\u7684\u8BEF\u5DEE" + (this.$var_asNot === false ? "" : "不") + "\u8D85\u8FC7" + deviation + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeGreaterThan = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = this.$var_value > value;
-                var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5927\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
+                var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5927\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeGreaterOrEqualThan = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = this.$var_value >= value;
-                var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5927\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
+                var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5927\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeLessThan = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = this.$var_value < value;
-                var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5C0F\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
+                var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5C0F\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toBeLessOrEqualThan = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = this.$var_value <= value;
-                var message = "\u671F\u671B" + (this.$var_asNot === true ? "" : "不") + "\u5C0F\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
+                var message = "\u671F\u671B" + (this.$var_asNot === false ? "" : "不") + "\u5C0F\u4E8E\u7B49\u4E8E " + value + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + this.$var_value;
                 this.test(pass, message);
             }
         };
         Expect.prototype.toEqual = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = Common.isEqual(this.$var_value, value, false);
                 var message = "\u671F\u671B\u76F8\u7B49\uFF1A" + Common.toDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
             }
         };
         Expect.prototype.toStrictEqual = function (value) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 var pass = Common.isEqual(this.$var_value, value, true);
                 var message = "\u671F\u671B\u76F8\u7B49\uFF1A" + Common.toDisplayString(value) + "\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(this.$var_value);
                 this.test(pass, message);
@@ -443,9 +446,9 @@ var suncom;
         function Handler() {
             this.$var_id = 0;
             this.$var_args = null;
+            this.$var_once = false;
             this.$var_caller = null;
             this.$var_method = null;
-            this.$var_once = false;
         }
         Handler.prototype.$func_setTo = function (caller, method, args, once) {
             if (args === void 0) { args = null; }
@@ -454,10 +457,10 @@ var suncom;
                 throw Error("Handler\u5DF1\u88AB\u56DE\u6536\uFF01\uFF01\uFF01");
             }
             this.$var_id = Common.createHashId();
-            this.$var_caller = caller || null;
-            this.$var_method = method || null;
             this.$var_args = args;
             this.$var_once = once;
+            this.$var_caller = caller || null;
+            this.$var_method = method || null;
             return this;
         };
         Handler.prototype.run = function () {
@@ -625,10 +628,10 @@ var suncom;
     suncom.Random = Random;
     var Common;
     (function (Common) {
-        var $hashId = 0;
+        Common.$hashId = 0;
         function createHashId() {
-            $hashId++;
-            return $hashId;
+            Common.$hashId++;
+            return Common.$hashId;
         }
         Common.createHashId = createHashId;
         function isNullOrUndefined(value) {
@@ -696,11 +699,11 @@ var suncom;
         }
         Common.trim = trim;
         function isStringNullOrEmpty(value) {
-            if (typeof value === "number") {
-                return isNaN(value);
-            }
             if (typeof value === "string" && value !== "") {
                 return false;
+            }
+            if (typeof value === "number") {
+                return isNaN(value);
             }
             return true;
         }
@@ -854,15 +857,15 @@ var suncom;
             return array === null ? null : decodeURIComponent(array[2]);
         }
         Common.getQueryString = getQueryString;
-        function createHttpSign(params, key, sign) {
-            if (sign === void 0) { sign = "sign"; }
+        function createHttpSign(params, sign, signKey) {
+            if (signKey === void 0) { signKey = "sign"; }
             var array = [];
-            for (var key_1 in params) {
-                if (key_1 !== sign) {
-                    array.push(key_1 + "=" + params[key_1]);
+            for (var key in params) {
+                if (key !== signKey) {
+                    array.push(key + "=" + params[key]);
                 }
             }
-            array.push("key=" + key);
+            array.push(signKey + "=" + sign);
             return this.md5(array.join("&"));
         }
         Common.createHttpSign = createHttpSign;
@@ -986,8 +989,8 @@ var suncom;
             }
             if (oldData instanceof Array && newData instanceof Array && oldData.length === newData.length) {
                 if (strict === false) {
-                    oldData = oldData.slice();
-                    newData = newData.slice();
+                    oldData = oldData.slice(0);
+                    newData = newData.slice(0);
                     oldData.sort();
                     newData.sort();
                 }
@@ -1066,10 +1069,10 @@ var suncom;
                 }
             }
             if (error & 0x1) {
-                Logger.error("参数版本号无效 " + ("ver:" + ver));
+                Logger.error("\u53C2\u6570\u7248\u672C\u53F7\u65E0\u6548 ver:" + ver);
             }
             if (error & 0x2) {
-                Logger.error("当前版本号无效 " + ("ver:" + Global.VERSION));
+                Logger.error("\u5F53\u524D\u7248\u672C\u53F7\u65E0\u6548 ver:" + Global.VERSION);
             }
             if (error > 0) {
                 return 0;
@@ -1088,114 +1091,56 @@ var suncom;
         }
         Common.compareVersion = compareVersion;
     })(Common = suncom.Common || (suncom.Common = {}));
-    var DBService;
-    (function (DBService) {
-        var $id = 0;
-        var $table = {};
-        function get(name) {
-            return $table[name];
-        }
-        DBService.get = get;
-        function put(name, data) {
-            if (name < 0) {
-                $id++;
-                $table["auto_" + $id] = data;
-            }
-            else {
-                $table[name] = data;
-            }
-            return data;
-        }
-        DBService.put = put;
-        function exist(name) {
-            return $table[name] !== void 0;
-        }
-        DBService.exist = exist;
-        function drop(name) {
-            var data = DBService.get(name);
-            delete $table[name];
-            return data;
-        }
-        DBService.drop = drop;
-    })(DBService = suncom.DBService || (suncom.DBService = {}));
     var Global;
     (function (Global) {
-        Global.envMode = 0;
         Global.debugMode = 0;
         Global.WIDTH = 1280;
         Global.HEIGHT = 720;
         Global.width = 1280;
         Global.height = 720;
         Global.VERSION = "1.0.0";
-        Global.dataMap = {};
     })(Global = suncom.Global || (suncom.Global = {}));
     var Logger;
     (function (Logger) {
-        function log() {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
+        function log(str) {
             if (Global.debugMode & DebugMode.NORMAL) {
-                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
-                console.log.apply(console, args);
+                console.log(Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()) + " " + str);
             }
         }
         Logger.log = log;
-        function debug() {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
+        function debug(str) {
             if (Global.debugMode & DebugMode.DEBUG) {
-                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
-                args.push("color:#00FFFF");
-                console.log.apply(console, args);
+                console.log("%c" + Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()) + " " + str, "color:#999999");
             }
         }
         Logger.debug = debug;
-        function info() {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
+        function trace(str, callback) {
+            if (Global.debugMode & DebugMode.NORMAL) {
+                callback(Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()) + " " + str);
             }
+        }
+        Logger.trace = trace;
+        function info(str) {
             if (Global.debugMode & DebugMode.INFO) {
-                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
-                console.info.apply(console, args);
+                console.info(Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()) + " " + str);
             }
         }
         Logger.info = info;
-        function log2f() {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
+        function log2f(str) {
             if (Global.debugMode & DebugMode.LOG2F) {
-                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
-                args.push("color: #0000FF");
-                console.info.apply(console, args);
+                console.info("%c" + Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()) + " " + str, "color:#0000FF");
             }
         }
         Logger.log2f = log2f;
-        function warn() {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
+        function warn(str) {
             if (Global.debugMode & DebugMode.WARN) {
-                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
-                console.warn.apply(console, args);
+                console.warn(Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()) + " " + str);
             }
         }
         Logger.warn = warn;
-        function error() {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
+        function error(str) {
             if (Global.debugMode & DebugMode.ERROR) {
-                args.unshift(suncom.Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()));
-                console.error.apply(console, args);
+                console.error(Common.formatDate("yyyy-MM-dd hh:mm:ss.MS", Date.now()) + " " + str);
             }
         }
         Logger.error = error;
@@ -1291,9 +1236,9 @@ var suncom;
     })(Mathf = suncom.Mathf || (suncom.Mathf = {}));
     var Pool;
     (function (Pool) {
-        var $pool = {};
+        Pool.$pool = {};
         function getItem(sign) {
-            var array = $pool[sign];
+            var array = this.$pool[sign];
             if (array === void 0 || array.length === 0) {
                 return null;
             }
@@ -1303,7 +1248,7 @@ var suncom;
         }
         Pool.getItem = getItem;
         function getItemByClass(sign, cls, args) {
-            var item = Pool.getItem(sign);
+            var item = this.getItem(sign);
             if (item === null) {
                 if (Laya.Prefab !== void 0 && cls === Laya.Prefab) {
                     var prefab = new Laya.Prefab();
@@ -1329,9 +1274,9 @@ var suncom;
                 return false;
             }
             item["__suncom__$__inPool__"] = true;
-            var array = $pool[sign];
+            var array = this.$pool[sign];
             if (array === void 0) {
-                $pool[sign] = [item];
+                this.$pool[sign] = [item];
             }
             else {
                 array.push(item);
@@ -1340,8 +1285,8 @@ var suncom;
         }
         Pool.recover = recover;
         function clear(sign) {
-            if ($pool[sign] !== void 0) {
-                delete $pool[sign];
+            if (this.$pool[sign] !== void 0) {
+                delete this.$pool[sign];
             }
         }
         Pool.clear = clear;
@@ -1350,32 +1295,32 @@ var suncom;
     (function (Test) {
         Test.ASSERT_FAILED = false;
         Test.ASSERT_BREAKPOINT = true;
-        var $expect = null;
+        Test.$expect = null;
         function expect(value, description) {
-            if (Global.debugMode & DebugMode.DEBUG) {
+            if (Global.debugMode > 0) {
                 return new Expect(description).expect(value);
             }
-            if ($expect === null) {
-                $expect = new Expect();
+            if (this.$expect === null) {
+                this.$expect = new Expect();
             }
-            return $expect;
+            return this.$expect;
         }
         Test.expect = expect;
         function notExpected(message) {
-            if (Global.debugMode & DebugMode.DEBUG) {
-                Test.expect(true).interpret("Test.notExpected \u671F\u671B\u4E4B\u5916\u7684").toBe(false);
+            if (Global.debugMode > 0) {
+                this.expect(true).interpret("Test.notExpected \u671F\u671B\u4E4B\u5916\u7684").toBe(false);
             }
         }
         Test.notExpected = notExpected;
         function assertTrue(value, message) {
-            if (Global.debugMode & DebugMode.DEBUG) {
-                Test.expect(value).interpret(message || "Test.assertTrue error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(true);
+            if (Global.debugMode > 0) {
+                this.expect(value).interpret(message || "Test.assertTrue error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(true);
             }
         }
         Test.assertTrue = assertTrue;
         function assertFalse(value, message) {
-            if (Global.debugMode & DebugMode.DEBUG) {
-                Test.expect(value).interpret(message || "Test.assertFalse error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(false);
+            if (Global.debugMode > 0) {
+                this.expect(value).interpret(message || "Test.assertFalse error\uFF0C\u5B9E\u9645\u503C\uFF1A" + Common.toDisplayString(value)).toBe(false);
             }
         }
         Test.assertFalse = assertFalse;

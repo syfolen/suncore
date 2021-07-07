@@ -134,11 +134,6 @@ declare module puremvc {
      */
     interface INotifier {
         /**
-         * 获取消息派发者MsgQ消息模块标识
-         */
-        readonly msgQMod: suncore.MsgQModEnum;
-
-        /**
          * 是否己销毁
          */
         readonly destroyed: boolean;
@@ -173,6 +168,16 @@ declare module puremvc {
          * 指定数据模型
          */
         setData(data: T): void;
+
+        /**
+         * 将数据转化成 boolean 返回
+         */
+        hasData(): boolean;
+
+        /**
+         * 只要数据不为 void 0 就返回 true
+         */
+        hasDataStrictly(): boolean;
     }
 
     /**
@@ -204,6 +209,11 @@ declare module puremvc {
          * 指定视图组件实例
          */
         setViewComponent(view: T): void;
+
+        /**
+         * 判断是否存在视图对象
+         */
+        hasViewComponent(): boolean;
     }
 
     class Facade implements IFacade {
@@ -223,11 +233,6 @@ declare module puremvc {
         static getInstance(): IFacade;
 
         /**
-         * 初始化MsgQ配置（优先于模型类）
-         */
-        protected $initMsgQ(): void;
-
-        /**
          * 初始化模型类（优先于控制类）
          */
         protected $initializeModel(): void;
@@ -241,21 +246,6 @@ declare module puremvc {
          * 初始化控制类（优先于视图类）
          */
         protected $initializeController(): void;
-
-        /**
-         * 为MMI层模块注册命令前缀
-         * 说明：
-         * 1. 只有通过此方法注册过的MsgQ模块才允许使用模型或视图接口
-         */
-        protected $regMMICmd(msgQMod: suncore.MsgQModEnum, prefix: string): void;
-
-        /**
-         * 注册MsgQ模块的命令前缀
-         * 说明：
-         * 1. 通过消息前缀来限制消息在模块内传递
-         * 2. 每个模块仅允许注册一次
-         */
-        protected $regMsgQCmd(msgQMod: suncore.MsgQModEnum, prefix: string): void;
 
         registerObserver(name: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: suncom.EventPriorityEnum, args?: any[]): void;
 
@@ -296,16 +286,12 @@ declare module puremvc {
          */
         protected $destroyed: boolean;
 
-        constructor(msgQMod?: suncore.MsgQModEnum);
-
         destroy(): void;
 
         /**
          * 获取PureMVC外观引用
          */
         protected readonly facade: IFacade;
-
-        readonly msgQMod: suncore.MsgQModEnum;
 
         readonly destroyed: boolean;
     }
@@ -325,6 +311,16 @@ declare module puremvc {
         getData(): T;
 
         setData(data: T): void;
+
+        /**
+         * 将数据转化成 boolean 返回
+         */
+        hasData(): boolean;
+
+        /**
+         * 只要数据不为 void 0 就返回 true
+         */
+        hasDataStrictly(): boolean;
 
         /**
          * 锁定数据源
@@ -392,22 +388,7 @@ declare module puremvc {
         getViewComponent(): T;
 
         setViewComponent(view: T): void;
+
+        hasViewComponent(): boolean;
     }
-
-    /**
-     * 互斥锁，用于实现模块之间的消息互斥
-     */
-    namespace MutexLocker {
-
-        /**
-         * 备份快照，并锁定target指定的模块
-         */
-        function backup(target: Object): void;
-
-        /**
-         * 恢复快照中的数据（自动从上次备份的快照中获取）
-         */
-        function restore(): void;
-    }
-
 }
