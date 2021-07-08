@@ -286,14 +286,17 @@ var puremvc;
             if (receiveOnce === void 0) { receiveOnce = false; }
             if (priority === void 0) { priority = suncom.EventPriorityEnum.MID; }
             if (args === void 0) { args = null; }
-            if (suncom.Common.isStringNullOrEmpty(name) === true) {
-                throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u76D1\u542C");
-            }
-            if (method === void 0 || method === null) {
-                throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u76D1\u542C\u56DE\u8C03\uFF1A" + name);
+            if (method === void 0) {
+                method = null;
             }
             if (caller === void 0) {
                 caller = null;
+            }
+            if (suncom.Common.isStringNullOrEmpty(name) === true) {
+                throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u76D1\u542C");
+            }
+            if (method === null) {
+                throw Error("\u6CE8\u518C\u65E0\u6548\u7684\u76D1\u542C\u56DE\u8C03\uFF1A" + name);
             }
             var observers = this.$observers[name];
             if (observers === void 0) {
@@ -307,7 +310,7 @@ var puremvc;
             for (var i = 0; i < observers.length; i++) {
                 var observer_1 = observers[i];
                 if (observer_1.method === method && observer_1.caller === caller) {
-                    Facade.DEBUG === true && console.warn("\u5FFD\u7565\u91CD\u590D\u6CE8\u518C\u7684\u76D1\u542C name:" + name);
+                    suncom.Logger.warn("\u5FFD\u7565\u91CD\u590D\u6CE8\u518C\u7684\u76D1\u542C name:" + name);
                     return null;
                 }
                 if (index === -1 && observer_1.priority < priority) {
@@ -330,14 +333,17 @@ var puremvc;
             return observer;
         };
         View.prototype.removeObserver = function (name, method, caller) {
-            if (suncom.Common.isStringNullOrEmpty(name) === true) {
-                throw Error("\u79FB\u9664\u65E0\u6548\u7684\u76D1\u542C");
-            }
-            if (method === void 0 || method === null) {
-                throw Error("\u79FB\u9664\u65E0\u6548\u7684\u76D1\u542C\u56DE\u8C03\uFF1A" + name);
+            if (method === void 0) {
+                method = null;
             }
             if (caller === void 0) {
                 caller = null;
+            }
+            if (suncom.Common.isStringNullOrEmpty(name) === true) {
+                throw Error("\u79FB\u9664\u65E0\u6548\u7684\u76D1\u542C");
+            }
+            if (method === null) {
+                throw Error("\u79FB\u9664\u65E0\u6548\u7684\u76D1\u542C\u56DE\u8C03\uFF1A" + name);
             }
             var observers = this.$observers[name];
             if (observers === void 0) {
@@ -369,8 +375,8 @@ var puremvc;
             if (suncom.Common.isStringNullOrEmpty(name) === true) {
                 throw Error("\u67E5\u8BE2\u65E0\u6548\u7684\u76D1\u542C");
             }
-            if (method === null && caller === null) {
-                throw Error("method\u548Ccaller\u4E0D\u5141\u8BB8\u540C\u65F6\u4E3A\u7A7A");
+            if (method === null) {
+                throw Error("\u67E5\u8BE2\u65E0\u6548\u7684\u76D1\u542C\u56DE\u8C03\uFF01\uFF01\uFF01");
             }
             var observers = this.$observers[name];
             if (observers === void 0) {
@@ -378,17 +384,7 @@ var puremvc;
             }
             for (var i = 0; i < observers.length; i++) {
                 var observer = observers[i];
-                if (method === null) {
-                    if (observer.caller === caller) {
-                        return true;
-                    }
-                }
-                else if (caller === null) {
-                    if (observer.method === method) {
-                        return true;
-                    }
-                }
-                else if (observer.method === method && observer.caller === caller) {
+                if (observer.method === method && observer.caller === caller) {
                     return true;
                 }
             }
@@ -409,12 +405,26 @@ var puremvc;
             this.$notifyCount++;
             for (var i = 0; i < observers.length; i++) {
                 var observer = observers[i];
+                var caller_1 = observer.caller;
                 if (observer.receiveOnce === true) {
                     this.$onceObservers.push(observer);
                 }
-                if (observer.caller !== null && observer.caller.destroyed === true) {
-                    console.warn("\u5BF9\u8C61[" + suncom.Common.getQualifiedClassName(observer.caller) + "]\u5DF1\u9500\u6BC1\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
-                    continue;
+                if (caller_1 !== null) {
+                    if (caller_1 instanceof fairygui.GObject) {
+                        if (caller_1.isDisposed === true) {
+                            suncom.Logger.warn("\u5BF9\u8C61[" + suncom.Common.getQualifiedClassName(caller_1) + "]\u5DF1\u9500\u6BC1\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
+                        }
+                    }
+                    else if (caller_1 instanceof Laya.Node || caller_1 instanceof puremvc.Notifier) {
+                        if (caller_1.destroyed === true) {
+                            suncom.Logger.warn("\u5BF9\u8C61[" + suncom.Common.getQualifiedClassName(caller_1) + "]\u5DF1\u9500\u6BC1\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
+                        }
+                    }
+                    else if (caller_1 instanceof suncore.BaseService) {
+                        if (caller_1.running === false) {
+                            suncom.Logger.warn("\u670D\u52A1[" + suncom.Common.getQualifiedClassName(caller_1) + "]\u5DF1\u505C\u6B62\uFF0C\u672A\u80FD\u54CD\u5E94" + name + "\u4E8B\u4EF6\u3002");
+                        }
+                    }
                 }
                 var args = observer.args === null ? data : observer.args.concat(data);
                 if (observer.caller === Controller.inst) {
