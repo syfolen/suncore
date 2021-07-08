@@ -76,8 +76,13 @@ module suncore {
         export const LATER_FRAME: string = "suncore.NotifyKey.LATER_FRAME";
 
         /**
-         * MsgQ消息
+         * 注册缓动对象 { tween: ITween }
          */
-        export const MSG_Q_BUSINESS: string = "suncore.NotifyKey.MSG_Q_BUSINESS";
+        export const REGISTER_TWEEN_OBJECT: string = "suncore.NotifyKey.REGISTER_TWEEN_OBJECT";
+
+        /**
+         * 缓动驱动事件 { none }
+         */
+        export const DRIVE_TWEEN_TICK: string = "suncore.NotifyKey.DRIVE_TWEEN_TICK";
     }
 }

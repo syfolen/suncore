@@ -117,79 +117,6 @@ declare module suncore {
     }
 
     /**
-     * MsgQId枚举
-     */
-    enum MsgQIdEnum {
-        /**
-         * 网络层消息枚举
-         */
-        NSL_MSG_ID_BEGIN = 1,
-
-        NSL_MSG_ID_END = 10,
-
-        /**
-         * MMI消息枚举
-         */
-        MMI_MSG_ID_BEGIN = NSL_MSG_ID_END,
-
-        MMI_MSG_ID_END = 100,
-
-        /**
-         * CUI消息枚举
-         */
-        CUI_MSG_ID_BEGIN = MMI_MSG_ID_END,
-
-        CUI_MSG_ID_END = CUI_MSG_ID_BEGIN + 100,
-
-        /**
-         * GUI消息枚举
-         */
-        GUI_MSG_ID_BEGIN = CUI_MSG_ID_END,
-
-        GUI_MSG_ID_END = GUI_MSG_ID_BEGIN + 200,
-
-        /**
-         * 逻辑层消息枚举
-         */
-        L4C_MSG_ID_BEGIN = GUI_MSG_ID_END,
-
-        L4C_MSG_ID_END = L4C_MSG_ID_BEGIN + 300
-    }
-
-    /**
-     * MsgQ的模块枚举
-     */
-    enum MsgQModEnum {
-        /**
-         * 表现层
-         * 说明：
-         * 1. 表现层的消息允许往CUI或GUI模块传递
-         * 2. 请勿修改此值，否则可能会引起MsgQ消息传递合法性校验失效
-         */
-        MMI = 1,
-
-        /**
-         * 逻辑层
-         */
-        L4C,
-
-        /**
-         * 通用界面
-         */
-        CUI,
-
-        /**
-         * 游戏界面
-         */
-        GUI,
-
-        /**
-         * 网络层
-         */
-        NSL
-    }
-
-    /**
      * 服务（主要用于逻辑层架构）
      * 说明：
      * 1. 每个服务均有独立的生命周期。
@@ -278,29 +205,6 @@ declare module suncore {
     }
 
     /**
-     * MsgQ服务类（主要用于模块间的解偶）
-     * 说明：
-     * 1. 理论上每个MsgQ模块都必须实现一个MsgQService对象，否则此模块的消息不能被处理
-     */
-    abstract class MsgQService extends BaseService {
-
-        /**
-         * 启动回调
-         */
-        protected $onRun(): void;
-
-        /**
-         * 停止回调
-         */
-        protected $onStop(): void;
-
-        /**
-         * 处理MsgQ消息
-         */
-        protected abstract $dealMsgQMsg(id: number, data: any): void;
-    }
-
-    /**
      * 暂停时间轴
      */
     class PauseTimelineCommand extends puremvc.SimpleCommand {
@@ -338,18 +242,75 @@ declare module suncore {
     }
 
     /**
-     * MsgQ机制
-     * 设计说明：
-     * 1. 设计MsgQ的主要目的是为了对不同的模块进行彻底的解耦
-     * 2. 考虑到在实际环境中，网络可能存在波动，而UI层可能会涉及到资源的动态加载与释放管理，故MsgQ中的消息是以异步的形式进行派发的
-     * 3. 由于MsgQ的异步机制，故每条消息的处理都必须考虑并避免因模块间的数据可能的不同步而带来的报错问题
+     * 缓动类
+     * 说明：
+     * 1. 缓动类内置了对象池，当缓动结束或被取消后没有立即被指定动作，则会在下一帧自动回收
+     * 2. 由于缓动对象只有在被回收后才会自动释放资源，故不建议在外部持有不工作的缓动对象
+     * 3. 若你的需求必须这么做，则可以这么来防止Tween被回收：Tween.get(target).usePool(false);
+     * 4. 当外部持有的Tween被弃用时，请记得及时回收
      */
-    namespace MsgQ {
+    class Tween extends puremvc.Notifier {
 
         /**
-         * 发送消息（异步）
+         * 取消缓动
          */
-        function send(dst: MsgQModEnum, id: number, data?: any): void;
+        cancel(): Tween;
+
+        /**
+         * 回收缓动对象
+         * 说明：
+         * 1. 你无需调用此方法，除非创建缓动的时候你没有使用对象池
+         */
+        recover(): void;
+
+        /**
+         * 从当前属性缓动至props属性
+         * @props: 变化的属性集合，其中update属性的类型只能指定为suncom.Handler，可用其来观察缓动数值的变化
+         * @duration: 缓动时长
+         * @ease: 缓动函数，默认为: null
+         * @complete: 缓动结束时的回调，默认为: null
+         */
+        to(props: any, duration: number, ease?: Function, complete?: suncom.IHandler): Tween;
+
+        /**
+         * 从props属性缓动至当前属性
+         * @参数详细说明请参考Tween.to
+         */
+        from(props: any, duration: number, ease?: Function, complete?: suncom.IHandler): Tween;
+
+        /**
+         * 以props属性的幅度进行缓动
+         * @参数详细说明请参考Tween.to
+         */
+        by(props: any, duration: number, ease?: Function, complete?: suncom.IHandler): Tween;
+
+        /**
+         * 等待指定时间
+         */
+        wait(delay: number, complete?: suncom.IHandler): Tween;
+
+        /**
+         * 是否使用对象池
+         * 说明：
+         * 1. 若使用了对象池，且缓动结束或被取消后没有重新指定动作，则在下一帧自动回收
+         */
+        usePool(value: boolean): Tween;
+
+        /**
+         * 校正缓动开始的时间戳
+         */
+        correctTimestamp(timestamp: number): Tween;
+
+        /**
+         * @target: 执行缓动的对象
+         * @mod: 执行缓动的模块，默认为：CUSTOM
+         */
+        static get(target: any, mod?: ModuleEnum): Tween;
+
+        /**
+         * 取消对象身上的所有缓动
+         */
+        static clearAll(target: any): any;
     }
 
     /**
@@ -475,6 +436,23 @@ declare module suncore {
         function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, caller: Object, method: Function, args?: any[]): void;
 
         /**
+         * 添加自定义消息
+         * @message: 消息日志
+         * 说明：
+         * 1. 通过此接口注册的 MessageId 会无条件限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，直到 MessageId 被移除
+         * 2. 有时候你没法借助 System 的其它接口来限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，此接口会帮助动你
+         */
+        function addCustomMessageId(mod: ModuleEnum, messageId: number, message?: string): void;
+
+        /**
+         * 移除自定义消息
+         * @message: 消息日志
+         * 说明
+         * 1. 当所有 MessageId 均被移除时，对 MessagePriorityEnum.PRIORITY_LAZY 的执行限制将被解除
+         */
+        function removeCustomMessageId(mod: ModuleEnum, messageId: number): void;
+
+        /**
          * 添加自定义定时器
          * @mod: 所属模块
          * @delay: 响应间隔，若为数组，则第二个参数表示首次响应延时，且默认为：0，若首次响应延时为0，则定时器会立即执行一次
@@ -491,4 +469,5 @@ declare module suncore {
          */
         function removeTimer(timerId: number): number;
     }
+
 }

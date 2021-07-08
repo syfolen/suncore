@@ -26,64 +26,69 @@ module suncore {
         private $localTime: number = Date.now();
 
         constructor() {
-            super(MsgQModEnum.E_KAL);
+            super();
             Laya.timer.frameLoop(1, this, this.$onFrameLoop);
+            runService(TweenService.NAME, new TweenService());
         }
 
         /**
          * 销毁对象
          */
         destroy(): void {
-            if (this.$destroyed === true) {
-                return;
+            if (this.$destroyed === false) {
+                Laya.timer.clear(this, this.$onFrameLoop);
+                stopService(TweenService.NAME);
+                super.destroy();
             }
-            super.destroy();
-            Laya.timer.clear(this, this.$onFrameLoop);
         }
 
         /**
          * 帧事件
          */
         private $onFrameLoop(): void {
-            // 本地历史时间
-            const oldTime: number = this.$localTime;
-            // 本地当前时间
-            this.$localTime = Date.now();
+            if (this.$destroyed === false) {
+                // 本地历史时间
+                const oldTime: number = this.$localTime;
+                // 本地当前时间
+                this.$localTime = Date.now();
 
-            // 帧间隔时间
-            this.$delta = this.$localTime - oldTime;
+                // 帧间隔时间
+                this.$delta = this.$localTime - oldTime;
 
-            // 若帧间隔时间大于 0 ，则驱动系统运行
-            if (this.$delta > 0) {
-                // 运行时间累加
-                this.$runTime += this.$delta;
-                // 时间流逝逻辑
-                this.$lapse(this.$delta);
+                // 若帧间隔时间大于 0 ，则驱动系统运行
+                if (this.$delta > 0) {
+                    // 运行时间累加
+                    this.$runTime += this.$delta;
+                    // 时间流逝逻辑
+                    this.$tick(this.$delta);
+                }
             }
         }
 
         /**
          * 时间流逝逻辑
          */
-        private $lapse(delta: number): void {
+        private $tick(delta: number): void {
             // 场景时间轴未暂停
             if (System.isModulePaused(ModuleEnum.CUSTOM) === false) {
-                M.timeStamp.lapse(delta);
+                M.timeStamp.tick(delta);
             }
             // 游戏时间轴未暂停
             if (System.isModulePaused(ModuleEnum.TIMELINE) === false) {
-                M.timeline.lapse(delta);
+                M.timeline.tick(delta);
             }
 
-            // 优先广播MsgQModEnum.NSL的数据（谨慎修改）
-            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NSL);
+            // 优先广播网络数据（谨慎修改）
+            // this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NSL);
 
             // 物理相关事件
             this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);
             this.facade.sendNotification(NotifyKey.PHYSICS_FRAME);
 
-            // 定时器不属于帧逻辑
+            // 定时器和缓动都不属于帧逻辑
             M.timerManager.executeTimer();
+            this.facade.sendNotification(NotifyKey.DRIVE_TWEEN_TICK);
+
             // 始终派发帧相关事件
             this.facade.sendNotification(NotifyKey.ENTER_FRAME);
 
@@ -94,8 +99,6 @@ module suncore {
 
             // 始终派发帧相关事件
             this.facade.sendNotification(NotifyKey.LATER_FRAME);
-            // 处理MsgQ业务
-            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS);
         }
 
         /**

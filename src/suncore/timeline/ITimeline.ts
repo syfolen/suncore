@@ -14,7 +14,7 @@ module suncore {
          * 时间流逝
          * @delta: 每帧的时间流逝值，单位为毫秒
          */
-        lapse(delta: number): void;
+        tick(delta: number): void;
 
         /**
          * 暂停时间轴

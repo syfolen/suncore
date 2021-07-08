@@ -5,6 +5,11 @@ module suncore {
      */
     export namespace M {
         /**
+         * 缓动对象集
+         */
+        export const tweens: suncom.IHashMap<Object, Tween[]> = new suncom.HashMap<Object, Tween[]>();
+
+        /**
          * 核心类
          */
         export let engine: Engine = null;

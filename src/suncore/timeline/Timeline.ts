@@ -19,7 +19,7 @@ module suncore {
          */
         protected $stopped: boolean = true;
 
-        lapse(delta: number): void {
+        tick(delta: number): void {
             // 运行时间累加（毫秒）
             this.$runTime += delta;
         }

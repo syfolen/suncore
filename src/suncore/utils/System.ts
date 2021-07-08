@@ -14,11 +14,11 @@ module suncore {
         /**
          * 随机的groupId
          */
-        let $taskGroupId: number = 1000;
+        export let $taskGroupId: number = 1000;
 
-        function createTaskGroupId(): number {
-            $taskGroupId++;
-            return $taskGroupId;
+        export function createTaskGroupId(): number {
+            this.$taskGroupId++;
+            return this.$taskGroupId;
         }
 
         /**
@@ -100,9 +100,9 @@ module suncore {
          * export
          */
         export function addTask(mod: ModuleEnum, task: ITask, groupId: number = 0): number {
-            if (System.isModuleStopped(mod) === false) {
+            if (this.isModuleStopped(mod) === false) {
                 if (groupId === -1) {
-                    groupId = createTaskGroupId();
+                    groupId = this.createTaskGroupId();
                 }
                 else if (groupId > 1000) {
                     throw Error(`自定义的Task GroupId不允许超过1000`);
@@ -134,13 +134,13 @@ module suncore {
          * export
          */
         export function addTrigger(mod: ModuleEnum, delay: number, caller: Object, method: Function, args: any[] = null): void {
-            if (System.isModuleStopped(mod) === false) {
+            if (this.isModuleStopped(mod) === false) {
                 const message: IMessage = suncom.Pool.getItemByClass("suncore.Message", Message);
                 message.mod = mod;
                 message.args = args;
                 message.caller = caller;
                 message.method = method;
-                message.timeout = System.getModuleTimestamp(mod) + delay;
+                message.timeout = this.getModuleTimestamp(mod) + delay;
                 message.priority = MessagePriorityEnum.PRIORITY_TRIGGER;
                 M.messageManager.putMessage(message);
             }
@@ -155,7 +155,7 @@ module suncore {
          * export
          */
         export function addPromise(mod: ModuleEnum, caller: Object, method: Function, args: any[] = null): void {
-            if (System.isModuleStopped(mod) === false) {
+            if (this.isModuleStopped(mod) === false) {
                 const message: IMessage = suncom.Pool.getItemByClass("suncore.Message", Message);
                 message.mod = mod;
                 message.task = new PromiseTask(caller, method, args);
@@ -172,7 +172,7 @@ module suncore {
          * export
          */
         export function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, caller: Object, method: Function, args: any[] = null): void {
-            if (System.isModuleStopped(mod) === false) {
+            if (this.isModuleStopped(mod) === false) {
                 const message: IMessage = suncom.Pool.getItemByClass("suncore.Message", Message);
                 message.mod = mod;
                 message.args = args;
@@ -195,7 +195,7 @@ module suncore {
          * export
          */
         export function addCustomMessageId(mod: ModuleEnum, messageId: number, message: string = null): void {
-            if (System.isModuleStopped(mod) === false) {
+            if (this.isModuleStopped(mod) === false) {
                 M.messageManager.addCustomMessageId(mod, messageId, message);
             }
             else {
@@ -211,7 +211,7 @@ module suncore {
          * export
          */
         export function removeCustomMessageId(mod: ModuleEnum, messageId: number): void {
-            if (System.isModuleStopped(mod) === false) {
+            if (this.isModuleStopped(mod) === false) {
                 M.messageManager.removeCustomMessageId(mod, messageId);
             }
             else {
@@ -231,7 +231,7 @@ module suncore {
          * export
          */
         export function addTimer(mod: ModuleEnum, delay: number | number[], method: Function, caller: Object, args?: any[], loops: number = 1, real: boolean = false): number {
-            if (System.isModuleStopped(mod) === false) {
+            if (this.isModuleStopped(mod) === false) {
                 return M.timerManager.addTimer(mod, delay, method, caller, args, loops, real);
             }
             else {
