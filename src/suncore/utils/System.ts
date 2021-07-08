@@ -17,8 +17,8 @@ module suncore {
         export let $taskGroupId: number = 1000;
 
         export function createTaskGroupId(): number {
-            this.$taskGroupId++;
-            return this.$taskGroupId;
+            System.$taskGroupId++;
+            return System.$taskGroupId;
         }
 
         /**
@@ -100,9 +100,9 @@ module suncore {
          * export
          */
         export function addTask(mod: ModuleEnum, task: ITask, groupId: number = 0): number {
-            if (this.isModuleStopped(mod) === false) {
+            if (System.isModuleStopped(mod) === false) {
                 if (groupId === -1) {
-                    groupId = this.createTaskGroupId();
+                    groupId = System.createTaskGroupId();
                 }
                 else if (groupId > 1000) {
                     throw Error(`自定义的Task GroupId不允许超过1000`);
@@ -134,13 +134,13 @@ module suncore {
          * export
          */
         export function addTrigger(mod: ModuleEnum, delay: number, caller: Object, method: Function, args: any[] = null): void {
-            if (this.isModuleStopped(mod) === false) {
+            if (System.isModuleStopped(mod) === false) {
                 const message: IMessage = suncom.Pool.getItemByClass("suncore.Message", Message);
                 message.mod = mod;
                 message.args = args;
                 message.caller = caller;
                 message.method = method;
-                message.timeout = this.getModuleTimestamp(mod) + delay;
+                message.timeout = System.getModuleTimestamp(mod) + delay;
                 message.priority = MessagePriorityEnum.PRIORITY_TRIGGER;
                 M.messageManager.putMessage(message);
             }
@@ -155,7 +155,7 @@ module suncore {
          * export
          */
         export function addPromise(mod: ModuleEnum, caller: Object, method: Function, args: any[] = null): void {
-            if (this.isModuleStopped(mod) === false) {
+            if (System.isModuleStopped(mod) === false) {
                 const message: IMessage = suncom.Pool.getItemByClass("suncore.Message", Message);
                 message.mod = mod;
                 message.task = new PromiseTask(caller, method, args);
@@ -172,7 +172,7 @@ module suncore {
          * export
          */
         export function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, caller: Object, method: Function, args: any[] = null): void {
-            if (this.isModuleStopped(mod) === false) {
+            if (System.isModuleStopped(mod) === false) {
                 const message: IMessage = suncom.Pool.getItemByClass("suncore.Message", Message);
                 message.mod = mod;
                 message.args = args;
@@ -195,7 +195,7 @@ module suncore {
          * export
          */
         export function addCustomMessageId(mod: ModuleEnum, messageId: number, message: string = null): void {
-            if (this.isModuleStopped(mod) === false) {
+            if (System.isModuleStopped(mod) === false) {
                 M.messageManager.addCustomMessageId(mod, messageId, message);
             }
             else {
@@ -211,7 +211,7 @@ module suncore {
          * export
          */
         export function removeCustomMessageId(mod: ModuleEnum, messageId: number): void {
-            if (this.isModuleStopped(mod) === false) {
+            if (System.isModuleStopped(mod) === false) {
                 M.messageManager.removeCustomMessageId(mod, messageId);
             }
             else {
@@ -231,7 +231,7 @@ module suncore {
          * export
          */
         export function addTimer(mod: ModuleEnum, delay: number | number[], method: Function, caller: Object, args?: any[], loops: number = 1, real: boolean = false): number {
-            if (this.isModuleStopped(mod) === false) {
+            if (System.isModuleStopped(mod) === false) {
                 return M.timerManager.addTimer(mod, delay, method, caller, args, loops, real);
             }
             else {
