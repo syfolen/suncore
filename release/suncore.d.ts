@@ -470,4 +470,13 @@ declare module suncore {
         function removeTimer(timerId: number): number;
     }
 
+    /**
+     * 运行服务
+     */
+    function runService(name: string, service: IService): void;
+
+    /**
+     * 停止服务
+     */
+    function stopService(name: string): void;
 }

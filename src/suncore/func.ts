@@ -7,6 +7,7 @@ module suncore {
 
     /**
      * 运行服务
+     * export
      */
     export function runService(name: string, service: IService): void {
         if (this.var_mServices[name] === void 0) {
@@ -20,6 +21,7 @@ module suncore {
 
     /**
      * 停止服务
+     * export
      */
     export function stopService(name: string): void {
         const service: IService = this.var_mServices[name] || null;
