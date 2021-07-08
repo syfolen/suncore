@@ -10,8 +10,8 @@ module suncore {
      * export
      */
     export function runService(name: string, service: IService): void {
-        if (this.var_mServices[name] === void 0) {
-            this.var_mServices[name] = service;
+        if (var_mServices[name] === void 0) {
+            var_mServices[name] = service;
             service.run();
         }
         else {
@@ -24,12 +24,12 @@ module suncore {
      * export
      */
     export function stopService(name: string): void {
-        const service: IService = this.var_mServices[name] || null;
+        const service: IService = var_mServices[name] || null;
         if (service === null) {
             suncom.Logger.warn(`suncore::服务不存在: ${name}`);
         }
         else {
-            delete this.var_mServices[name];
+            delete var_mServices[name];
             service.stop();
         }
     }
