@@ -188,6 +188,7 @@ module suncore {
 
         /**
          * 添加自定义消息
+         * @messageId: 再三考虑，这个值应当作为形参传入，否则不利于问题调试
          * @message: 消息日志
          * 说明：
          * 1. 通过此接口注册的 MessageId 会无条件限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，直到 MessageId 被移除
