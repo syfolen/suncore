@@ -192,7 +192,7 @@ module suncore {
          * @message: 消息日志
          * 说明：
          * 1. 通过此接口注册的 MessageId 会无条件限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，直到 MessageId 被移除
-         * 2. 有时候你没法借助 System 的其它接口来限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，此接口会帮助动你
+         * 2. 有时候你没法借助 System 的其它接口来限制 MessagePriorityEnum.PRIORITY_LAZY 的执行，此接口会帮助到你
          * export
          */
         export function addCustomMessageId(mod: ModuleEnum, messageId: number, message: string = null): void {
