@@ -13,7 +13,7 @@ module suncore {
          */
         execute(mod: ModuleEnum, stop: boolean): void {
             // 由于此命令是公开的，所以不应当为参数指定默认值
-            if (stop !== true && stop !== false) {
+            if (typeof stop !== "boolean") {
                 throw Error(`参数stop应当为布尔值`);
             }
             if (stop === true) {

@@ -13,7 +13,7 @@ module suncore {
          */
         execute(mod: ModuleEnum, pause: boolean): void {
             // 由于此命令是公开的，所以不应当为参数指定默认值
-            if (pause !== true && pause !== false) {
+            if (typeof pause !== "boolean") {
                 throw Error(`参数pause应当为布尔值`);
             }
             if (System.isModulePaused(mod) === false) {

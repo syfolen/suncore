@@ -41,7 +41,7 @@ module suncore {
          * 2. 在侧重于次数精准统计的应用中，建议此参数为 true
          * 3. 在侧重于时间精准统计的应用中，建议此参数为 false
          */
-        real: boolean;
+        jumpFrame: boolean;
 
         /**
          * 当前重复次数
@@ -61,7 +61,7 @@ module suncore {
         /**
          * 创建时间
          */
-        timestamp: number;
+        createTime: number;
 
         /**
          * 超时时间，当系统时间大于或等于超时时间时，定时器会被响应

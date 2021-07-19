@@ -53,7 +53,6 @@ module suncore {
 
         constructor(mod: ModuleEnum) {
             this.$mod = mod;
-
             // 初始化消息队列
             for (let priority: MessagePriorityEnum = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
                 this.$queues[priority] = [];
@@ -102,7 +101,7 @@ module suncore {
 
             // 执行一般消息
             for (let priority: MessagePriorityEnum = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
-                let queue: any[];
+                let queue: any[] = null;
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
                     queue = this.$tasks;
                 }
@@ -134,7 +133,6 @@ module suncore {
                 else if (priority === MessagePriorityEnum.PRIORITY_PROMISE) {
                     while (queue.length > 0) {
                         dealCount++;
-
                         const promise: IMessage = queue[0];
                         if (this.$dealTaskMessage(promise) === false) {
                             break;

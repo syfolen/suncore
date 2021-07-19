@@ -48,10 +48,10 @@ module suncore {
         /**
          * 校正缓动开始的时间
          */
-        private $var_correctTimestamp: number = -1;
+        private $var_correctTime: number = 0;
 
         private $func_setTo(target: any, mod: ModuleEnum): Tween {
-            if (this.$var_hashId === -1) {
+            if (this.$var_hashId === 0) {
                 throw Error(`Tween己被回收！！！`);
             }
             this.$var_mod = mod;
@@ -71,6 +71,9 @@ module suncore {
          * export
          */
         cancel(): Tween {
+            for (const key in this.$var_props) {
+                delete this.$var_props[key];
+            }
             this.$var_props = null;
             while (this.$var_actions.length > 0) {
                 this.$var_actions.pop().recover();
@@ -92,9 +95,13 @@ module suncore {
          * 回收到对象池
          */
         func_recover(): void {
-            if (this.$var_hashId > -1) {
-                this.$var_hashId = -1;
+            if (this.$var_hashId > 0) {
+                this.$var_hashId = 0;
+                this.$var_mod = ModuleEnum.SYSTEM;
+                this.$var_target = null;
+                this.$var_usePool = false;
                 this.$var_recovered = false;
+                this.$var_correctTime = 0;
                 this.$removeFromTweens();
                 suncom.Pool.recover("sunui.Tween", this.cancel());
             }
@@ -175,9 +182,9 @@ module suncore {
             action.ease = ease;
             action.update = update;
             action.complete = complete;
-            if (this.$var_correctTimestamp > -1) {
-                action.time = this.$var_correctTimestamp;
-                this.$var_correctTimestamp = -1;
+            if (this.$var_correctTime > 0) {
+                action.time = this.$var_correctTime;
+                this.$var_correctTime = 0;
             }
             else {
                 action.time = System.getModuleTimestamp(this.$var_mod);
@@ -215,7 +222,7 @@ module suncore {
          * 添加动作
          */
         private $func_addAction(action: TweenAction): void {
-            if (this.$var_hashId === -1) {
+            if (this.$var_hashId === 0) {
                 throw Error(`Tween己被回收！！！`);
             }
             if (this.$var_recovered === true) {
@@ -322,8 +329,8 @@ module suncore {
          * 校正缓动开始的时间戳
          * export
          */
-        correctTimestamp(timestamp: number): Tween {
-            this.$var_correctTimestamp = timestamp;
+        correctTimestamp(time: number): Tween {
+            this.$var_correctTime = time;
             return this;
         }
 
@@ -363,7 +370,7 @@ module suncore {
         static get(target: any, mod: ModuleEnum = ModuleEnum.CUSTOM): Tween {
             const tween: Tween = suncom.Pool.getItemByClass("sunui.Tween", Tween);
             tween.$var_hashId = 0;
-            tween.$var_correctTimestamp = -1;
+            tween.$var_correctTime = 0;
 
             let tweens: Tween[] = M.tweens.get(target) || null;
             if (tweens === null) {

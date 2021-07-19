@@ -228,12 +228,12 @@ module suncore {
          * @caller: 回调对象
          * @args[]: 参数列表
          * @loops: 响应次数，默认为1
-         * @real: 是否计算真实次数，默认为false
+         * @jumpFrame: 时钟是否跳帧，若为 true ，则在单位时间间隔内，回调会连续执行多次，出于性能考虑，默认为： false
          * export
          */
-        export function addTimer(mod: ModuleEnum, delay: number | number[], method: Function, caller: Object, args?: any[], loops: number = 1, real: boolean = false): number {
+        export function addTimer(mod: ModuleEnum, delay: number | number[], method: Function, caller: Object, args?: any[], loops: number = 1, jumpFrame: boolean = false): number {
             if (System.isModuleStopped(mod) === false) {
-                return M.timerManager.addTimer(mod, delay, method, caller, args, loops, real);
+                return M.timerManager.addTimer(mod, delay, method, caller, args, loops, jumpFrame);
             }
             else {
                 suncom.Logger.error(`尝试添加定时器，但模块 ${ModuleEnum[mod]} 己停止！！！`);

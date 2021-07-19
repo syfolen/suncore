@@ -28,23 +28,23 @@ module suncore {
                     // 获取模块中的所有定时器
                     const timers: ITimer[] = this.$timers[mod];
                     // 获取当前时间戳
-                    const timestamp: number = System.getModuleTimestamp(mod);
+                    const now: number = System.getModuleTimestamp(mod);
                     // 对模块中的所有定时器进行遍历
                     while (timers.length > 0) {
                         const timer: ITimer = timers[0];
                         // 若定时器有效
                         if (timer.active === true) {
                             // 若定时器未到响应时间，则跳出
-                            if (timer.timeout > timestamp) {
+                            if (timer.timeout > now) {
                                 break;
                             }
-                            // 若 real 为 true ，则对执行次数进行真实递增
-                            if (timer.real === true) {
+                            // 若 jumpFrame 为 true ，则对执行次数进行真实递增
+                            if (timer.jumpFrame === true) {
                                 timer.count++;
                             }
                             // 否则计算当前理论上的响应次数
                             else {
-                                timer.count = Math.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
+                                timer.count = Math.min(Math.floor((now - timer.createTime) / timer.delay), timer.loops);
                             }
                         }
 
@@ -53,7 +53,7 @@ module suncore {
                             delete this.$timerMap[timer.timerId];
                         }
                         else {
-                            this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.args, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.count);
+                            this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.args, timer.loops, timer.jumpFrame, timer.timerId, timer.createTime, timer.timeout, timer.count);
                         }
                         timers.shift();
 
@@ -71,7 +71,7 @@ module suncore {
             }
         }
 
-        addTimer(mod: ModuleEnum, delay: number | number[], method: Function, caller: Object, args: any[] = null, loops: number = 1, real: boolean = false, timerId: number = 0, timestamp: number = -1, timeout: number = -1, count: number = 0): number {
+        addTimer(mod: ModuleEnum, delay: number | number[], method: Function, caller: Object, args: any[] = null, loops: number = 1, jumpFrame: boolean = false, timerId: number = 0, createTime: number = -1, timeout: number = -1, count: number = 0): number {
             const currentTimestamp: number = System.getModuleTimestamp(mod);
 
             // 若编号未指定，则生成新的定时器
@@ -79,8 +79,8 @@ module suncore {
                 timerId = suncom.Common.createHashId();
             }
             // 若创建时间未指定，则默认为系统时间
-            if (timestamp === -1) {
-                timestamp = currentTimestamp;
+            if (createTime === -1) {
+                createTime = currentTimestamp;
             }
             // 若上次响应时间未指定，则默认为系统时间
             if (timeout === -1) {
@@ -105,7 +105,7 @@ module suncore {
             let dev: number = 0;
 
             // 根据定时器的特性来修正下次响应时间
-            if (real === true) {
+            if (jumpFrame === true) {
                 /**
                  * 若定时器侧重于真实响应次数统计
                  * 为了确保定时器的两次响应之间的时间间隔完全一致
@@ -120,7 +120,7 @@ module suncore {
                  * 定时器的响应时间偏差值应当根据定时器的创建时间来计算
                  */
                 // 避免定时器响应时间不精确
-                dev = (currentTimestamp - timestamp) % delay;
+                dev = (currentTimestamp - createTime) % delay;
             }
 
             // 修正超时时间
@@ -149,11 +149,11 @@ module suncore {
             timer.method = method;
             timer.caller = caller;
             timer.args = args;
-            timer.real = real;
+            timer.jumpFrame = jumpFrame;
             timer.count = count;
             timer.loops = loops;
             timer.timerId = timerId;
-            timer.timestamp = timestamp;
+            timer.createTime = createTime;
             timer.timeout = timeout;
 
             // 获取对应模块的定时器列表

@@ -15,6 +15,10 @@ module suncore {
             // 执行任务
             this.$var_method.apply(this.$var_caller, this.$var_args === null ? [method] : [method].concat(this.$var_args));
 
+            this.$var_args = null;
+            this.$var_caller = null;
+            this.$var_method = null;
+
             return this.done;
         }
 

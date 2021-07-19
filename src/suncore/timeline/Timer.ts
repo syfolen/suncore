@@ -35,13 +35,9 @@ module suncore {
         args: any[] = null;
 
         /**
-         * 统计真实响应次数
-         * 说明：
-         * 1. 为 false 时，定时器实际响应次数可能不足设定次数
-         * 2. 在侧重于次数精准统计的应用中，建议此参数为 true
-         * 3. 在侧重于时间精准统计的应用中，建议此参数为 false
+         * 时钟是否跳帧，若为 true ，则在单位时间间隔内，回调会连续执行多次
          */
-        real: boolean = false;
+        jumpFrame: boolean = false;
 
         /**
          * 当前重复次数
@@ -61,7 +57,7 @@ module suncore {
         /**
          * 创建时间
          */
-        timestamp: number = -1;
+        createTime: number = 0;
 
         /**
          * 超时时间，当系统时间大于或等于超时时间时，定时器会被响应
@@ -69,9 +65,18 @@ module suncore {
         timeout: number = 0;
 
         recover(): void {
+            this.mod = ModuleEnum.SYSTEM;
+            this.active = false;
+            this.delay = 0;
             this.method = null;
             this.caller = null;
             this.args = null;
+            this.jumpFrame = false;
+            this.count = 0;
+            this.loops = 0;
+            this.timerId = 0;
+            this.createTime = 0;
+            this.timeout = 0;
             suncom.Pool.recover("suncore.Timer", this);
         }
     }
