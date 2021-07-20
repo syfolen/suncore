@@ -56,7 +56,6 @@ module suncore {
             }
             this.$var_mod = mod;
             this.$var_target = target;
-            this.$var_hashId = suncom.Common.createHashId();
             if (System.isModuleStopped(mod) === false) {
                 this.facade.sendNotification(NotifyKey.REGISTER_TWEEN_OBJECT, this);
             }
@@ -369,7 +368,7 @@ module suncore {
          */
         static get(target: any, mod: ModuleEnum = ModuleEnum.CUSTOM): Tween {
             const tween: Tween = suncom.Pool.getItemByClass("sunui.Tween", Tween);
-            tween.$var_hashId = 0;
+            tween.$var_hashId = suncom.Common.createHashId();
             tween.$var_correctTime = 0;
 
             let tweens: Tween[] = M.tweens.get(target) || null;
